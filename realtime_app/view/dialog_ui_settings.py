@@ -63,7 +63,7 @@ class DialogUiSettings(QDialog):
 
         # 按钮
         btn_layout = QHBoxLayout()
-        btn_layout.addStretch()
+        btn_layout.addStretch(1)
         btn_ok = QPushButton("确定")
         btn_ok.clicked.connect(self.accept)
         btn_cancel = QPushButton("取消")

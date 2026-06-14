@@ -18,21 +18,21 @@ c.BCIRealtimeApp.version = '0.1.0'
 #------------------------------------------------------------------------------
 # ConfigTheme configuration
 #------------------------------------------------------------------------------
-c.ConfigTheme.color_mode = 'Dark'
+c.ConfigTheme.color_mode = 'System'
 c.ConfigTheme.theme = 'Fusion'
 
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'cyton'
-c.ConfigDevice.port = '/dev/cu.debug-console'
+c.ConfigDevice.name = 'synthetic'
+c.ConfigDevice.port = ''
 c.ConfigDevice.sampling_rate = 250
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
-c.ConfigFilter.highpass = 1.0
+c.ConfigFilter.highpass = 0.5
 c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.notch_freq = 50.0
 
@@ -45,7 +45,7 @@ c.ConfigDetrend.enable = True
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.channels = ['CH1']
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
 c.ConfigFreqsDomain.window_type = 'hann'
@@ -54,7 +54,8 @@ c.ConfigFreqsDomain.window_type = 'hann'
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigTimeDomain.amplitude = 1000.0
-c.ConfigTimeDomain.channels = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5']
+c.ConfigTimeDomain.channels = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6']
+c.ConfigTimeDomain.choose = [True, True, True, True, True, True]
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

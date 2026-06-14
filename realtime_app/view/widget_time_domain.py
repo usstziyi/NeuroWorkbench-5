@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-
+import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Signal, Slot
