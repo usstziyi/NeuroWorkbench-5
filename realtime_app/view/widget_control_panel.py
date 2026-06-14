@@ -143,7 +143,7 @@ class ControlPanelWidget(QWidget):
         return capture_group
 
     def build_time_domain_group(self):
-        time_domain_group = QGroupBox("时间域分析")
+        time_domain_group = QGroupBox("时间信号")
         time_domain_layout = QFormLayout(time_domain_group)
         self.window_time_spin = QDoubleSpinBox()
         self.window_time_spin.setRange(5.0, 30.0)

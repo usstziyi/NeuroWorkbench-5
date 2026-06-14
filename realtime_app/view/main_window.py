@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomaixnWidget(binder_freqs=self._binder_freqs)
+        bottom_widget = FreqsDomainWidget(binder_freqs=self._binder_freqs)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
