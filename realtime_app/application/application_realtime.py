@@ -5,6 +5,7 @@ from configs.config_device import ConfigDevice
 from configs.config_freqs_domain import ConfigFreqsDomain
 from configs.config_time_domain import ConfigTimeDomain
 from configs.config_detrend import ConfigDetrend
+from configs.config_theme import ConfigTheme
 from widgets.main_window import MainWindow
 
 
@@ -14,7 +15,7 @@ class BCIRealtimeApp(Application):
     description = Unicode("BCIRealtimeApp application for real-time brain-computer interface.").tag(config=True)    
     version = Unicode("0.1.0", help="Version of the application.").tag(config=True)
 
-    classes = [ConfigDevice, ConfigFilter, ConfigDetrend, ConfigFreqsDomain, ConfigTimeDomain]
+    classes = [ConfigTheme, ConfigDevice, ConfigFilter, ConfigDetrend, ConfigFreqsDomain, ConfigTimeDomain]
 
     def start(self):
         """Start the application — create and show the main window."""

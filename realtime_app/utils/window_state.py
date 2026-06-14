@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSettings
 
 
-class WindowSettings:
+class WindowStateManager:
     """保存和恢复窗口 geometry 和 state 的设置。
     geometry (saveGeometry/restoreGeometry): 保存窗口的**大小和位置**（宽、高、x 坐标、y 坐标）。只负责窗口在屏幕上的矩形区域。
     state (saveState/restoreState): 保存窗口的布局状态，比如工具栏（QToolBar）和停靠窗口（QDockWidget）的显示/隐藏、位置、大小等信息。版本号用于兼容不同 Qt 版本的状态数据。
@@ -26,11 +26,11 @@ class WindowSettings:
             window.restoreState(state)
 
 
-def save_window_settings(window, organization="BCI", application="RealtimeApp"):
-    """保存窗口设置。"""
-    WindowSettings(organization, application).save(window)
+def save_window_state(window, organization="BCI", application="RealtimeApp"):
+    """保存窗口状态。"""
+    WindowStateManager(organization, application).save(window)
 
 
-def restore_window_settings(window, organization="BCI", application="RealtimeApp"):
-    """恢复窗口设置。"""
-    WindowSettings(organization, application).restore(window)
+def restore_window_state(window, organization="BCI", application="RealtimeApp"):
+    """恢复窗口状态。"""
+    WindowStateManager(organization, application).restore(window)
