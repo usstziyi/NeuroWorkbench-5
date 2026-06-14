@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QMessageBox, QLabel, QDockWidget,
 )
 
-from widgets.dialog_settings import DialogSettings
+from view.dialog_settings import DialogSettings
 
 from superqt import (
     QLabeledSlider,

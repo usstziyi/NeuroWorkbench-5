@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from application import BCIRealtimeApp
+from app import BCIRealtimeApp
 
 
 def main():
