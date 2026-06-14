@@ -24,7 +24,7 @@ NeuroWorkbench-5/
 
 ```
 Model (configs/)  ←→  Binder (binder/)  ←→  View (view/)
-  ConfigTheme            ConfigBinder          DialogSettings
+  ConfigTheme            ConfigBinder          DialogUiSettings
   ConfigDevice                                 MainWindow
   ConfigFilter                ↑
   ...                    app/ (Controller)

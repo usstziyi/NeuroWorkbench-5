@@ -55,9 +55,7 @@ class BCIRealtimeApp(Application):
         binder_time = ConfigBinder(self.config_time_domain)
         binder_recorder = ConfigBinder(self.config_recorder)
 
-        # 在窗口创建前应用初始主题
-        QApplication.setStyle(self.config_theme.theme)
-
+        
         self.main_window = MainWindow(
             app_info={
                 "name": self.name,

@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from view.dialog_settings import DialogSettings
+from view.dialog_ui_settings import DialogUiSettings
 
 from superqt import (
     QLabeledSlider,

@@ -1,9 +1,8 @@
 from enum import Enum
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QWidget,
-    QFormLayout, QPushButton, QApplication,
+    QFormLayout, QPushButton,
 )
 from PySide6.QtGui import QCloseEvent
 
@@ -29,21 +28,17 @@ class ColorMode(str, Enum):
         return self.value
 
 
-class DialogSettings(QDialog):
+class DialogUiSettings(QDialog):
     """设置对话框。"""
 
     def __init__(self, binder: ConfigBinder = None, parent=None):
         super().__init__(parent)
         self._binder = binder
-        self.setWindowTitle("设置")
-
-        # 保存初始风格，用于 Cancel 回滚
-        self._initial_style = QApplication.style().objectName()
-        self._initial_color_scheme = QApplication.styleHints().colorScheme()
+        self.setWindowTitle("外观设置")
+        self.resize(400, 300)
 
         self._init_ui()
         self._bind_configs()
-        self._connect_signals()
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -63,6 +58,8 @@ class DialogSettings(QDialog):
         appearance_collapsible.addWidget(form_container)
         appearance_collapsible.expand(animate=False)
         main_layout.addWidget(appearance_collapsible)
+
+        main_layout.addStretch(1)
 
         # 按钮
         btn_layout = QHBoxLayout()
@@ -95,31 +92,9 @@ class DialogSettings(QDialog):
             )
             self._binder.snapshot()
 
-    def _connect_signals(self):
-        self.theme_combo.currentEnumChanged.connect(self._on_theme_changed)
-        self.color_mode_combo.currentEnumChanged.connect(self._on_color_mode_changed)
-
-    def _on_theme_changed(self, theme: ThemeName):
-        QApplication.setStyle(theme.value)
-
-    def _on_color_mode_changed(self, mode: ColorMode):
-        app = QApplication.instance()
-        if mode == ColorMode.System:
-            app.styleHints().setColorScheme(Qt.ColorScheme.Unknown)
-        elif mode == ColorMode.Light:
-            app.styleHints().setColorScheme(Qt.ColorScheme.Light)
-        elif mode == ColorMode.Dark:
-            app.styleHints().setColorScheme(Qt.ColorScheme.Dark)
-
     def reject(self):
-        # 回滚 model（Binder 的 observe 会自动将 widget 也恢复）
         if self._binder is not None:
             self._binder.restore()
-        # 回滚风格
-        if QApplication.style().objectName() != self._initial_style:
-            QApplication.setStyle(self._initial_style)
-        # 回滚颜色模式
-        QApplication.styleHints().setColorScheme(self._initial_color_scheme)
         super().reject()
 
     def closeEvent(self, event: QCloseEvent):

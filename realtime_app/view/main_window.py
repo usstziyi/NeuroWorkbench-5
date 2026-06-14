@@ -6,7 +6,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QFormLayout, QLineEdit, QCheckBox, QPushButton, QFileDialog,
-    QMessageBox, QLabel, QDockWidget,
+    QMessageBox, QLabel, QDockWidget, QApplication,
 )
 
 from view.widget_control_panel import ControlPanelWidget
@@ -14,8 +14,8 @@ from view.widget_time_domain import TimeDomainWidget
 from view.widget_freqs_domain import FreqsDomainWidget
 from view.widget_properties import PropertiesWidget
 
-from view.dialog_settings import DialogSettings
-from view.widget_control_panel import ControlPanelWidget
+from view.dialog_ui_settings import DialogUiSettings
+from view.dialog_channel_choose import DialogChannelChoose
 
 from superqt import (
     QLabeledSlider,
@@ -53,6 +53,16 @@ class MainWindow(QMainWindow):
         self._binder_recorder = binder_recorder
 
         self.setWindowTitle(self._app_name)
+
+        # 在 UI 创建前应用初始主题，并监听后续变化
+        if self._binder_theme is not None:
+            model = self._binder_theme.model
+            self._apply_theme(model.theme, model.color_mode)
+            model.observe(
+                lambda change: self._apply_theme(model.theme, model.color_mode),
+                names=["theme", "color_mode"],
+            )
+
         self.init_ui()
         self.setup_menubar()
 
@@ -95,6 +105,7 @@ class MainWindow(QMainWindow):
     def setup_menubar(self):
         menubar = self.menuBar()
 
+        # 视图
         view_menu = menubar.addMenu("视图(&V)")
         view_menu.addAction(self.left_dock.toggleViewAction())
         view_menu.addAction(self.right_dock.toggleViewAction())
@@ -102,20 +113,27 @@ class MainWindow(QMainWindow):
 
         # 设置
         settings_menu = menubar.addMenu("设置(&S)")
-        settings_menu.addAction(self.create_settings_action())
+        settings_menu.addAction(self.create_ui_settings_action())
+        settings_menu.addAction(self.create_channel_choose_action())
 
         # 关于
         about_menu = menubar.addMenu("关于(&A)")
         about_menu.addAction(self.create_about_action())
-
-    def create_settings_action(self):
-        action = QAction("设置(&S)", self)
-        action.triggered.connect(self._show_settings_dialog)
-        return action
-
+    
     def create_about_action(self):
         action = QAction("关于(&A)", self)
         action.triggered.connect(self._show_about_dialog)
+        return action
+
+    def create_ui_settings_action(self):
+        action = QAction("外观设置(&S)", self)
+        action.triggered.connect(self._show_ui_settings_dialog)
+        return action
+    
+    # 通道设置
+    def create_channel_choose_action(self):
+        action = QAction("通道设置(&S)", self)
+        action.triggered.connect(self._show_channel_choose_dialog)
         return action
 
     def _show_about_dialog(self):
@@ -124,8 +142,12 @@ class MainWindow(QMainWindow):
     
 
 
-    def _show_settings_dialog(self):
-        dialog = DialogSettings(binder=self._binder_theme, parent=self)
+    def _show_ui_settings_dialog(self):
+        dialog = DialogUiSettings(binder=self._binder_theme, parent=self)
+        dialog.exec()
+    
+    def _show_channel_choose_dialog(self):
+        dialog = DialogChannelChoose(binder=self._binder_time, parent=self)
         dialog.exec()
 
 
@@ -135,3 +157,14 @@ class MainWindow(QMainWindow):
         if self._save_config_callback:
             self._save_config_callback()
         super().closeEvent(event)
+
+    def _apply_theme(self, theme: str, color_mode: str):
+        QApplication.setStyle(theme)
+        color_mode_map = {
+            "Light": Qt.ColorScheme.Light,
+            "Dark": Qt.ColorScheme.Dark,
+            "System": Qt.ColorScheme.Unknown,
+        }
+        QApplication.styleHints().setColorScheme(
+            color_mode_map.get(color_mode, Qt.ColorScheme.Unknown)
+        )

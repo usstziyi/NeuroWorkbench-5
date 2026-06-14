@@ -18,7 +18,7 @@ c.BCIRealtimeApp.version = '0.1.0'
 #------------------------------------------------------------------------------
 # ConfigTheme configuration
 #------------------------------------------------------------------------------
-c.ConfigTheme.color_mode = 'System'
+c.ConfigTheme.color_mode = 'Dark'
 c.ConfigTheme.theme = 'Fusion'
 
 #------------------------------------------------------------------------------
