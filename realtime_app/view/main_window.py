@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, app_info=None,
                  save_config_callback=None,
+                 device_manager=None,
                  binder_theme=None, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_freqs=None,
                  binder_time=None, binder_recorder=None):
@@ -44,6 +45,7 @@ class MainWindow(QMainWindow):
         self._app_description = app_info.get("description", "")
         self._app_version = app_info.get("version", "")
         self._save_config_callback = save_config_callback
+        self._device_manager = device_manager
         self._binder_theme = binder_theme
         self._binder_device = binder_device
         self._binder_filter = binder_filter
@@ -84,7 +86,8 @@ class MainWindow(QMainWindow):
                                           binder_detrend=self._binder_detrend,
                                           binder_freqs=self._binder_freqs,
                                           binder_time=self._binder_time,
-                                          binder_recorder=self._binder_recorder)
+                                          binder_recorder=self._binder_recorder,
+                                          device_manager=self._device_manager)
         self.left_dock.setWidget(left_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.left_dock)
 

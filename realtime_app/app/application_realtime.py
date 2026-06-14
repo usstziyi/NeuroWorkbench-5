@@ -11,6 +11,7 @@ from configs.config_time_domain import ConfigTimeDomain
 from configs.config_detrend import ConfigDetrend
 from configs.config_theme import ConfigTheme
 from configs.config_recorder import ConfigRecorder
+from device import DeviceManager
 from view.main_window import MainWindow
 
 CONFIG_DIR = Path(__file__).resolve().parent
@@ -63,6 +64,7 @@ class BCIRealtimeApp(Application):
                 "version": self.version,
             },
             save_config_callback=self._save_config,
+            device_manager=DeviceManager(),
             binder_theme=binder_theme,
             binder_device=binder_device,
             binder_filter=binder_filter,

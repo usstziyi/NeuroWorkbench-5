@@ -79,7 +79,8 @@ class ControlPanelWidget(QWidget):
 
     def __init__(self, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_freqs=None,
-                 binder_time=None, binder_recorder=None, parent=None):
+                 binder_time=None, binder_recorder=None,
+                 device_manager=None, parent=None):
         super().__init__(parent)
         self._binder_device = binder_device
         self._binder_filter = binder_filter
@@ -87,10 +88,13 @@ class ControlPanelWidget(QWidget):
         self._binder_freqs = binder_freqs
         self._binder_time = binder_time
         self._binder_recorder = binder_recorder
+        self._device_manager = device_manager
 
         self.init_ui()
         self.bind_configs()
         self.connect_signals()
+        if self._device_manager:
+            self._connect_device_signals()
     
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -394,23 +398,55 @@ class ControlPanelWidget(QWidget):
             )
     
     def connect_signals(self):
-        self.connect_btn.clicked.connect(self.connect_to_device)
-        self.disconnect_btn.clicked.connect(self.disconnect_from_device)
-        self.start_btn.clicked.connect(self.start_capture)
-        self.stop_btn.clicked.connect(self.stop_capture)
-        self.record_btn.clicked.connect(self.record)
-    
-    def connect_to_device(self):
-        pass
-    
-    def disconnect_from_device(self):
-        pass
-    
-    def start_capture(self):
-        pass
-    
-    def stop_capture(self):
-        pass
-    
+        self.connect_btn.clicked.connect(self._on_connect)
+        self.disconnect_btn.clicked.connect(self._on_disconnect)
+        self.start_btn.clicked.connect(self._on_start)
+        self.stop_btn.clicked.connect(self._on_stop)
+        self.recorder_button.clicked.connect(self.record)
+
+    def _connect_device_signals(self):
+        self._device_manager.connected.connect(self._on_device_connected)
+        self._device_manager.disconnected.connect(self._on_device_disconnected)
+        self._device_manager.error_occurred.connect(self._on_device_error)
+
+    def _on_connect(self):
+        if not self._device_manager:
+            return
+        name = self._binder_device.get("name")
+        port = self._binder_device.get("port")
+        sampling_rate = self._binder_device.get("sampling_rate")
+        self._device_manager.connect_device(name, port, sampling_rate)
+
+    def _on_disconnect(self):
+        if not self._device_manager:
+            return
+        self._device_manager.disconnect()
+
+    def _on_start(self):
+        if not self._device_manager:
+            return
+        self._device_manager.start_stream()
+
+    def _on_stop(self):
+        if not self._device_manager:
+            return
+        self._device_manager.stop_stream()
+
+    def _on_device_connected(self, board_id: int):
+        self.connect_btn.setEnabled(False)
+        self.disconnect_btn.setEnabled(True)
+        self.start_btn.setEnabled(True)
+
+    def _on_device_disconnected(self):
+        self.connect_btn.setEnabled(True)
+        self.disconnect_btn.setEnabled(False)
+        self.start_btn.setEnabled(False)
+        self.stop_btn.setEnabled(False)
+
+    def _on_device_error(self, msg: str):
+        print(f"[DeviceManager] Error: {msg}")
+        self.connect_btn.setEnabled(True)
+        self.disconnect_btn.setEnabled(False)
+
     def record(self):
         pass
