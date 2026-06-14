@@ -23,8 +23,9 @@ from PySide6.QtWidgets import (
 
 class FreqsDomainWidget(QWidget):
     """Frequency domain widget."""
-    def __init__(self):
+    def __init__(self, binder_freqs=None):
         super().__init__()
+        self._binder_freqs = binder_freqs
         self.setObjectName("freqs_domain_widget")
         self.init_ui()
     

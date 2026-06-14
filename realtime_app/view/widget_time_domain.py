@@ -24,8 +24,9 @@ from PySide6.QtWidgets import (
 
 class TimeDomainWidget(QWidget):
     """Time domain widget."""
-    def __init__(self):
+    def __init__(self, binder_time=None):
         super().__init__()
+        self._binder_time = binder_time
         self.setObjectName("time_domain_widget")
         self.init_ui()
     

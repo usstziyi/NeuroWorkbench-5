@@ -58,13 +58,12 @@ class MainWindow(QMainWindow):
 
         restore_window_state(self)
 
-        # 在 restoreState 之后设置角落，确保不被 QSettings 覆盖
+    
+    def init_ui(self):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-
-    def init_ui(self):
-        center_widget = TimeDomainWidget()
+        center_widget = TimeDomainWidget(binder_time=self._binder_time)
         self.setCentralWidget(center_widget)
 
         self.left_dock = QDockWidget("控制面板")
@@ -89,7 +88,7 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomainWidget()
+        bottom_widget = FreqsDomaixnWidget(binder_freqs=self._binder_freqs)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
