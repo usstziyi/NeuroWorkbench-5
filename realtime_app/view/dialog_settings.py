@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QWidget,
     QFormLayout, QPushButton, QApplication,
 )
+from PySide6.QtGui import QCloseEvent
 
 from superqt import QCollapsible, QEnumComboBox
 from binder import ConfigBinder
@@ -82,3 +83,8 @@ class DialogSettings(QDialog):
         if QApplication.style().objectName() != self._initial_style:
             QApplication.setStyle(self._initial_style)
         super().reject()
+
+    def closeEvent(self, event: QCloseEvent):
+        if self._binder is not None:
+            self._binder.unbind("theme")
+        super().closeEvent(event)
