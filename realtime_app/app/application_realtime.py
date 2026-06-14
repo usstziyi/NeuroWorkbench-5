@@ -59,7 +59,11 @@ class BCIRealtimeApp(Application):
         QApplication.setStyle(self.config_theme.theme)
 
         self.main_window = MainWindow(
-            app_name=self.name,
+            app_info={
+                "name": self.name,
+                "description": self.description,
+                "version": self.version,
+            },
             save_config_callback=self._save_config,
             binder_theme=binder_theme,
             binder_device=binder_device,
@@ -74,6 +78,7 @@ class BCIRealtimeApp(Application):
     def _save_config(self):
         lines = ["# Configuration file for %s." % self.name, "", "c = get_config()  # noqa", ""]
         config_objects = [
+            self,
             self.config_theme,
             self.config_device,
             self.config_filter,

@@ -3,6 +3,19 @@
 c = get_config()  # noqa
 
 #------------------------------------------------------------------------------
+# BCIRealtimeApp configuration
+#------------------------------------------------------------------------------
+c.BCIRealtimeApp.description = 'BCIRealtimeApp application for real-time brain-computer interface.'
+c.BCIRealtimeApp.log_datefmt = '%Y-%m-%d %H:%M:%S'
+c.BCIRealtimeApp.log_format = '[%(name)s]%(highlevel)s %(message)s'
+c.BCIRealtimeApp.log_level = 30
+c.BCIRealtimeApp.logging_config = {}
+c.BCIRealtimeApp.name = 'BCIRealtimeApp'
+c.BCIRealtimeApp.show_config = False
+c.BCIRealtimeApp.show_config_json = False
+c.BCIRealtimeApp.version = '0.1.0'
+
+#------------------------------------------------------------------------------
 # ConfigTheme configuration
 #------------------------------------------------------------------------------
 c.ConfigTheme.theme = 'Fusion'

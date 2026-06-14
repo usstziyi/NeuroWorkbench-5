@@ -9,7 +9,10 @@ from PySide6.QtWidgets import (
     QMessageBox, QLabel, QDockWidget,
 )
 
+from view.widget_control_panel import ControlPanelWidget
+
 from view.dialog_settings import DialogSettings
+from view.widget_control_panel import ControlPanelWidget
 
 from superqt import (
     QLabeledSlider,
@@ -27,11 +30,16 @@ from utils import restore_window_state, save_window_state
 class MainWindow(QMainWindow):
     """Main window of the BCIRealtimeApp application."""
 
-    def __init__(self, app_name="BCIRealtimeApp", save_config_callback=None,
+    def __init__(self, app_info=None,
+                 save_config_callback=None,
                  binder_theme=None, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_freqs=None,
                  binder_time=None, binder_recorder=None):
         super().__init__()
+        app_info = app_info or {}
+        self._app_name = app_info.get("name", "BCIRealtimeApp")
+        self._app_description = app_info.get("description", "")
+        self._app_version = app_info.get("version", "")
         self._save_config_callback = save_config_callback
         self._binder_theme = binder_theme
         self._binder_device = binder_device
@@ -41,7 +49,7 @@ class MainWindow(QMainWindow):
         self._binder_time = binder_time
         self._binder_recorder = binder_recorder
 
-        self.setWindowTitle(app_name)
+        self.setWindowTitle(self._app_name)
         self.init_ui()
         self.setup_menubar()
 
@@ -58,8 +66,13 @@ class MainWindow(QMainWindow):
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")
         self.left_dock.setTitleBarWidget(QWidget())
-        # left_widget = self._setup_left_panel()
-        # self.left_dock.setWidget(left_widget)
+        left_widget = ControlPanelWidget(binder_device=self._binder_device,
+                                          binder_filter=self._binder_filter,
+                                          binder_detrend=self._binder_detrend,
+                                          binder_freqs=self._binder_freqs,
+                                          binder_time=self._binder_time,
+                                          binder_recorder=self._binder_recorder)
+        self.left_dock.setWidget(left_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.left_dock)
 
         self.right_dock = QDockWidget("右侧面板")
@@ -99,8 +112,12 @@ class MainWindow(QMainWindow):
 
     def create_about_action(self):
         action = QAction("关于(&A)", self)
-        action.triggered.connect(lambda: QMessageBox.about(self, "关于", "BCIRealtimeApp 应用程序"))
+        action.triggered.connect(self._show_about_dialog)
         return action
+
+    def _show_about_dialog(self):
+        about_text = f"{self._app_name}\nDescription: {self._app_description}\nVersion: {self._app_version}"
+        QMessageBox.about(self, "关于", about_text)
     
 
 
