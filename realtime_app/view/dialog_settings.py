@@ -15,6 +15,9 @@ class ThemeName(str, Enum):
     Windows = "Windows"
     macOS = "macOS"
 
+    def __str__(self):
+        return self.value
+
 
 class DialogSettings(QDialog):
     """设置对话框。"""

@@ -39,11 +39,17 @@ class DeviceName(str, Enum):
     synthetic = "synthetic"
     cyton = "cyton"
 
+    def __str__(self):
+        return self.value
+
 
 class NotchFreq(str, Enum):
     Hz_50 = "50 Hz"
     Hz_60 = "60 Hz"
     none = "None"
+
+    def __str__(self):
+        return self.value
 
 
 class WindowType(str, Enum):
@@ -52,6 +58,9 @@ class WindowType(str, Enum):
     Blackman = "Blackman"
     Bartlett = "Bartlett"
     Rectangular = "Rectangular"
+
+    def __str__(self):
+        return self.value
 
 
 class PortComboBox(QComboBox):
@@ -161,18 +170,18 @@ class ControlPanelWidget(QWidget):
         self.detrend_switch = QToggleSwitch()
         self.detrend_switch.setChecked(True)
         filter_layout.addRow("去除漂移:",self.detrend_switch)
-        # BandPass low
-        self.bp_low_spin = QDoubleSpinBox()
-        self.bp_low_spin.setRange(0.1, 20.0)
-        self.bp_low_spin.setSingleStep(0.1)
-        self.bp_low_spin.setSuffix(" Hz")
-        filter_layout.addRow("低通滤波:", self.bp_low_spin)
         # BandPass high
         self.bp_high_spin = QDoubleSpinBox()
-        self.bp_high_spin.setRange(20.0, 100.0)
+        self.bp_high_spin.setRange(0.1, 20.0)
         self.bp_high_spin.setSingleStep(0.1)
         self.bp_high_spin.setSuffix(" Hz")
         filter_layout.addRow("高通滤波:", self.bp_high_spin)
+        # BandPass low
+        self.bp_low_spin = QDoubleSpinBox()
+        self.bp_low_spin.setRange(20.0, 100.0)
+        self.bp_low_spin.setSingleStep(0.1)
+        self.bp_low_spin.setSuffix(" Hz")
+        filter_layout.addRow("低通滤波:", self.bp_low_spin)
         # notch
         self.notch_combo = QEnumComboBox(enum_class=NotchFreq)
         filter_layout.addRow("工频滤波:", self.notch_combo) 
@@ -251,4 +260,123 @@ class ControlPanelWidget(QWidget):
 
     
     def bind_configs(self):
-        pass
+        # --- Device ---
+        if self._binder_device:
+            self._binder_device.bind(
+                "name",
+                self.device_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: DeviceName(v),
+                from_widget_func=lambda v: v.value,
+            )
+            self._binder_device.bind(
+                "port",
+                self.port_combo,
+                widget_property="currentText",
+                widget_signal="currentTextChanged",
+            )
+
+        # --- Detrend ---
+        if self._binder_detrend:
+            self._binder_detrend.bind(
+                "enable",
+                self.detrend_switch,
+                widget_property="checked",
+                widget_signal="toggled",
+            )
+
+        # --- Filter ---
+        if self._binder_filter:
+            self._binder_filter.bind(
+                "highpass",
+                self.bp_high_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
+            )
+            self._binder_filter.bind(
+                "lowpass",
+                self.bp_low_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
+            )
+            self._binder_filter.bind(
+                "notch_freq",
+                self.notch_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: NotchFreq.Hz_50 if v == 50.0
+                else (NotchFreq.Hz_60 if v == 60.0 else NotchFreq.none),
+                from_widget_func=lambda v: 50.0 if v is NotchFreq.Hz_50
+                else (60.0 if v is NotchFreq.Hz_60 else 0.0),
+            )
+            self._binder_filter.bind(
+                "enable",
+                self.filter_switch,
+                widget_property="checked",
+                widget_signal="toggled",
+            )
+
+        # --- Freqs Domain ---
+        if self._binder_freqs:
+            self._binder_freqs.bind(
+                "window_type",
+                self.window_type,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: WindowType(v.capitalize()),
+                from_widget_func=lambda v: v.value.lower(),
+            )
+            self._binder_freqs.bind(
+                "seconds",
+                self.spectrum_window,
+                widget_property="value",
+                widget_signal="valueChanged",
+            )
+            self._binder_freqs.bind(
+                "overlap_ratio",
+                self.overlap_ratio,
+                widget_property="value",
+                widget_signal="valueChanged",
+                to_widget_func=lambda v: int(v * 100),
+                from_widget_func=lambda v: v / 100.0,
+            )
+            # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，暂不绑定。
+
+        # --- Time Domain ---
+        if self._binder_time:
+            self._binder_time.bind(
+                "seconds",
+                self.window_time_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
+            )
+            self._binder_time.bind(
+                "amplitude",
+                self.amplitude_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
+                to_widget_func=lambda v: int(v),
+            )
+            self._binder_time.bind(
+                "interval",
+                self.refresh_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
+                to_widget_func=lambda v: int(v),
+            )
+
+        # --- Recorder ---
+        if self._binder_recorder:
+            self._binder_recorder.bind(
+                "record_raw",
+                self.record_original_signal,
+                widget_property="checked",
+                widget_signal="toggled",
+            )
+            self._binder_recorder.bind(
+                "record_processed",
+                self.record_processed_signal,
+                widget_property="checked",
+                widget_signal="toggled",
+            )

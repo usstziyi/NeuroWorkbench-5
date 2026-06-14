@@ -23,18 +23,16 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = ''
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.debug-console'
 c.ConfigDevice.sampling_rate = 250
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
+c.ConfigFilter.enable = False
 c.ConfigFilter.highpass = 0.5
-c.ConfigFilter.highpass_enable = True
 c.ConfigFilter.lowpass = 45.0
-c.ConfigFilter.lowpass_enable = True
-c.ConfigFilter.notch_enable = True
 c.ConfigFilter.notch_freq = 50.0
 
 #------------------------------------------------------------------------------
