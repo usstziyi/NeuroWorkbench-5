@@ -17,10 +17,14 @@ class ThemeName(str, Enum):
 class DialogSettings(QDialog):
     """设置对话框。"""
 
-    def __init__(self, parent=None):
+    def __init__(self, config_theme=None, parent=None):
         super().__init__(parent)
+        self.config_theme = config_theme
         self.setWindowTitle("设置")
-        self._initial_theme = QApplication.style().objectName()
+        if self.config_theme is not None:
+            self._initial_theme = self.config_theme.theme
+        else:
+            self._initial_theme = QApplication.style().objectName()
         self._init_ui()
 
     def _init_ui(self):
@@ -33,10 +37,10 @@ class DialogSettings(QDialog):
         form.setContentsMargins(8, 8, 8, 8)
 
         self.theme_combo = QEnumComboBox(enum_class=ThemeName)
-        current_theme = self._parse_theme(QApplication.style().objectName())
+        current_theme = self._parse_theme(self._initial_theme)
         self.theme_combo.setCurrentEnum(current_theme)
         self.theme_combo.currentEnumChanged.connect(self._on_theme_changed)
-        form.addRow("App 主题:", self.theme_combo)  
+        form.addRow("App 主题:", self.theme_combo)
 
         appearance_collapsible.addWidget(form_container)
         appearance_collapsible.expand(animate=False)
@@ -60,14 +64,16 @@ class DialogSettings(QDialog):
             return ThemeName.Fusion
 
     def _on_theme_changed(self, theme: ThemeName):
-        """实时预览主题切换。"""
         QApplication.setStyle(theme.value)
 
     def accept(self):
+        if self.config_theme is not None:
+            current = self.theme_combo.currentEnum()
+            if current is not None:
+                self.config_theme.theme = current.value
         super().accept()
 
     def reject(self):
-        """取消时恢复初始主题。"""
         if QApplication.style().objectName() != self._initial_theme:
             QApplication.setStyle(self._initial_theme)
         super().reject()

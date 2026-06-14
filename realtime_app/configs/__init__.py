@@ -4,3 +4,4 @@ from .config_filter import ConfigFilter
 from .config_freqs_domain import ConfigFreqsDomain
 from .config_time_domain import ConfigTimeDomain
 from .config_theme import ConfigTheme
+from .config_recorder import ConfigRecorder

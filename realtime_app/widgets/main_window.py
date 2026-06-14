@@ -27,15 +27,24 @@ from utils import restore_window_state, save_window_state
 class MainWindow(QMainWindow):
     """Main window of the BCIRealtimeApp application."""
 
-    def __init__(self):
+    def __init__(self, app_name="BCIRealtimeApp", save_config_callback=None,
+                 config_theme=None, config_device=None, config_filter=None,
+                 config_detrend=None, config_freqs_domain=None,
+                 config_time_domain=None, config_recorder=None):
         super().__init__()
-        self.setWindowTitle("BCIRealtimeApp")
-        # ... 其他控件初始化 ...
+        self._save_config_callback = save_config_callback
+        self.config_theme = config_theme
+        self.config_device = config_device
+        self.config_filter = config_filter
+        self.config_detrend = config_detrend
+        self.config_freqs_domain = config_freqs_domain
+        self.config_time_domain = config_time_domain
+        self.config_recorder = config_recorder
+
+        self.setWindowTitle(app_name)
         self.init_ui()
         self.setup_menubar()
 
-
-        # 恢复窗口状态
         restore_window_state(self)
 
 
@@ -96,11 +105,13 @@ class MainWindow(QMainWindow):
 
 
     def _show_settings_dialog(self):
-        dialog = DialogSettings(self)
+        dialog = DialogSettings(config_theme=self.config_theme, parent=self)
         dialog.exec()
 
 
 
     def closeEvent(self, event):
         save_window_state(self)
+        if self._save_config_callback:
+            self._save_config_callback()
         super().closeEvent(event)
