@@ -44,7 +44,7 @@ c.ConfigDetrend.enable = True
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.channels = ['CH1']
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 90.0]
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
 c.ConfigFreqsDomain.window_type = 'hann'

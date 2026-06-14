@@ -207,11 +207,11 @@ class ControlPanelWidget(QWidget):
         self.overlap_ratio.setRange(10,50)
         self.overlap_ratio.setSingleStep(5)
         freqs_domain_layout.addRow("重叠比例:",self.overlap_ratio)
-        self.freqs_range = QDoubleSpinBox()
-        self.freqs_range.setSuffix(" Hz")
-        self.freqs_range.setRange(0.0, 125.0)
-        self.freqs_range.setSingleStep(5)
-        freqs_domain_layout.addRow("频率范围:",self.freqs_range)
+        self.freqs_right = QDoubleSpinBox()
+        self.freqs_right.setSuffix(" Hz")
+        self.freqs_right.setRange(0.0, 125.0)
+        self.freqs_right.setSingleStep(5)
+        freqs_domain_layout.addRow("频率范围:",self.freqs_right)
         return freqs_domain_group
 
 
@@ -341,7 +341,18 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: int(v * 100),
                 from_widget_func=lambda v: v / 100.0,
             )
-            # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，暂不绑定。
+            # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
+            self._binder_freqs.bind(
+                "freqs_range",
+                self.freqs_right,
+                widget_property="value",
+                widget_signal="valueChanged",
+                to_widget_func=lambda v: v[1],
+                from_widget_func=lambda v: [
+                    self._binder_freqs.get("freqs_range")[0],
+                    v,
+                ],
+            )
 
         # --- Time Domain ---
         if self._binder_time:
