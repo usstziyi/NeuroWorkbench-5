@@ -194,6 +194,7 @@ class ConfigBinder:
         """将 model 恢复到上一次 snapshot() 时刻的值。"""
         if not hasattr(self, "_snapshot") or not self._snapshot:
             return
-        for name, value in self._snapshot.items():
-            setattr(self.model, name, value)
+        with self.model.hold_trait_notifications():
+            for name, value in self._snapshot.items():
+                setattr(self.model, name, value)
         self._snapshot = None

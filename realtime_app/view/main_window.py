@@ -57,9 +57,9 @@ class MainWindow(QMainWindow):
         # 在 UI 创建前应用初始主题，并监听后续变化
         if self._binder_theme is not None:
             model = self._binder_theme.model
-            self._apply_theme(model.theme, model.color_mode)
+            self.apply_theme(model.theme, model.color_mode)
             model.observe(
-                lambda change: self._apply_theme(model.theme, model.color_mode),
+                lambda change: self.apply_theme(model.theme, model.color_mode),
                 names=["theme", "color_mode"],
             )
 
@@ -158,7 +158,7 @@ class MainWindow(QMainWindow):
             self._save_config_callback()
         super().closeEvent(event)
 
-    def _apply_theme(self, theme: str, color_mode: str):
+    def apply_theme(self, theme: str, color_mode: str):
         QApplication.setStyle(theme)
         color_mode_map = {
             "Light": Qt.ColorScheme.Light,
