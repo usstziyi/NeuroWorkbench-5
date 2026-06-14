@@ -10,6 +10,9 @@ from PySide6.QtWidgets import (
 )
 
 from view.widget_control_panel import ControlPanelWidget
+from view.widget_time_domain import TimeDomainWidget
+from view.widget_freqs_domain import FreqsDomainWidget
+from view.widget_properties import PropertiesWidget
 
 from view.dialog_settings import DialogSettings
 from view.widget_control_panel import ControlPanelWidget
@@ -55,13 +58,14 @@ class MainWindow(QMainWindow):
 
         restore_window_state(self)
 
-
-    def init_ui(self):
+        # 在 restoreState 之后设置角落，确保不被 QSettings 覆盖
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-        # center_widget = self._setup_center_panel()
-        # self.setCentralWidget(center_widget)
+
+    def init_ui(self):
+        center_widget = TimeDomainWidget()
+        self.setCentralWidget(center_widget)
 
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")
@@ -78,15 +82,15 @@ class MainWindow(QMainWindow):
         self.right_dock = QDockWidget("右侧面板")
         self.right_dock.setObjectName("right_dock")
         self.right_dock.setTitleBarWidget(QWidget())
-        # right_widget = self._setup_right_panel()
-        # self.right_dock.setWidget(right_widget)
+        right_widget = PropertiesWidget()
+        self.right_dock.setWidget(right_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
 
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        # bottom_widget = self._setup_bottom_panel()
-        # self.bottom_dock.setWidget(bottom_widget)
+        bottom_widget = FreqsDomainWidget()
+        self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
     def setup_menubar(self):

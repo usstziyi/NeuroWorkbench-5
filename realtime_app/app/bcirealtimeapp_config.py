@@ -30,8 +30,8 @@ c.ConfigDevice.sampling_rate = 250
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
-c.ConfigFilter.enable = False
-c.ConfigFilter.highpass = 0.5
+c.ConfigFilter.enable = True
+c.ConfigFilter.highpass = 1.0
 c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.notch_freq = 50.0
 
@@ -44,7 +44,7 @@ c.ConfigDetrend.enable = True
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.channels = ['CH1']
-c.ConfigFreqsDomain.freqs_range = [0.0, 90.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
 c.ConfigFreqsDomain.window_type = 'hann'

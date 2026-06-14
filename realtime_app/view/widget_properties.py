@@ -19,13 +19,14 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QLabel,
+    QLabel,
 )
 
-class FreqsDomainWidget(QWidget):
-    """Frequency domain widget."""
+class PropertiesWidget(QWidget):
+    """Properties widget."""
     def __init__(self):
         super().__init__()
-        self.setObjectName("freqs_domain_widget")
+        self.setObjectName("properties_widget")
         self.init_ui()
     
     def init_ui(self):
@@ -33,6 +34,6 @@ class FreqsDomainWidget(QWidget):
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
-        
-        label = QLabel("Frequency Domain")
+
+        label = QLabel("Properties")
         self.layout.addWidget(label)
