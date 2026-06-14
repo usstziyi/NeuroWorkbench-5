@@ -90,6 +90,7 @@ class ControlPanelWidget(QWidget):
 
         self.init_ui()
         self.bind_configs()
+        self.connect_signals()
     
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -391,3 +392,25 @@ class ControlPanelWidget(QWidget):
                 widget_property="checked",
                 widget_signal="toggled",
             )
+    
+    def connect_signals(self):
+        self.connect_btn.clicked.connect(self.connect_to_device)
+        self.disconnect_btn.clicked.connect(self.disconnect_from_device)
+        self.start_btn.clicked.connect(self.start_capture)
+        self.stop_btn.clicked.connect(self.stop_capture)
+        self.record_btn.clicked.connect(self.record)
+    
+    def connect_to_device(self):
+        pass
+    
+    def disconnect_from_device(self):
+        pass
+    
+    def start_capture(self):
+        pass
+    
+    def stop_capture(self):
+        pass
+    
+    def record(self):
+        pass
