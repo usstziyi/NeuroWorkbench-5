@@ -2,6 +2,8 @@ from pathlib import Path
 
 from traitlets.config import Application
 from traitlets import Unicode
+from PySide6.QtWidgets import QApplication
+from binder import ConfigBinder
 from configs.config_filter import ConfigFilter
 from configs.config_device import ConfigDevice
 from configs.config_freqs_domain import ConfigFreqsDomain
@@ -45,16 +47,27 @@ class BCIRealtimeApp(Application):
         self.config_time_domain = ConfigTimeDomain(config=self.config)
         self.config_recorder = ConfigRecorder(config=self.config)
 
+        binder_theme = ConfigBinder(self.config_theme)
+        binder_device = ConfigBinder(self.config_device)
+        binder_filter = ConfigBinder(self.config_filter)
+        binder_detrend = ConfigBinder(self.config_detrend)
+        binder_freqs = ConfigBinder(self.config_freqs_domain)
+        binder_time = ConfigBinder(self.config_time_domain)
+        binder_recorder = ConfigBinder(self.config_recorder)
+
+        # 在窗口创建前应用初始主题
+        QApplication.setStyle(self.config_theme.theme)
+
         self.main_window = MainWindow(
             app_name=self.name,
             save_config_callback=self._save_config,
-            config_theme=self.config_theme,
-            config_device=self.config_device,
-            config_filter=self.config_filter,
-            config_detrend=self.config_detrend,
-            config_freqs_domain=self.config_freqs_domain,
-            config_time_domain=self.config_time_domain,
-            config_recorder=self.config_recorder,
+            binder_theme=binder_theme,
+            binder_device=binder_device,
+            binder_filter=binder_filter,
+            binder_detrend=binder_detrend,
+            binder_freqs=binder_freqs,
+            binder_time=binder_time,
+            binder_recorder=binder_recorder,
         )
         self.main_window.show()
 

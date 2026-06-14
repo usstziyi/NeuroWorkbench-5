@@ -28,18 +28,18 @@ class MainWindow(QMainWindow):
     """Main window of the BCIRealtimeApp application."""
 
     def __init__(self, app_name="BCIRealtimeApp", save_config_callback=None,
-                 config_theme=None, config_device=None, config_filter=None,
-                 config_detrend=None, config_freqs_domain=None,
-                 config_time_domain=None, config_recorder=None):
+                 binder_theme=None, binder_device=None, binder_filter=None,
+                 binder_detrend=None, binder_freqs=None,
+                 binder_time=None, binder_recorder=None):
         super().__init__()
         self._save_config_callback = save_config_callback
-        self.config_theme = config_theme
-        self.config_device = config_device
-        self.config_filter = config_filter
-        self.config_detrend = config_detrend
-        self.config_freqs_domain = config_freqs_domain
-        self.config_time_domain = config_time_domain
-        self.config_recorder = config_recorder
+        self._binder_theme = binder_theme
+        self._binder_device = binder_device
+        self._binder_filter = binder_filter
+        self._binder_detrend = binder_detrend
+        self._binder_freqs = binder_freqs
+        self._binder_time = binder_time
+        self._binder_recorder = binder_recorder
 
         self.setWindowTitle(app_name)
         self.init_ui()
@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
 
 
     def _show_settings_dialog(self):
-        dialog = DialogSettings(config_theme=self.config_theme, parent=self)
+        dialog = DialogSettings(binder=self._binder_theme, parent=self)
         dialog.exec()
 
 

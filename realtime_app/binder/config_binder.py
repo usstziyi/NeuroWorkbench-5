@@ -25,6 +25,17 @@ class ConfigBinder:
         self.model = model
         self._bindings = {}
 
+    def get(self, trait_name: str) -> Any:
+        """读取指定 trait 的当前值。
+
+        纯读取操作，不建立绑定关系。View 层需要临时读取某个
+        配置值但不关心后续变化时使用。
+
+        Args:
+            trait_name: traitlets 属性名
+        """
+        return getattr(self.model, trait_name)
+
     def bind(self, trait_name: str, widget: Any, widget_property: str = "text",
              widget_signal: str = "textChanged", to_widget_func=None, from_widget_func=None):
         """
@@ -38,12 +49,17 @@ class ConfigBinder:
             to_widget_func: 从 traitlets 到 widget 的转换函数
             from_widget_func: 从 widget 到 traitlets 的转换函数
         bind() 阶段:
-            ① 读取 model 当前值          ──►  getattr(self.model, trait_name)
-            ② 可选的值转换               ──►  to_widget_func(value)
-            ③ 写入控件显示               ──►  widget.setText(value)
-            ④ 连接信号 (控件→model)      ──►  signal.connect(...)
-            ⑤ 注册 observe (model→控件)   ──►  model.observe(...)
+            ① 如果已有同名绑定，先解绑旧的
+            ② 读取 model 当前值          ──►  getattr(self.model, trait_name)
+            ③ 可选的值转换               ──►  to_widget_func(value)
+            ④ 写入控件显示               ──►  widget.setText(value)
+            ⑤ 连接信号 (控件→model)      ──►  signal.connect(...)
+            ⑥ 注册 observe (model→控件)   ──►  model.observe(...)
         """
+        # 如果已有同名绑定，先解绑旧的，避免旧 handler 引用已销毁的 widget
+        if trait_name in self._bindings:
+            self.unbind(trait_name)
+
         # 第一步：初始化控件值
         # Python 内置函数，根据字符串动态获取对象的属性值
         initial_value = getattr(self.model, trait_name)
@@ -166,3 +182,18 @@ class ConfigBinder:
         for trait_name in list(self._bindings.keys()):
             self.unbind(trait_name)
         self._bindings.clear()
+
+    def snapshot(self):
+        """保存当前所有已绑定 trait 的 model 值，用于 Cancel 回滚。"""
+        self._snapshot = {
+            name: getattr(self.model, name)
+            for name in self._bindings
+        }
+
+    def restore(self):
+        """将 model 恢复到上一次 snapshot() 时刻的值。"""
+        if not hasattr(self, "_snapshot") or not self._snapshot:
+            return
+        for name, value in self._snapshot.items():
+            setattr(self.model, name, value)
+        self._snapshot = None

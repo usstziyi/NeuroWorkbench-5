@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 from superqt import QCollapsible, QEnumComboBox
+from binder import ConfigBinder
 
 
 class ThemeName(str, Enum):
@@ -17,14 +18,14 @@ class ThemeName(str, Enum):
 class DialogSettings(QDialog):
     """设置对话框。"""
 
-    def __init__(self, config_theme=None, parent=None):
+    def __init__(self, binder: ConfigBinder = None, parent=None):
         super().__init__(parent)
-        self.config_theme = config_theme
+        self._binder = binder
         self.setWindowTitle("设置")
-        if self.config_theme is not None:
-            self._initial_theme = self.config_theme.theme
-        else:
-            self._initial_theme = QApplication.style().objectName()
+
+        # 保存初始风格，用于 Cancel 回滚
+        self._initial_style = QApplication.style().objectName()
+
         self._init_ui()
 
     def _init_ui(self):
@@ -37,10 +38,23 @@ class DialogSettings(QDialog):
         form.setContentsMargins(8, 8, 8, 8)
 
         self.theme_combo = QEnumComboBox(enum_class=ThemeName)
-        current_theme = self._parse_theme(self._initial_theme)
-        self.theme_combo.setCurrentEnum(current_theme)
-        self.theme_combo.currentEnumChanged.connect(self._on_theme_changed)
         form.addRow("App 主题:", self.theme_combo)
+
+        # 使用 Binder 双向绑定 combo ↔ model
+        if self._binder is not None:
+            self._binder.bind(
+                "theme",
+                self.theme_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: ThemeName(v),
+                from_widget_func=lambda v: v.value,
+            )
+            # 在 bind 完成后拍快照，用于 Cancel 回滚
+            self._binder.snapshot()
+
+        # View 层自行连接：实时预览主题切换效果
+        self.theme_combo.currentEnumChanged.connect(self._on_theme_changed)
 
         appearance_collapsible.addWidget(form_container)
         appearance_collapsible.expand(animate=False)
@@ -57,23 +71,14 @@ class DialogSettings(QDialog):
         btn_layout.addWidget(btn_cancel)
         main_layout.addLayout(btn_layout)
 
-    def _parse_theme(self, name: str) -> ThemeName:
-        try:
-            return ThemeName(name)
-        except ValueError:
-            return ThemeName.Fusion
-
     def _on_theme_changed(self, theme: ThemeName):
         QApplication.setStyle(theme.value)
 
-    def accept(self):
-        if self.config_theme is not None:
-            current = self.theme_combo.currentEnum()
-            if current is not None:
-                self.config_theme.theme = current.value
-        super().accept()
-
     def reject(self):
-        if QApplication.style().objectName() != self._initial_theme:
-            QApplication.setStyle(self._initial_theme)
+        # 回滚 model（Binder 的 observe 会自动将 widget 也恢复）
+        if self._binder is not None:
+            self._binder.restore()
+        # 回滚风格
+        if QApplication.style().objectName() != self._initial_style:
+            QApplication.setStyle(self._initial_style)
         super().reject()
