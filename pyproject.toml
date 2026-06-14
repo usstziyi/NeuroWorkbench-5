@@ -5,6 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "brainflow>=5.22.2",
+    "pyqtgraph>=0.14.0",
+    "pyserial>=3.5",
     "pyside6>=6.11.1",
     "superqt>=0.8.2",
     "traitlets>=5.15.1",
