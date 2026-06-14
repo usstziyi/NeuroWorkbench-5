@@ -1,3 +1,3 @@
-from .application_realtime import RealtimeApp
+from .application_realtime import BCIRealtimeApp
 
 __all__ = ["RealtimeApp"]

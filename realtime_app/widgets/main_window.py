@@ -11,11 +11,11 @@ from settings import restore_window_settings, save_window_settings
 
 
 class MainWindow(QMainWindow):
-    """Main window of the RealtimeApp application."""
+    """Main window of the BCIRealtimeApp application."""
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("RealtimeApp")
+        self.setWindowTitle("BCIRealtimeApp")
         # ... 其他控件初始化 ...
         restore_window_settings(self)
 
