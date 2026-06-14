@@ -2,10 +2,24 @@ import json
 from pathlib import Path
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QFormLayout,
-    QLineEdit, QCheckBox, QPushButton, QFileDialog, QMessageBox,
-    QLabel,
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
+    QFormLayout, QLineEdit, QCheckBox, QPushButton, QFileDialog,
+    QMessageBox, QLabel,
 )
 
+from settings import restore_window_settings, save_window_settings
+
+
 class MainWindow(QMainWindow):
-    """Main window of the BCI application."""
+    """Main window of the RealtimeApp application."""
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("RealtimeApp")
+        # ... 其他控件初始化 ...
+        restore_window_settings(self)
+
+    def closeEvent(self, event):
+        save_window_settings(self)
+        super().closeEvent(event)
+    
