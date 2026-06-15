@@ -75,7 +75,8 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-        center_widget = TimeDomainWidget(binder_time=self._binder_time)
+        center_widget = TimeDomainWidget(binder_theme=self._binder_theme,
+                                          binder_time=self._binder_time)
         self.setCentralWidget(center_widget)
 
         self.left_dock = QDockWidget("控制面板")
