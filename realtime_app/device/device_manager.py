@@ -3,14 +3,14 @@ import logging
 from PySide6.QtCore import QObject, Signal
 
 import brainflow
-from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 
 log = logging.getLogger(__name__)
 
 # Device name → BoardShim board ID
 _NAME_TO_BOARD = {
-    "synthetic": brainflow.board_shim.BoardIds.SYNTHETIC_BOARD,
-    "cyton":     brainflow.board_shim.BoardIds.CYTON_BOARD,
+    "synthetic": BoardIds.SYNTHETIC_BOARD,
+    "cyton":     BoardIds.CYTON_BOARD,
 }
 
 
@@ -111,3 +111,37 @@ class DeviceManager(QObject):
     @property
     def is_connected(self) -> bool:
         return self._board is not None
+
+    # ------------------------------------------------------------------
+    # device info
+    # ------------------------------------------------------------------
+
+    @property
+    def channels(self) -> list[str]:
+        if self._board is None:
+            return []
+        return self._board.get_channel_names()
+    
+    @property
+    def eeg_channels(self) -> list[str]:
+        if self._board is None:
+            return []
+        return self._board.get_eeg_channels()
+    
+    @property
+    def eeg_names(self) -> list[str]:
+        if self._board is None:
+            return []
+        return self._board.get_eeg_names()
+
+    @property
+    def sampling_rate(self) -> int:
+        if self._board is None:
+            return 0
+        return self._board.get_sampling_rate()
+    
+    @property
+    def board_descr(self) -> str:
+        if self._board is None:
+            return ""
+        return self._board.get_board_descr()
