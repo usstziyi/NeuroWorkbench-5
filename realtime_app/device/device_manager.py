@@ -1,9 +1,10 @@
 import logging
 
-from PySide6.QtCore import QObject, Signal
+import numpy as np
 
-import brainflow
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+
+BoardShim.disable_board_logger()
 
 log = logging.getLogger(__name__)
 
@@ -14,19 +15,15 @@ _NAME_TO_BOARD = {
 }
 
 
-class DeviceManager(QObject):
-    """Encapsulates BoardShim hardware I/O behind Qt signals.
+class DeviceManager:
+    """Encapsulates BoardShim hardware I/O.
 
     View layer calls connect_device / disconnect / start_stream / stop_stream.
-    This class handles all BrainFlow calls and emits status signals.
+    This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
-    connected = Signal(int)       # board_id
-    disconnected = Signal()
-    error_occurred = Signal(str)  # error message
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, config=None):
+        self._config = config
         self._board_id = -1
         self._board: BoardShim | None = None
         self._streaming = False
@@ -43,15 +40,18 @@ class DeviceManager(QObject):
             port: Serial port string (empty for synthetic board).
             sampling_rate: Desired sampling rate in Hz.
         """
+        if self._config is None:
+            return
         if self.is_connected:
             return
 
         board_id = _NAME_TO_BOARD.get(name)
         if board_id is None:
-            self.error_occurred.emit(f"Unknown device: {name}")
+            self._config.error_message = f"Unknown device: {name}"
             return
 
         params = BrainFlowInputParams()
+        params.timeout = 1000  # ms, 0 = no timeout
         if port:
             params.serial_port = port
         # params.other_info = str(sampling_rate)
@@ -67,13 +67,15 @@ class DeviceManager(QObject):
                     board.release_session()
                 except Exception:
                     pass
-            self.error_occurred.emit(str(e))
+            self._config.error_message = str(e)
             return
 
         self._board = board
         self._board_id = board_id
+        self._streaming = False
+        self._config.is_connected = True
+        self._config.error_message = ""
         log.info("Connected to %s (board_id=%s, port=%s)", name, board_id, port or "N/A")
-        self.connected.emit(board_id)
 
     def disconnect(self):
         """Release the board session."""
@@ -89,7 +91,8 @@ class DeviceManager(QObject):
         finally:
             self._board = None
             self._board_id = -1
-            self.disconnected.emit()
+            self._config.is_connected = False
+            self._config.is_streaming = False
             log.info("Disconnected from device")
 
     def start_stream(self, buffer_size: int | None = None):
@@ -108,10 +111,11 @@ class DeviceManager(QObject):
             else:
                 self._board.start_stream(buffer_size)
             self._streaming = True
+            self._config.is_streaming = True
             log.info("Stream started")
         except Exception as e:
             log.exception("Failed to start stream")
-            self.error_occurred.emit(str(e))
+            self._config.error_message = str(e)
 
     def stop_stream(self):
         """Stop data streaming."""
@@ -122,10 +126,11 @@ class DeviceManager(QObject):
         try:
             self._board.stop_stream()
             self._streaming = False
+            self._config.is_streaming = False
             log.info("Stream stopped")
         except Exception as e:
             log.exception("Failed to stop stream")
-            self.error_occurred.emit(str(e))
+            self._config.error_message = str(e)
 
     # ------------------------------------------------------------------
     # Properties
@@ -150,36 +155,41 @@ class DeviceManager(QObject):
     # ------------------------------------------------------------------
     # device info
     # ------------------------------------------------------------------
+    @property
+    def device_name(self) -> str:
+        return BoardShim.get_device_name(self._board_id)
 
     @property
     def channels(self) -> list[str]:
         if self._board is None:
             return []
-        return self._board.get_channel_names()
+        return BoardShim.get_channel_names(self._board_id)
     
     @property
     def eeg_channels(self) -> list[str]:
         if self._board is None:
             return []
-        return self._board.get_eeg_channels()
+        return BoardShim.get_eeg_channels(self._board_id)
     
     @property
     def eeg_names(self) -> list[str]:
         if self._board is None:
             return []
-        return self._board.get_eeg_names()
+        return BoardShim.get_eeg_names(self._board_id)
 
     @property
     def sampling_rate(self) -> int:
         if self._board is None:
             return 0
-        return self._board.get_sampling_rate()
+        return BoardShim.get_sampling_rate(self._board_id)
     
     @property
     def board_descr(self) -> str:
         if self._board is None:
             return ""
-        return self._board.get_board_descr()
+        result = BoardShim.get_board_descr(self._board_id)
+        result["device_name"] = self.device_name
+        return result
 
 
     # ------------------------------------------------------------------

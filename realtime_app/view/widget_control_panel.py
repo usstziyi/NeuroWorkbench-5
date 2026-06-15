@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLineEdit,
+    QMessageBox,
     QPushButton,
     QSizePolicy,
     QSpinBox,
@@ -82,6 +83,7 @@ class ControlPanelWidget(QWidget):
                  binder_time=None, binder_recorder=None,
                  device_manager=None, parent=None):
         super().__init__(parent)
+        # Python 的鸭子类型特性
         self._binder_device = binder_device
         self._binder_filter = binder_filter
         self._binder_detrend = binder_detrend
@@ -93,8 +95,7 @@ class ControlPanelWidget(QWidget):
         self.init_ui()
         self.bind_configs()
         self.connect_signals()
-        if self._device_manager:
-            self._connect_device_signals()
+        self.observe_device_config()
     
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -398,18 +399,49 @@ class ControlPanelWidget(QWidget):
             )
     
     def connect_signals(self):
-        self.connect_btn.clicked.connect(self._on_connect)
-        self.disconnect_btn.clicked.connect(self._on_disconnect)
-        self.start_btn.clicked.connect(self._on_start)
-        self.stop_btn.clicked.connect(self._on_stop)
+        self.connect_btn.clicked.connect(self.on_connect)
+        self.disconnect_btn.clicked.connect(self.on_disconnect)
+        self.start_btn.clicked.connect(self.on_start)
+        self.stop_btn.clicked.connect(self.on_stop)
         self.recorder_button.clicked.connect(self.record)
 
-    def _connect_device_signals(self):
-        self._device_manager.connected.connect(self._on_device_connected)
-        self._device_manager.disconnected.connect(self._on_device_disconnected)
-        self._device_manager.error_occurred.connect(self._on_device_error)
+    def observe_device_config(self):
+        if self._binder_device is None:
+            return
+        model = self._binder_device.model
+        model.observe(self.on_device_state_changed, names=["is_connected", "is_streaming", "error_message"])
 
-    def _on_connect(self):
+    def on_device_state_changed(self, change):
+        name = change["name"]
+        model = self._binder_device.model
+        if name in ("is_connected", "is_streaming"):
+            self.update_device_buttons(model.is_connected, model.is_streaming)
+            if name == "is_connected" and change["new"]:
+                descr = self._device_manager.board_descr
+                text = f"设备连接成功：{self._device_manager.device_name}"
+                if descr:
+                    lines = [f"  {k}: {v}" for k, v in descr.items()]
+                    text += "\n" + "\n".join(lines)
+                self.show_device_toast("设备已连接", text)
+        elif name == "error_message":
+            msg = change["new"]
+            if msg:
+                self.show_device_error(msg)
+                self.update_device_buttons(False, False)
+
+    def show_device_toast(self, title: str, text: str):
+        QMessageBox.information(self, title, text)
+
+    def show_device_error(self, msg: str):
+        QMessageBox.critical(self, "设备错误", msg)
+
+    def update_device_buttons(self, connected: bool, streaming: bool):
+        self.connect_btn.setEnabled(not connected)
+        self.disconnect_btn.setEnabled(connected)
+        self.start_btn.setEnabled(connected and not streaming)
+        self.stop_btn.setEnabled(connected and streaming)
+
+    def on_connect(self):
         if not self._device_manager:
             return
         name = self._binder_device.get("name")
@@ -417,36 +449,20 @@ class ControlPanelWidget(QWidget):
         sampling_rate = self._binder_device.get("sampling_rate")
         self._device_manager.connect_device(name, port, sampling_rate)
 
-    def _on_disconnect(self):
+    def on_disconnect(self):
         if not self._device_manager:
             return
         self._device_manager.disconnect()
 
-    def _on_start(self):
+    def on_start(self):
         if not self._device_manager:
             return
         self._device_manager.start_stream()
 
-    def _on_stop(self):
+    def on_stop(self):
         if not self._device_manager:
             return
         self._device_manager.stop_stream()
-
-    def _on_device_connected(self, board_id: int):
-        self.connect_btn.setEnabled(False)
-        self.disconnect_btn.setEnabled(True)
-        self.start_btn.setEnabled(True)
-
-    def _on_device_disconnected(self):
-        self.connect_btn.setEnabled(True)
-        self.disconnect_btn.setEnabled(False)
-        self.start_btn.setEnabled(False)
-        self.stop_btn.setEnabled(False)
-
-    def _on_device_error(self, msg: str):
-        print(f"[DeviceManager] Error: {msg}")
-        self.connect_btn.setEnabled(True)
-        self.disconnect_btn.setEnabled(False)
 
     def record(self):
         pass

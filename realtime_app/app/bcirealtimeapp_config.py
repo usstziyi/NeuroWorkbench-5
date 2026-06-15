@@ -24,8 +24,8 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = ''
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.debug-console'
 c.ConfigDevice.sampling_rate = 250
 
 #------------------------------------------------------------------------------
