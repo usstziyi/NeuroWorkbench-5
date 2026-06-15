@@ -62,23 +62,23 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         self._curves = {}
 
         if self._binder_theme is not None:
-            model = self._binder_theme.model
-            self.apply_theme(model.color_mode)
-            model.observe(
-                lambda change: self.apply_theme(model.color_mode),
+            theme_model = self._binder_theme.model
+            self.apply_theme(theme_model.color_mode)
+            theme_model.observe(
+                lambda change: self.apply_theme(theme_model.color_mode),
                 names=["color_mode"]
             )
         
         if self._binder_time is not None:
-            model = self._binder_time.model
-            self.apply_channels(model.channels, model.choose)
-            model.observe(
-                lambda change: self.apply_channels(model.channels, model.choose),
+            time_model = self._binder_time.model
+            self.apply_channels(time_model.channels, time_model.choose)
+            time_model.observe(
+                lambda change: self.apply_channels(time_model.channels, time_model.choose),
                 names=["channels","choose"]
             )
-            self.set_range(model.seconds, model.amplitude)
-            model.observe(
-                lambda change: self.set_range(model.seconds, model.amplitude),
+            self.set_range(time_model.seconds, time_model.amplitude)
+            time_model.observe(
+                lambda change: self.set_range(time_model.seconds, time_model.amplitude),
                 names=["seconds", "amplitude"]
             )
 

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QFormLayout, QLineEdit, QCheckBox, QPushButton, QFileDialog,
     QMessageBox, QLabel, QDockWidget, QApplication,
 )
+from qtpy.QtCore import PyClassProperty
 
 from view.widget_control_panel import ControlPanelWidget
 from view.widget_time_domain import TimeDomainWidget
@@ -117,35 +118,28 @@ class MainWindow(QMainWindow):
 
         # 设置
         settings_menu = menubar.addMenu("设置(&S)")
-        settings_menu.addAction(self.create_ui_settings_action())
-        settings_menu.addAction(self.create_channel_choose_action())
+        action = QAction("外观设置(&S)", self)
+        action.triggered.connect(self._show_ui_settings_dialog)
+        settings_menu.addAction(action)
+        action = QAction("通道设置(&S)", self)
+        action.triggered.connect(self._show_channel_choose_dialog)
+        settings_menu.addAction(action)
+        action = QAction("恢复默认(&R)", self)
+        action.triggered.connect(self._show_restore_default_action)
+        settings_menu.addAction(action)
+
 
         # 关于
         about_menu = menubar.addMenu("关于(&A)")
-        about_menu.addAction(self.create_about_action())
-    
-    def create_about_action(self):
         action = QAction("关于(&A)", self)
         action.triggered.connect(self._show_about_dialog)
-        return action
-
-    def create_ui_settings_action(self):
-        action = QAction("外观设置(&S)", self)
-        action.triggered.connect(self._show_ui_settings_dialog)
-        return action
+        about_menu.addAction(action)
     
-    # 通道设置
-    def create_channel_choose_action(self):
-        action = QAction("通道设置(&S)", self)
-        action.triggered.connect(self._show_channel_choose_dialog)
-        return action
-
+    
     def _show_about_dialog(self):
         about_text = f"{self._app_name}\nDescription: {self._app_description}\nVersion: {self._app_version}"
         QMessageBox.about(self, "关于", about_text)
     
-
-
     def _show_ui_settings_dialog(self):
         dialog = DialogUiSettings(binder=self._binder_theme, parent=self)
         dialog.exec()
@@ -153,6 +147,31 @@ class MainWindow(QMainWindow):
     def _show_channel_choose_dialog(self):
         dialog = DialogChannelChoose(binder=self._binder_time, parent=self)
         dialog.exec()
+    
+    def _show_restore_default_action(self):
+        reply = QMessageBox.question(
+            self, "确认", "确定要恢复默认设置吗？",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
+        )
+        if reply == QMessageBox.Yes:
+            binders = [
+                self._binder_theme,
+                self._binder_device,
+                self._binder_filter,
+                self._binder_detrend,
+                self._binder_freqs,
+                self._binder_time,
+                self._binder_recorder,
+            ]
+            for binder in binders:
+                if binder is None:
+                    continue
+                model = binder.model
+                with model.hold_trait_notifications():
+                    for trait_name, trait in model.class_traits(config=True).items():
+                        setattr(model, trait_name, trait.default())
+
+
 
 
 
