@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
@@ -29,6 +29,7 @@ from superqt import (
 )
 
 from utils import restore_window_state, save_window_state
+from pipeline.stream_worker import StreamWorker
 
 
 class MainWindow(QMainWindow):
@@ -68,6 +69,7 @@ class MainWindow(QMainWindow):
 
         self.init_ui()
         self.setup_menubar()
+        self._setup_pipeline()
 
         restore_window_state(self)
 
@@ -106,6 +108,8 @@ class MainWindow(QMainWindow):
         bottom_widget = FreqsDomainWidget(binder_freqs=self._binder_freqs)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
+
+        
 
     def setup_menubar(self):
         menubar = self.menuBar()
@@ -175,8 +179,63 @@ class MainWindow(QMainWindow):
 
 
 
+    def _setup_pipeline(self):
+        """创建数据管道线程，监听 streaming 状态自动启停。"""
+        time_model = self._binder_time.model
+
+        self._stream_worker = StreamWorker(self._device_manager)
+
+        self._pipeline_thread = QThread()
+        self._stream_worker.moveToThread(self._pipeline_thread)
+
+        # 数据信号 → 波形显示
+        center_widget = self.centralWidget()
+        self._stream_worker.data_ready.connect(center_widget.set_all_data)
+
+        # 线程生命周期
+        self._pipeline_thread.started.connect(self._stream_worker.start)
+        self._pipeline_thread.finished.connect(self._stream_worker.stop)
+        self._pipeline_thread.finished.connect(self._stream_worker.deleteLater)
+        self._pipeline_thread.finished.connect(self._pipeline_thread.deleteLater)
+
+        # 初始参数
+        self._stream_worker.set_params(time_model.seconds, int(time_model.interval))
+        self._stream_worker.set_channels(time_model.channels)
+
+        # config 变化 → 信号转发（Worker 不碰 config）
+        time_model.observe(
+            lambda change: self._stream_worker.set_params(
+                time_model.seconds, int(time_model.interval)
+            ),
+            names=["seconds", "interval"],
+        )
+        time_model.observe(
+            lambda change: self._stream_worker.set_channels(time_model.channels),
+            names=["channels"],
+        )
+        self._binder_device.model.observe(
+            lambda change: self._on_streaming_changed(change["new"]),
+            names=["is_streaming"],
+        )
+
+    def _on_streaming_changed(self, streaming: bool):
+        try:
+            if streaming and not self._pipeline_thread.isRunning():
+                self._pipeline_thread.start()
+            elif not streaming and self._pipeline_thread.isRunning():
+                self._pipeline_thread.quit()
+                self._pipeline_thread.wait()
+        except RuntimeError:
+            pass  # C++ 对象已被销毁，忽略
+
     def closeEvent(self, event):
         save_window_state(self)
+        try:
+            if hasattr(self, '_pipeline_thread') and self._pipeline_thread.isRunning():
+                self._pipeline_thread.quit()
+                self._pipeline_thread.wait()
+        except RuntimeError:
+            pass  # C++ 对象已被 PySide6 提前销毁，忽略
         if self._save_config_callback:
             self._save_config_callback()
         super().closeEvent(event)

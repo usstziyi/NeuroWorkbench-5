@@ -210,4 +210,13 @@ class DeviceManager:
         if not self.is_streaming:
             raise RuntimeError("Stream not started")
         return self._board.get_current_board_data(num_samples)
-        
+
+    def get_recent_data(self, seconds: float) -> np.ndarray:
+        """获取最近 *seconds* 秒的板载数据。
+
+        Args:
+            seconds: 要获取的时间窗口（秒）。
+        """
+        n = int(seconds * self.sampling_rate)
+        return self.get_current_board_data(n)
+
