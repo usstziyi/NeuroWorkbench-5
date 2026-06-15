@@ -60,8 +60,6 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
 
         self._plots = {}
         self._curves = {}
-        font = QtGui.QFont()
-        font.setPointSize(6)
 
         if self._binder_theme is not None:
             model = self._binder_theme.model
@@ -77,6 +75,11 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
             model.observe(
                 lambda change: self.apply_channels(model.channels, model.choose),
                 names=["channels","choose"]
+            )
+            self.set_range(model.seconds, model.amplitude)
+            model.observe(
+                lambda change: self.set_range(model.seconds, model.amplitude),
+                names=["seconds", "amplitude"]
             )
 
         self.init_ui()
@@ -97,11 +100,60 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         self._plots.clear()
         self._curves.clear()
 
+        font = QtGui.QFont()
+        font.setPointSize(6)
+
         row = 0
         for idx, channel in enumerate(channels):
+            color = CET_R3[idx % len(CET_R3)]
             if choose[idx]:
-                self._plots[channel] = self.addPlot(row=row, col=0)
+                plot = self.addPlot(row=row, col=0)
+                plot.setLabel("left", channel, units='µV')
+                plot.getAxis("left").setWidth(60)
+                plot.getAxis("left").autoSIPrefix = False
+                plot.getAxis("left").setStyle(tickFont=font)
+
+                plot.setDownsampling(auto=True, mode="peak")
+                plot.setClipToView(True)
+                plot.setMouseEnabled(x=False, y=False)
+                plot.addLine(y=0, pen=pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine))
+                plot.getAxis("bottom").autoSIPrefix = False
+                self._plots[channel] = plot
+                self._curves[channel] = plot.plot(pen=pg.mkPen(color, width=1.5))
                 row += 1
-                
+
+    def set_range(self, seconds, amplitude):
+        """Set the range of the plot.
+
+        Args:
+            seconds: Number of seconds to display (s).
+            amplitude: Amplitude of the signal (μV).
+        """
+        for plot in self._plots.values():
+            plot.setXRange(-seconds, 0)
+            plot.setYRange(-amplitude, amplitude)
+
+    def set_data(self, channel, t, y):
+        """Update data for a specific channel.
+
+        Args:
+            channel: Channel name.
+            t: Time array (1D).
+            y: Signal array (1D).
+        """
+        curve = self._curves.get(channel)
+        if curve is None:
+            return
+        curve.setData(t, y)
+
+    def set_all_data(self, data):
+        """Update all channels at once.
+
+        Args:
+            data: dict mapping channel name -> (t, y) tuple.
+        """
+        for channel, (t, y) in data.items():
+            self.set_data(channel, t, y)
+
     def init_ui(self):
         pass

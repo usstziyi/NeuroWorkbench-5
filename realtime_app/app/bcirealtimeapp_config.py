@@ -55,7 +55,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 c.ConfigTimeDomain.amplitude = 1000.0
 c.ConfigTimeDomain.channels = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6']
-c.ConfigTimeDomain.choose = [True, False, False, True, True, False]
+c.ConfigTimeDomain.choose = [True, True, True, True, True, True]
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
