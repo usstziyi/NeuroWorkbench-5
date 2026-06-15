@@ -53,7 +53,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 2000.0
 c.ConfigTimeDomain.channels = {'Fz': True, 'C3': True, 'Cz': True, 'C4': True, 'Pz': True, 'PO7': True, 'Oz': True, 'PO8': True, 'F5': False, 'F7': False, 'F3': False, 'F1': False, 'F2': False, 'F4': False, 'F6': False, 'F8': False}
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5

@@ -1,25 +1,9 @@
-from enum import Enum
-from pathlib import Path
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLineEdit,
-    QPushButton,
     QScrollArea,
-    QSizePolicy,
-    QSpinBox,
     QVBoxLayout,
     QWidget,
-    QLabel,
-    QLabel,
 )
 
 from PySide6 import QtGui
@@ -50,8 +34,10 @@ CET_R3 = [
 
 CET_R3_DEFAULT = CET_R3 * 4
 
-class TimeDomainWidget(pg.GraphicsLayoutWidget):
-    """Time domain widget."""
+FIXED_PLOT_HEIGHT = 120
+
+class TimeDomainWidget(QWidget):
+    """Time domain widget with scrollable fixed-height plots."""
     def __init__(self, binder_theme=None, binder_time=None):
         super().__init__()
         self._binder_theme = binder_theme
@@ -60,6 +46,17 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
 
         self._plots = {}
         self._curves = {}
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self._scroll_area = QScrollArea()
+        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        self._plot_widget = pg.GraphicsLayoutWidget()
+        self._scroll_area.setWidget(self._plot_widget)
+        layout.addWidget(self._scroll_area)
 
         if self._binder_theme is not None:
             theme_model = self._binder_theme.model
@@ -85,16 +82,16 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
     
     def apply_theme(self, color_mode):
         if color_mode == "Light":
-            self.setBackground("w")
+            self._plot_widget.setBackground("w")
         else:
-            self.setBackground("k")
+            self._plot_widget.setBackground("k")
     
     def apply_channels(self, channels):
         """
         channels: dict mapping channel name → enabled state.
         """
         for plot in self._plots.values():
-            self.removeItem(plot)
+            self._plot_widget.removeItem(plot)
         self._plots.clear()
         self._curves.clear()
 
@@ -105,7 +102,7 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         for idx, (channel, enabled) in enumerate(channels.items()):
             color = CET_R3[idx % len(CET_R3)]
             if enabled:
-                plot = self.addPlot(row=row, col=0)
+                plot = self._plot_widget.addPlot(row=row, col=0)
                 plot.setLabel("left", channel, units='µV')
                 plot.getAxis("left").setWidth(60)
                 plot.getAxis("left").autoSIPrefix = False
@@ -116,9 +113,21 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
                 plot.setMouseEnabled(x=False, y=False)
                 plot.addLine(y=0, pen=pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine))
                 plot.getAxis("bottom").autoSIPrefix = False
+                self._plot_widget.ci.layout.setRowFixedHeight(row, FIXED_PLOT_HEIGHT)
                 self._plots[channel] = plot
                 self._curves[channel] = plot.plot(pen=pg.mkPen(color, width=1.5))
                 row += 1
+        # ✅ 关键修复：告诉 ScrollArea 内容的实际高度
+        spacing = self._plot_widget.ci.layout.verticalSpacing()
+        total_height = row * FIXED_PLOT_HEIGHT + max(0, row) * spacing
+        self._plot_widget.setMinimumHeight(total_height)
+        
+        # ✅ 确保 ScrollArea 允许内容撑开
+        self._scroll_area.setWidgetResizable(True)
+
+        if self._binder_time is not None:
+            time_model = self._binder_time.model
+            self.set_range(time_model.seconds, time_model.amplitude)
 
     def set_range(self, seconds, amplitude):
         """Set the range of the plot.
