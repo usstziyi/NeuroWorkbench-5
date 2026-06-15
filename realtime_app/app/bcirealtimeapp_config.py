@@ -24,7 +24,7 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.name = 'synthetic'
 c.ConfigDevice.port = '/dev/cu.debug-console'
 c.ConfigDevice.sampling_rate = 250
 
@@ -54,8 +54,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigTimeDomain.amplitude = 1000.0
-c.ConfigTimeDomain.channels = ['CH1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6']
-c.ConfigTimeDomain.choose = [True, True, True, True, True, True]
+c.ConfigTimeDomain.channels = {'Fz': True, 'C3': True, 'Cz': True, 'C4': True, 'Pz': True, 'PO7': True, 'Oz': True, 'PO8': True, 'F5': False, 'F7': False, 'F3': False, 'F1': False, 'F2': False, 'F4': False, 'F6': False, 'F8': False}
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

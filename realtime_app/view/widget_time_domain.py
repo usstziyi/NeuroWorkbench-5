@@ -71,10 +71,10 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         
         if self._binder_time is not None:
             time_model = self._binder_time.model
-            self.apply_channels(time_model.channels, time_model.choose)
+            self.apply_channels(time_model.channels)
             time_model.observe(
-                lambda change: self.apply_channels(time_model.channels, time_model.choose),
-                names=["channels","choose"]
+                lambda change: self.apply_channels(time_model.channels),
+                names=["channels"]
             )
             self.set_range(time_model.seconds, time_model.amplitude)
             time_model.observe(
@@ -89,10 +89,9 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         else:
             self.setBackground("k")
     
-    def apply_channels(self, channels, choose):
+    def apply_channels(self, channels):
         """
-        channels: List of channels name.
-        choose: List of channels to choose.
+        channels: dict mapping channel name → enabled state.
         """
         for plot in self._plots.values():
             self.removeItem(plot)
@@ -103,9 +102,9 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         font.setPointSize(6)
 
         row = 0
-        for idx, channel in enumerate(channels):
+        for idx, (channel, enabled) in enumerate(channels.items()):
             color = CET_R3[idx % len(CET_R3)]
-            if choose[idx]:
+            if enabled:
                 plot = self.addPlot(row=row, col=0)
                 plot.setLabel("left", channel, units='µV')
                 plot.getAxis("left").setWidth(60)

@@ -64,7 +64,10 @@ class BCIRealtimeApp(Application):
                 "version": self.version,
             },
             save_config_callback=self._save_config,
-            device_manager=DeviceManager(config=self.config_device),
+            device_manager=DeviceManager(
+                config_device=self.config_device, 
+                config_time_domain=self.config_time_domain
+            ),
             binder_theme=binder_theme,
             binder_device=binder_device,
             binder_filter=binder_filter,

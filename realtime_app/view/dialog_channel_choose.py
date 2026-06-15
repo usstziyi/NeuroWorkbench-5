@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+    QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
 )
 
 from superqt import QToggleSwitch
@@ -12,7 +12,7 @@ class DialogChannelChoose(QDialog):
     def __init__(self, binder: ConfigBinder = None, parent=None):
         super().__init__(parent)
         self._binder_time = binder
-        self._checkboxes: list[QToggleSwitch] = []
+        self._checkboxes: dict[str, QToggleSwitch] = {}
         self.setWindowTitle("通道选择")
         self.resize(400, 300)
 
@@ -24,23 +24,22 @@ class DialogChannelChoose(QDialog):
 
         # 根据配置添加通道选择框，每排两个
         channels = self._binder_time.model.channels
-        choose = self._binder_time.model.choose
-        for i in range(0, len(channels), 2):
+        names = list(channels.keys())
+        for i in range(0, len(names), 2):
             row_layout = QHBoxLayout()
             row_layout.setAlignment(Qt.AlignCenter)
             row_layout.setSpacing(20)
 
             for j in range(2):
                 idx = i + j
-                if idx >= len(channels):
+                if idx >= len(names):
                     break
-                switch = QToggleSwitch(channels[idx])
-                switch.setChecked(choose[idx])
-                self._checkboxes.append(switch)
+                name = names[idx]
+                switch = QToggleSwitch(name)
+                switch.setChecked(channels[name])
+                self._checkboxes[name] = switch
                 row_layout.addWidget(switch)
             main_layout.addLayout(row_layout)
-  
-
 
         main_layout.addStretch(1)
 
@@ -56,7 +55,8 @@ class DialogChannelChoose(QDialog):
         main_layout.addLayout(btn_layout)
     
     def accept(self):
-        self._binder_time.model.choose = [cb.isChecked() for cb in self._checkboxes]
+        self._binder_time.model.channels = {
+            name: switch.isChecked() for name, switch in self._checkboxes.items()
+        }
         super().accept()
-        
         
