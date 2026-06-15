@@ -29,6 +29,7 @@ class DeviceManager(QObject):
         super().__init__(parent)
         self._board_id = -1
         self._board: BoardShim | None = None
+        self._streaming = False
 
     # ------------------------------------------------------------------
     # Public API
@@ -42,6 +43,9 @@ class DeviceManager(QObject):
             port: Serial port string (empty for synthetic board).
             sampling_rate: Desired sampling rate in Hz.
         """
+        if self.is_connected:
+            return
+
         board_id = _NAME_TO_BOARD.get(name)
         if board_id is None:
             self.error_occurred.emit(f"Unknown device: {name}")
@@ -52,49 +56,76 @@ class DeviceManager(QObject):
             params.serial_port = port
         # params.other_info = str(sampling_rate)
 
+        board = None
         try:
-            self._board = BoardShim(board_id, params)
-            self._board.prepare_session()
-            self._board_id = board_id
-            log.info("Connected to %s (board_id=%s, port=%s)", name, board_id, port or "N/A")
-            self.connected.emit(board_id)
+            board = BoardShim(board_id, params)
+            board.prepare_session()
         except Exception as e:
             log.exception("Failed to connect to %s", name)
-            self._board = None
+            if board is not None:
+                try:
+                    board.release_session()
+                except Exception:
+                    pass
             self.error_occurred.emit(str(e))
+            return
+
+        self._board = board
+        self._board_id = board_id
+        log.info("Connected to %s (board_id=%s, port=%s)", name, board_id, port or "N/A")
+        self.connected.emit(board_id)
 
     def disconnect(self):
         """Release the board session."""
-        if self._board is not None:
-            try:
-                self._board.release_session()
-            except Exception:
-                log.exception("Error releasing board session")
-            finally:
-                self._board = None
-                self._board_id = -1
-                self.disconnected.emit()
-                log.info("Disconnected from device")
+        if not self.is_connected:
+            return
+        try:
+            if self.is_streaming:
+                self._board.stop_stream()
+                self._streaming = False
+            self._board.release_session()
+        except Exception:
+            log.exception("Error releasing board session")
+        finally:
+            self._board = None
+            self._board_id = -1
+            self.disconnected.emit()
+            log.info("Disconnected from device")
 
-    def start_stream(self):
-        """Start data streaming."""
-        if self._board is not None:
-            try:
+    def start_stream(self, buffer_size: int | None = None):
+        """Start data streaming.
+
+        Args:
+            buffer_size: Size of internal ring buffer. None uses BrainFlow default.
+        """
+        if not self.is_connected:
+            return
+        if self.is_streaming:
+            return
+        try:
+            if buffer_size is None:
                 self._board.start_stream()
-                log.info("Stream started")
-            except Exception as e:
-                log.exception("Failed to start stream")
-                self.error_occurred.emit(str(e))
+            else:
+                self._board.start_stream(buffer_size)
+            self._streaming = True
+            log.info("Stream started")
+        except Exception as e:
+            log.exception("Failed to start stream")
+            self.error_occurred.emit(str(e))
 
     def stop_stream(self):
         """Stop data streaming."""
-        if self._board is not None:
-            try:
-                self._board.stop_stream()
-                log.info("Stream stopped")
-            except Exception as e:
-                log.exception("Failed to stop stream")
-                self.error_occurred.emit(str(e))
+        if not self.is_connected:
+            return
+        if not self.is_streaming:
+            return
+        try:
+            self._board.stop_stream()
+            self._streaming = False
+            log.info("Stream stopped")
+        except Exception as e:
+            log.exception("Failed to stop stream")
+            self.error_occurred.emit(str(e))
 
     # ------------------------------------------------------------------
     # Properties
@@ -111,6 +142,10 @@ class DeviceManager(QObject):
     @property
     def is_connected(self) -> bool:
         return self._board is not None
+
+    @property
+    def is_streaming(self) -> bool:
+        return self._streaming
 
     # ------------------------------------------------------------------
     # device info
@@ -145,3 +180,22 @@ class DeviceManager(QObject):
         if self._board is None:
             return ""
         return self._board.get_board_descr()
+
+
+    # ------------------------------------------------------------------
+    # get data
+    # ------------------------------------------------------------------     
+    def get_board_data(self) -> np.ndarray:
+        if not self.is_connected:
+            raise RuntimeError("Device not connected")
+        if not self.is_streaming:
+            raise RuntimeError("Stream not started")
+        return self._board.get_board_data()
+
+    def get_current_board_data(self, num_samples: int = 100) -> np.ndarray:
+        if not self.is_connected:
+            raise RuntimeError("Device not connected")
+        if not self.is_streaming:
+            raise RuntimeError("Stream not started")
+        return self._board.get_current_board_data(num_samples)
+        
