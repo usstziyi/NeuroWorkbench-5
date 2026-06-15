@@ -82,7 +82,6 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
                 names=["seconds", "amplitude"]
             )
 
-        self.init_ui()
     
     def apply_theme(self, color_mode):
         if color_mode == "Light":
@@ -154,6 +153,3 @@ class TimeDomainWidget(pg.GraphicsLayoutWidget):
         """
         for channel, (t, y) in data.items():
             self.set_data(channel, t, y)
-
-    def init_ui(self):
-        pass
