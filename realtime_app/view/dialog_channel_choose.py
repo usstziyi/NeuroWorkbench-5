@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
+    QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout,
 )
 
 from superqt import QToggleSwitch
@@ -22,25 +22,21 @@ class DialogChannelChoose(QDialog):
         """Initialize the user interface."""
         main_layout = QVBoxLayout(self)
 
-        # 根据配置添加通道选择框，每排两个
+        # 根据配置添加通道选择框，每排两个（使用网格布局精准定位）
         channels = self._binder_time.model.channels
         names = list(channels.keys())
-        for i in range(0, len(names), 2):
-            row_layout = QHBoxLayout()
-            row_layout.setAlignment(Qt.AlignCenter)
-            row_layout.setSpacing(20)
+        grid_layout = QGridLayout()
 
-            for j in range(2):
-                idx = i + j
-                if idx >= len(names):
-                    break
-                name = names[idx]
-                switch = QToggleSwitch(name)
-                switch.setChecked(channels[name])
-                self._checkboxes[name] = switch
-                row_layout.addWidget(switch)
-            main_layout.addLayout(row_layout)
+        for i, name in enumerate(names):
+            row = i // 2
+            col = i % 2
+            switch = QToggleSwitch(name)
+            switch.setChecked(channels[name])
+            self._checkboxes[name] = switch
+            alignment = Qt.AlignRight if col == 0 else Qt.AlignLeft
+            grid_layout.addWidget(switch, row, col, alignment)
 
+        main_layout.addLayout(grid_layout)
         main_layout.addStretch(1)
 
         # 按钮
