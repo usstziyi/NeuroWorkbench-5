@@ -20,12 +20,8 @@ from view.dialog_channel_choose import DialogChannelChoose
 from view.dialog_device_info import DialogDeviceInfo
 
 from superqt import (
-    QLabeledSlider,
-    QRangeSlider,
-    QEnumComboBox,
-    QCollapsible,
-    QToggleSwitch,
-    QElidingLabel,
+    QLabeledSlider, QRangeSlider, QEnumComboBox,
+    QCollapsible, QToggleSwitch, QElidingLabel,
     QSearchableComboBox,
 )
 
@@ -79,7 +75,7 @@ class MainWindow(QMainWindow):
 
         self.init_ui()
         self.setup_menubar()
-        self._setup_pipeline()
+        self.setup_pipeline()
 
         restore_window_state(self)
 
@@ -194,41 +190,24 @@ class MainWindow(QMainWindow):
                     for trait_name, trait in model.class_traits(config=True).items():
                         setattr(model, trait_name, trait.default())
 
-
-
-
-
-    def _setup_pipeline(self):
-        """创建数据管线，监听 streaming 状态自动启停。"""
+    def setup_pipeline(self):
+        """创建数据管线。"""
         self._pipeline = Pipeline(
             self._device_manager,
             time_config=self.config_time,
             filter_config=self.config_filter,
             detrend_config=self.config_detrend,
+            device_config=self.config_device,
         )
         self._pipeline.data_ready.connect(self._center_widget.set_all_data)
-
-        self.config_device.observe(
-            lambda change: self._on_streaming_changed(change["new"]),
-            names=["is_streaming"],
-        )
-
-    def _on_streaming_changed(self, streaming: bool):
-        try:
-            if streaming and not self._pipeline.is_running():
-                self._pipeline.start()
-            elif not streaming and self._pipeline.is_running():
-                self._pipeline.stop()
-        except RuntimeError:
-            pass  # C++ 对象已被销毁，忽略
 
     def closeEvent(self, event):
         save_window_state(self)
         try:
-            if hasattr(self, '_pipeline') and self._pipeline is not None:
+            if self._pipeline.is_running():
                 self._pipeline.stop()
         except RuntimeError:
-            pass  # C++ 对象已被 PySide6 提前销毁，忽略
+            pass
         if self._save_config_callback:
             self._save_config_callback()
         super().closeEvent(event)

@@ -17,7 +17,8 @@ class Pipeline(QObject):
     def __init__(self, device_manager,
                  time_config=None,
                  filter_config=None,
-                 detrend_config=None):
+                 detrend_config=None,
+                 device_config=None):
         super().__init__()
 
         self._fetcher = BoardFetcher(device_manager, time_config)
@@ -44,6 +45,13 @@ class Pipeline(QObject):
 
         self._fetch_thread.finished.connect(self._chain_thread.quit)
 
+        # 监听 streaming 状态自动启停
+        if device_config is not None:
+            device_config.observe(
+                self._on_streaming_changed,
+                names=["is_streaming"],
+            )
+
     def start(self):
         self._chain_thread.start()
         self._fetch_thread.start()
@@ -55,3 +63,13 @@ class Pipeline(QObject):
 
     def is_running(self) -> bool:
         return self._fetch_thread.isRunning()
+
+    def _on_streaming_changed(self, change):
+        streaming = change["new"]
+        try:
+            if streaming and not self.is_running():
+                self.start()
+            elif not streaming and self.is_running():
+                self.stop()
+        except RuntimeError:
+            pass  # C++ 对象已被销毁，忽略

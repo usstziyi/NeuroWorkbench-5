@@ -6,30 +6,17 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLineEdit,
-    QMessageBox,
-    QPushButton,
-    QSizePolicy,
-    QSpinBox,
-    QVBoxLayout,
-    QWidget,
+    QCheckBox, QComboBox, QDoubleSpinBox, QFormLayout,
+    QGroupBox, QHBoxLayout, QLineEdit, QMessageBox,
+    QPushButton, QSizePolicy, QSpinBox, QVBoxLayout,
+    QWidget
 )
 
 from view.dialog_ui_settings import DialogUiSettings
 
 from superqt import (
-    QLabeledSlider,
-    QRangeSlider,
-    QEnumComboBox,
-    QCollapsible,
-    QToggleSwitch,
-    QElidingLabel,
+    QLabeledSlider, QRangeSlider, QEnumComboBox,
+    QCollapsible, QToggleSwitch, QElidingLabel,
     QSearchableComboBox,
 )
 
