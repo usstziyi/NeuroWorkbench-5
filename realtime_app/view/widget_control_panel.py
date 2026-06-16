@@ -395,8 +395,24 @@ class ControlPanelWidget(QWidget):
     def observe_device_config(self):
         if self._binder_device is None:
             return
-        model = self._binder_device.model
-        model.observe(self.on_device_state_changed, names=["is_connected", "is_streaming", "error_message"])
+        self._device_model = self._binder_device.model
+        self._device_model.observe(
+            self.on_device_state_changed,
+            names=["is_connected", "is_streaming", "error_message"],
+        )
+
+    def closeEvent(self, event):
+        """取消 config observe 注册。"""
+        if self._binder_device is not None and hasattr(self, "_device_model"):
+            try:
+                self._device_model.unobserve(
+                    self.on_device_state_changed,
+                    names=["is_connected", "is_streaming", "error_message"],
+                )
+            except RuntimeError:
+                pass
+            self._device_model = None
+        super().closeEvent(event)
 
     def on_device_state_changed(self, change):
         name = change["name"]

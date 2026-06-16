@@ -21,6 +21,7 @@ class SignalChain(QObject):
         self._notch_freq = 50.0
         self._sampling_rate = 250.0
         
+        self._detrend_config = detrend_config
         if detrend_config is not None:
             self._detrend_enabled = detrend_config.enable
             detrend_config.observe(
@@ -28,6 +29,7 @@ class SignalChain(QObject):
                 names=["enable"],
             )
 
+        self._filter_config = filter_config
         if filter_config is not None:
             self._filter_enabled = filter_config.enable
             self._highpass = filter_config.highpass
@@ -53,6 +55,26 @@ class SignalChain(QObject):
 
     def _on_detrend_changed(self, change):
         self._detrend_enabled = change["new"]
+
+    def shutdown(self):
+        """取消 config observe 注册。"""
+        if self._detrend_config is not None:
+            try:
+                self._detrend_config.unobserve(
+                    self._on_detrend_changed, names=["enable"]
+                )
+            except RuntimeError:
+                pass
+            self._detrend_config = None
+        if self._filter_config is not None:
+            try:
+                self._filter_config.unobserve(
+                    self._on_filter_changed,
+                    names=["highpass", "lowpass", "notch_freq", "enable"],
+                )
+            except RuntimeError:
+                pass
+            self._filter_config = None
 
     def process(self, raw_data: dict):
         """接收原始数据，执行处理链，发射处理结果。"""

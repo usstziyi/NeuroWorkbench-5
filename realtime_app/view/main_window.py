@@ -66,11 +66,11 @@ class MainWindow(QMainWindow):
         # 在 UI 创建前应用初始主题，并监听后续变化
         if self.config_theme is not None:
             self.apply_theme(self.config_theme.theme, self.config_theme.color_mode)
+            self._on_theme_changed = lambda change: self.apply_theme(
+                self.config_theme.theme, self.config_theme.color_mode
+            )
             self.config_theme.observe(
-                lambda change: self.apply_theme(
-                    self.config_theme.theme, self.config_theme.color_mode
-                ),
-                names=["theme", "color_mode"],
+                self._on_theme_changed, names=["theme", "color_mode"],
             )
 
         self.init_ui()
@@ -205,6 +205,14 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         save_window_state(self)
         self._pipeline.shutdown()
+        # MainWindow 自身 unobserve
+        if self.config_theme is not None and hasattr(self, "_on_theme_changed"):
+            try:
+                self.config_theme.unobserve(
+                    self._on_theme_changed, names=["theme", "color_mode"]
+                )
+            except RuntimeError:
+                pass
         if self._save_config_callback:
             self._save_config_callback()
         super().closeEvent(event)

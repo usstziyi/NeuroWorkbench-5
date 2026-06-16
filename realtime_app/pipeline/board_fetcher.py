@@ -19,6 +19,7 @@ class BoardFetcher(QObject):
         self._channels = {}
         self._timer: QTimer | None = None
 
+        self._time_config = time_config
         if time_config is not None:
             self._seconds = time_config.seconds
             self._interval_ms = int(time_config.interval)
@@ -48,6 +49,18 @@ class BoardFetcher(QObject):
     def stop(self):
         if self._timer is not None:
             self._timer.stop()
+
+    def shutdown(self):
+        """取消 config observe 注册。"""
+        if self._time_config is not None:
+            try:
+                self._time_config.unobserve(
+                    self._on_config_changed,
+                    names=["seconds", "interval", "channels"],
+                )
+            except RuntimeError:
+                pass
+            self._time_config = None
 
     # ---- 内部 ----
     def _fetch_and_emit(self):

@@ -86,7 +86,11 @@ class Pipeline(QObject):
         # 1. 停止 worker 线程
         self.stop()
 
-        # 2. 取消 config observe，防止 Pipeline 销毁后 config 仍回调已销毁的 QObject
+        # 2. 取消子组件 config observe
+        self._fetcher.shutdown()
+        self._chain.shutdown()
+
+        # 3. 取消自身 config observe
         if self._device_config is not None:
             try:
                 self._device_config.unobserve(
