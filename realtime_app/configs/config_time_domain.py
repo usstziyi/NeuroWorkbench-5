@@ -9,8 +9,8 @@ class ConfigTimeDomain(Configurable):
     channels = Dict(
         key_trait=Unicode(), value_trait=Bool(),
         default_value={
-            'CH1': True, 'CH2': True, 'CH3': True,
-            'CH4': True, 'CH5': True, 'CH6': True,
+            'CH1': True, 'CH2': True, 'CH3': True, 'CH4': True, 
+            'CH5': True, 'CH6': True, 'CH7': True, 'CH8': True,
         },
         help="Channel name → enabled state.",
-    ).tag(config=True)
+    ).tag(config=False)
