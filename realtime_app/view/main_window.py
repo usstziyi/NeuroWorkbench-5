@@ -57,14 +57,23 @@ class MainWindow(QMainWindow):
         self._binder_time = binder_time
         self._binder_recorder = binder_recorder
 
+        self.config_theme = self._binder_theme.model if self._binder_theme else None
+        self.config_device = self._binder_device.model if self._binder_device else None
+        self.config_filter = self._binder_filter.model if self._binder_filter else None
+        self.config_detrend = self._binder_detrend.model if self._binder_detrend else None
+        self.config_freqs = self._binder_freqs.model if self._binder_freqs else None
+        self.config_time = self._binder_time.model if self._binder_time else None
+        self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
+
         self.setWindowTitle(self._app_name)
 
         # 在 UI 创建前应用初始主题，并监听后续变化
-        if self._binder_theme is not None:
-            model = self._binder_theme.model
-            self.apply_theme(model.theme, model.color_mode)
-            model.observe(
-                lambda change: self.apply_theme(model.theme, model.color_mode),
+        if self.config_theme is not None:
+            self.apply_theme(self.config_theme.theme, self.config_theme.color_mode)
+            self.config_theme.observe(
+                lambda change: self.apply_theme(
+                    self.config_theme.theme, self.config_theme.color_mode
+                ),
                 names=["theme", "color_mode"],
             )
 
@@ -79,8 +88,8 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-        self._center_widget = TimeDomainWidget(theme_config=self._binder_theme.model if self._binder_theme else None,
-                                          time_config=self._binder_time.model)
+        self._center_widget = TimeDomainWidget(theme_config=self.config_theme,
+                                          time_config=self.config_time)
         self.setCentralWidget(self._center_widget)
 
         self.left_dock = QDockWidget("控制面板")
@@ -106,7 +115,7 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomainWidget(freqs_config=self._binder_freqs.model if self._binder_freqs else None)
+        bottom_widget = FreqsDomainWidget(freqs_config=self.config_freqs)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
@@ -156,11 +165,11 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(time_config=self._binder_time.model, parent=self)
+        dialog = DialogChannelChoose(time_config=self.config_time, parent=self)
         dialog.exec()
     
     def _show_device_info_dialog(self):
-        dialog = DialogDeviceInfo(device_config=self._binder_device.model, parent=self)
+        dialog = DialogDeviceInfo(device_config=self.config_device, parent=self)
         dialog.exec()
     
     def _show_restore_default_action(self):
@@ -169,19 +178,18 @@ class MainWindow(QMainWindow):
             QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes
         )
         if reply == QMessageBox.Yes:
-            binders = [
-                self._binder_theme,
-                self._binder_device,
-                self._binder_filter,
-                self._binder_detrend,
-                self._binder_freqs,
-                self._binder_time,
-                self._binder_recorder,
+            configs = [
+                self.config_theme,
+                self.config_device,
+                self.config_filter,
+                self.config_detrend,
+                self.config_freqs,
+                self.config_time,
+                self.config_recorder,
             ]
-            for binder in binders:
-                if binder is None:
+            for model in configs:
+                if model is None:
                     continue
-                model = binder.model
                 with model.hold_trait_notifications():
                     for trait_name, trait in model.class_traits(config=True).items():
                         setattr(model, trait_name, trait.default())
@@ -194,13 +202,13 @@ class MainWindow(QMainWindow):
         """创建数据管线，监听 streaming 状态自动启停。"""
         self._pipeline = Pipeline(
             self._device_manager,
-            time_config=self._binder_time.model,
-            filter_config=self._binder_filter.model if self._binder_filter else None,
-            detrend_config=self._binder_detrend.model if self._binder_detrend else None,
+            time_config=self.config_time,
+            filter_config=self.config_filter,
+            detrend_config=self.config_detrend,
         )
         self._pipeline.data_ready.connect(self._center_widget.set_all_data)
 
-        self._binder_device.model.observe(
+        self.config_device.observe(
             lambda change: self._on_streaming_changed(change["new"]),
             names=["is_streaming"],
         )
