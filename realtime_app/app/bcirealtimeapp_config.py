@@ -32,9 +32,9 @@ c.ConfigDevice.sampling_rate = 250
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
-c.ConfigFilter.highpass = 0.5
+c.ConfigFilter.highpass = 5.0
 c.ConfigFilter.lowpass = 45.0
-c.ConfigFilter.noise_type = 50.0
+c.ConfigFilter.noise_type = 0.0
 
 #------------------------------------------------------------------------------
 # ConfigDetrend configuration
