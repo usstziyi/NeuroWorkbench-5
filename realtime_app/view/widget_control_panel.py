@@ -82,7 +82,8 @@ class ControlPanelWidget(QWidget):
         self.init_ui()
         self.bind_configs()
         self.connect_signals()
-        self.observe_device_config()
+        self.observe_configs()
+        self.destroyed.connect(self.unobserve_configs)
     
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
@@ -392,7 +393,7 @@ class ControlPanelWidget(QWidget):
         self.stop_btn.clicked.connect(self.on_stop)
         self.recorder_button.clicked.connect(self.record)
 
-    def observe_device_config(self):
+    def observe_configs(self):
         if self._binder_device is None:
             return
         self._device_model = self._binder_device.model
@@ -401,7 +402,9 @@ class ControlPanelWidget(QWidget):
             names=["is_connected", "is_streaming", "error_message"],
         )
 
-    def closeEvent(self, event):
+
+    
+    def unobserve_configs(self):
         """取消 config observe 注册。"""
         if self._binder_device is not None and hasattr(self, "_device_model"):
             try:
@@ -412,7 +415,6 @@ class ControlPanelWidget(QWidget):
             except RuntimeError:
                 pass
             self._device_model = None
-        super().closeEvent(event)
 
     def on_device_state_changed(self, change):
         name = change["name"]
@@ -450,7 +452,7 @@ class ControlPanelWidget(QWidget):
         name = self._binder_device.get("name")
         port = self._binder_device.get("port")
         sampling_rate = self._binder_device.get("sampling_rate")
-        self._device_manager.connect_device(name, port, sampling_rate)
+        self._device_manager.connect(name, port, sampling_rate)
 
     def on_disconnect(self):
         if not self._device_manager:
@@ -469,3 +471,5 @@ class ControlPanelWidget(QWidget):
 
     def record(self):
         pass
+
+    

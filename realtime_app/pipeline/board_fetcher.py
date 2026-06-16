@@ -18,27 +18,12 @@ class BoardFetcher(QObject):
         self._interval_ms = 50
         self._channels = {}
         self._timer: QTimer | None = None
+        self._eeg_channels = None
+        self._eeg_names = None
+        self._sr = None
 
         self._time_config = time_config
-        if time_config is not None:
-            self._seconds = time_config.seconds
-            self._interval_ms = int(time_config.interval)
-            self._channels = dict(time_config.channels)
-            time_config.observe(
-                self._on_config_changed,
-                names=["seconds", "interval", "channels"],
-            )
-
-    def _on_config_changed(self, change):
-        name = change["name"]
-        if name == "seconds":
-            self._seconds = change["new"]
-        elif name == "interval":
-            self._interval_ms = int(change["new"])
-            if self._timer is not None:
-                self._timer.setInterval(self._interval_ms)
-        elif name == "channels":
-            self._channels = dict(change["new"])
+        self.observe_configs()
 
     def start(self):
         if self._timer is None:
@@ -50,17 +35,6 @@ class BoardFetcher(QObject):
         if self._timer is not None:
             self._timer.stop()
 
-    def shutdown(self):
-        """取消 config observe 注册。"""
-        if self._time_config is not None:
-            try:
-                self._time_config.unobserve(
-                    self._on_config_changed,
-                    names=["seconds", "interval", "channels"],
-                )
-            except RuntimeError:
-                pass
-            self._time_config = None
 
     # ---- 内部 ----
     def _fetch_and_emit(self):
@@ -69,18 +43,56 @@ class BoardFetcher(QObject):
         if board_data.size == 0:
             return
 
-        eeg_channels = self._dm.eeg_channels
-        eeg_names = self._dm.eeg_names
-        sr = self._dm.sampling_rate
+        if self._eeg_channels is None:
+            self._eeg_channels = self._dm.eeg_channels
+            self._eeg_names = self._dm.eeg_names
+            self._sr = self._dm.sampling_rate
 
-        eeg_data = board_data[eeg_channels]
-        n_actual = eeg_data.shape[1] # 实际数据点数
-        t = np.arange(-n_actual, 0) / sr
+        eeg_data = board_data[self._eeg_channels]
+        n_actual = eeg_data.shape[1]
+        t = np.arange(-n_actual, 0) / self._sr
 
         result = {} # {channel_name: (t_array, y_array)}
-        for i, name in enumerate(eeg_names):
+        for i, name in enumerate(self._eeg_names):
             if not self._channels.get(name, False):
                 continue
             result[name] = (t, eeg_data[i])
 
         self.raw_data_ready.emit(result)
+
+    def observe_configs(self):
+        """同步初始值并注册 config observe。"""
+        if self._time_config is not None:
+            self._seconds = self._time_config.seconds
+            self._interval_ms = int(self._time_config.interval)
+            self._channels = dict(self._time_config.channels)
+            self._time_config.observe(
+                self.on_config_changed,
+                names=["seconds", "interval", "channels"],
+            )
+
+    def on_config_changed(self, change):
+        name = change["name"]
+        if name == "seconds":
+            self._seconds = change["new"]
+        elif name == "interval":
+            self._interval_ms = int(change["new"])
+            if self._timer is not None:
+                self._timer.setInterval(self._interval_ms)
+        elif name == "channels":
+            self._channels = dict(change["new"])
+
+    def unobserve_configs(self):
+        """取消 config observe 注册。"""
+        if self._time_config is not None:
+            try:
+                self._time_config.unobserve(
+                    self.on_config_changed,
+                    names=["seconds", "interval", "channels"],
+                )
+            except RuntimeError:
+                pass
+            self._time_config = None
+
+    def cleanup(self):
+        self.unobserve_configs()

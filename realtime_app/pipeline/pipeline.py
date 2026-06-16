@@ -21,37 +21,43 @@ class Pipeline(QObject):
                  device_config=None):
         super().__init__(parent)
 
-        self._fetcher = BoardFetcher(device_manager, time_config)
-        self._chain = SignalChain(filter_config, detrend_config)
+        self._device_manager = device_manager
+        self._time_config = time_config
+        self._filter_config = filter_config
+        self._detrend_config = detrend_config
+        self._device_config = device_config
+
+        self._fetcher = None
+        self._chain = None
         self._fetch_thread = None
         self._chain_thread = None
-        self._device_config = device_config  # 持有引用，用于 shutdown 时取消 observe
 
-        # fetcher → chain（worker 复用，连线仅设一次）
+        # 监听 device_config 变化
+        self.observe_configs()
+
+
+    def start(self):
+        # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
+        self._fetcher = BoardFetcher(self._device_manager, self._time_config)
+        self._chain = SignalChain(self._filter_config, self._detrend_config)
+
+        # fetcher → chain
         self._fetcher.raw_data_ready.connect(self._chain.process)
         # chain → UI
         self._chain.data_ready.connect(self.data_ready.emit)
 
-        # 监听 streaming 状态自动启停
-        if device_config is not None:
-            device_config.observe(
-                self._on_streaming_changed,
-                names=["is_streaming"],
-            )
-
-    def start(self):
         self._fetch_thread = QThread()
         self._chain_thread = QThread()
 
         self._fetcher.moveToThread(self._fetch_thread)
         self._chain.moveToThread(self._chain_thread)
 
-        # 线程生命周期（每次 start 重建）
         self._fetch_thread.started.connect(self._fetcher.start)
         self._fetch_thread.finished.connect(self._fetcher.stop)
 
         self._chain_thread.start()
         self._fetch_thread.start()
+        print("[pp]Pipeline started")
 
     def stop(self):
         if self._fetch_thread is None:
@@ -60,15 +66,31 @@ class Pipeline(QObject):
         self._chain_thread.quit()
         self._fetch_thread.wait()
         self._chain_thread.wait()
+
+        # 清理旧 worker 的 observer
+        self._fetcher.cleanup()
+        self._chain.cleanup()
+        self._fetcher = None
+        self._chain = None
         self._fetch_thread = None
         self._chain_thread = None
+        print("[pp]Pipeline stopped")
 
     def is_running(self) -> bool:
         return self._fetch_thread is not None and self._fetch_thread.isRunning()
     
+    
+    def observe_configs(self):
+        # 监听 streaming 状态自动启停
+        if self._device_config is not None:
+            self._device_config.observe(
+                self._on_streaming_changed,
+                names=["is_streaming"],
+            )
+
     def _on_streaming_changed(self, change):
         streaming = change["new"]
-        print(f"Streaming changed to {streaming}")
+        print(f"[pp]Streaming config changed to {streaming}")
         try:
             if streaming and not self.is_running():
                 self.start()
@@ -76,21 +98,8 @@ class Pipeline(QObject):
                 self.stop()
         except RuntimeError:
             pass
-
-    def shutdown(self):
-        """关闭管线：停止线程、取消 config observe 注册。
-
-        应在 Pipeline 生命周期结束前调用，确保线程优雅退出且不留悬空回调。
-        幂等：多次调用安全。
-        """
-        # 1. 停止 worker 线程
-        self.stop()
-
-        # 2. 取消子组件 config observe
-        self._fetcher.shutdown()
-        self._chain.shutdown()
-
-        # 3. 取消自身 config observe
+    
+    def unobserve_configs(self):
         if self._device_config is not None:
             try:
                 self._device_config.unobserve(
@@ -99,5 +108,20 @@ class Pipeline(QObject):
             except RuntimeError:
                 pass  # C++ 对象已销毁
             self._device_config = None
+
+    def close(self):
+        """关闭管线：停止线程、取消 config observe 注册。
+
+        应在 Pipeline 生命周期结束前调用，确保线程优雅退出且不留悬空回调。
+        幂等：多次调用安全。
+        """
+        # 1. 停止 worker 线程（stop 内部会 cleanup worker）
+        self.stop()
+
+        # 2. 取消自身 config observe
+        self.unobserve_configs()
+        print("[pp]Pipeline closed")
+
+
 
 

@@ -16,7 +16,7 @@ _NAME_TO_BOARD = {
 class DeviceManager:
     """Encapsulates BoardShim hardware I/O.
 
-    View layer calls connect_device / disconnect / start_stream / stop_stream.
+    View layer calls connect / disconnect / start_stream / stop_stream.
     This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
@@ -31,7 +31,7 @@ class DeviceManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def connect_device(self, name: str, port: str = "", sampling_rate: int = 250):
+    def connect(self, name: str, port: str = "", sampling_rate: int = 250):
         """Connect to the device specified by *name* (e.g. 'synthetic', 'cyton').
 
         Args:
@@ -60,7 +60,7 @@ class DeviceManager:
             board = BoardShim(board_id, params)
             board.prepare_session()
         except Exception as e:
-            print(f"Failed to connect to {name}: {e}")
+            print(f"[dm]Failed to connect to {name}: {e}")
             if board is not None:
                 try:
                     board.release_session()
@@ -78,25 +78,24 @@ class DeviceManager:
 
         if self._config_time_domain is not None:
             self._config_time_domain.channels = {name: True for name in self.eeg_names}
+        print(f"[dm]Connected to {name} with port {port}")
 
     def disconnect(self):
         """Release the board session."""
         if not self.is_connected:
             return
         try:
-            if self.is_streaming:
-                self._board.stop_stream()
-                self._streaming = False
+            self.stop_stream()
             self._board.release_session()
         except Exception:
-            print("Failed to releasing board session")
+            print("[dm]Failed to releasing board session")
         finally:
             self._board = None
             self._board_id = -1
             self._config_device.is_connected = False
             self._config_device.is_streaming = False
             self._config_device.device_info = {}
-            print("Disconnected from device")
+            print("[dm]Disconnected from device")
 
     def start_stream(self, buffer_size: int | None = None):
         """Start data streaming.
@@ -115,9 +114,9 @@ class DeviceManager:
                 self._board.start_stream(buffer_size)
             self._streaming = True
             self._config_device.is_streaming = True
-            print("Stream started")
+            print("[dm]Stream started")
         except Exception as e:
-            print(f"Failed to start stream: {e}")
+            print(f"[dm]Failed to start stream: {e}")
             self._config_device.error_message = str(e)
 
     def stop_stream(self):
@@ -127,12 +126,12 @@ class DeviceManager:
         if not self.is_streaming:
             return
         try:
-            self._board.stop_stream()
             self._streaming = False
             self._config_device.is_streaming = False
-            print("Stream stopped")
+            self._board.stop_stream()
+            print("[dm]Stream stopped")
         except Exception as e:
-            print(f"Failed to stop stream: {e}")
+            print(f"[dm]Failed to stop stream: {e}")
             self._config_device.error_message = str(e)
 
     # ------------------------------------------------------------------

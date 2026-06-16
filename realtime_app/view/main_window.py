@@ -6,7 +6,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QFormLayout, QLineEdit, QCheckBox, QPushButton, QFileDialog,
-    QMessageBox, QLabel, QDockWidget, QApplication,
+    QMessageBox, QLabel, QDockWidget,
 )
 from qtpy.QtCore import PyClassProperty
 
@@ -63,23 +63,11 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(self._app_name)
 
-        # 在 UI 创建前应用初始主题，并监听后续变化
-        if self.config_theme is not None:
-            self.apply_theme(self.config_theme.theme, self.config_theme.color_mode)
-            self._on_theme_changed = lambda change: self.apply_theme(
-                self.config_theme.theme, self.config_theme.color_mode
-            )
-            self.config_theme.observe(
-                self._on_theme_changed, names=["theme", "color_mode"],
-            )
-
         self.init_ui()
         self.setup_menubar()
         self.setup_pipeline()
-
         restore_window_state(self)
 
-    
     def init_ui(self):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
@@ -202,28 +190,12 @@ class MainWindow(QMainWindow):
         )
         self._pipeline.data_ready.connect(self._center_widget.set_all_data)
 
+
     def closeEvent(self, event):
         save_window_state(self)
-        self._pipeline.shutdown()
-        # MainWindow 自身 unobserve
-        if self.config_theme is not None and hasattr(self, "_on_theme_changed"):
-            try:
-                self.config_theme.unobserve(
-                    self._on_theme_changed, names=["theme", "color_mode"]
-                )
-            except RuntimeError:
-                pass
-        if self._save_config_callback:
+        self._pipeline.close()
+        if self._device_manager is not None:
+            self._device_manager.disconnect()
+        if self._save_config_callback is not None:
             self._save_config_callback()
         super().closeEvent(event)
-
-    def apply_theme(self, theme: str, color_mode: str):
-        QApplication.setStyle(theme)
-        color_mode_map = {
-            "Light": Qt.ColorScheme.Light,
-            "Dark": Qt.ColorScheme.Dark,
-            "System": Qt.ColorScheme.Unknown,
-        }
-        QApplication.styleHints().setColorScheme(
-            color_mode_map.get(color_mode, Qt.ColorScheme.Unknown)
-        )

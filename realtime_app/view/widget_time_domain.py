@@ -38,8 +38,8 @@ FIXED_PLOT_HEIGHT = 120
 
 class TimeDomainWidget(QWidget):
     """Time domain widget with scrollable fixed-height plots."""
-    def __init__(self, theme_config=None, time_config=None):
-        super().__init__()
+    def __init__(self, theme_config=None, time_config=None, parent=None):
+        super().__init__(parent)
         self._theme_config = theme_config
         self._time_config = time_config
         self.setObjectName("time_domain_widget")
@@ -58,30 +58,8 @@ class TimeDomainWidget(QWidget):
         self._scroll_area.setWidget(self._plot_widget)
         layout.addWidget(self._scroll_area)
 
-        if self._theme_config is not None:
-            self.apply_theme(self._theme_config.color_mode)
-            self._on_theme_changed = lambda change: self.apply_theme(
-                self._theme_config.color_mode
-            )
-            self._theme_config.observe(
-                self._on_theme_changed, names=["color_mode"]
-            )
-        
-        if self._time_config is not None:
-            self.apply_channels(self._time_config.channels)
-            self._on_channels_changed = lambda change: self.apply_channels(
-                self._time_config.channels
-            )
-            self._time_config.observe(
-                self._on_channels_changed, names=["channels"]
-            )
-            self.set_range(self._time_config.seconds, self._time_config.amplitude)
-            self._on_range_changed = lambda change: self.set_range(
-                self._time_config.seconds, self._time_config.amplitude
-            )
-            self._time_config.observe(
-                self._on_range_changed, names=["seconds", "amplitude"]
-            )
+        self.observer_configs()
+        self.destroyed.connect(self.unobserve_configs)
 
     
     def apply_theme(self, color_mode):
@@ -132,31 +110,6 @@ class TimeDomainWidget(QWidget):
         if self._time_config is not None:
             self.set_range(self._time_config.seconds, self._time_config.amplitude)
 
-    def closeEvent(self, event):
-        """取消 config observe 注册。"""
-        if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
-            try:
-                self._theme_config.unobserve(
-                    self._on_theme_changed, names=["color_mode"]
-                )
-            except RuntimeError:
-                pass
-        if self._time_config is not None:
-            if hasattr(self, "_on_channels_changed"):
-                try:
-                    self._time_config.unobserve(
-                        self._on_channels_changed, names=["channels"]
-                    )
-                except RuntimeError:
-                    pass
-            if hasattr(self, "_on_range_changed"):
-                try:
-                    self._time_config.unobserve(
-                        self._on_range_changed, names=["seconds", "amplitude"]
-                    )
-                except RuntimeError:
-                    pass
-        super().closeEvent(event)
 
     def set_range(self, seconds, amplitude):
         """Set the range of the plot.
@@ -190,3 +143,62 @@ class TimeDomainWidget(QWidget):
         """
         for channel, (t, y) in data.items():
             self.set_data(channel, t, y)
+
+
+    def observer_configs(self):
+        """设置 config observe，初始值同步 + 变化监听。幂等。"""
+        if hasattr(self, "_on_theme_changed"):  # 已注册，跳过
+            return
+        if self._theme_config is not None:
+            self.apply_theme(self._theme_config.color_mode)
+            self._on_theme_changed = lambda change: self.apply_theme(
+                self._theme_config.color_mode
+            )
+            self._theme_config.observe(
+                self._on_theme_changed, names=["color_mode"]
+            )
+
+        if self._time_config is not None:
+            self.apply_channels(self._time_config.channels)
+            self._on_channels_changed = lambda change: self.apply_channels(
+                self._time_config.channels
+            )
+            self._time_config.observe(
+                self._on_channels_changed, names=["channels"]
+            )
+            self.set_range(self._time_config.seconds, self._time_config.amplitude)
+            self._on_range_changed = lambda change: self.set_range(
+                self._time_config.seconds, self._time_config.amplitude
+            )
+            self._time_config.observe(
+                self._on_range_changed, names=["seconds", "amplitude"]
+            )
+
+    def unobserve_configs(self):
+        print("$$$$$$$$$$$$$$$$$$$")
+        """取消 config observe 注册。幂等。"""
+        if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
+            try:
+                self._theme_config.unobserve(
+                    self._on_theme_changed, names=["color_mode"]
+                )
+            except RuntimeError:
+                pass
+            del self._on_theme_changed
+        if self._time_config is not None:
+            if hasattr(self, "_on_channels_changed"):
+                try:
+                    self._time_config.unobserve(
+                        self._on_channels_changed, names=["channels"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_channels_changed
+            if hasattr(self, "_on_range_changed"):
+                try:
+                    self._time_config.unobserve(
+                        self._on_range_changed, names=["seconds", "amplitude"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_range_changed

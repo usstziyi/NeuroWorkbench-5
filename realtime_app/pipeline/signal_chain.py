@@ -22,59 +22,9 @@ class SignalChain(QObject):
         self._sampling_rate = 250.0
         
         self._detrend_config = detrend_config
-        if detrend_config is not None:
-            self._detrend_enabled = detrend_config.enable
-            detrend_config.observe(
-                self._on_detrend_changed,
-                names=["enable"],
-            )
-
         self._filter_config = filter_config
-        if filter_config is not None:
-            self._filter_enabled = filter_config.enable
-            self._highpass = filter_config.highpass
-            self._lowpass = filter_config.lowpass
-            self._notch_freq = filter_config.notch_freq
-            filter_config.observe(
-                self._on_filter_changed,
-                names=["highpass", "lowpass", "notch_freq", "enable"],
-            )
+        self.observe_configs()
 
-
-
-    def _on_filter_changed(self, change):
-        name = change["name"]
-        if name == "highpass":
-            self._highpass = change["new"]
-        elif name == "lowpass":
-            self._lowpass = change["new"]
-        elif name == "notch_freq":
-            self._notch_freq = change["new"]
-        elif name == "enable":
-            self._filter_enabled = change["new"]
-
-    def _on_detrend_changed(self, change):
-        self._detrend_enabled = change["new"]
-
-    def shutdown(self):
-        """取消 config observe 注册。"""
-        if self._detrend_config is not None:
-            try:
-                self._detrend_config.unobserve(
-                    self._on_detrend_changed, names=["enable"]
-                )
-            except RuntimeError:
-                pass
-            self._detrend_config = None
-        if self._filter_config is not None:
-            try:
-                self._filter_config.unobserve(
-                    self._on_filter_changed,
-                    names=["highpass", "lowpass", "notch_freq", "enable"],
-                )
-            except RuntimeError:
-                pass
-            self._filter_config = None
 
     def process(self, raw_data: dict):
         """接收原始数据，执行处理链，发射处理结果。"""
@@ -101,3 +51,62 @@ class SignalChain(QObject):
             result[name] = (t, y_processed)
 
         self.data_ready.emit(result)
+
+    def observe_configs(self):
+        if self._detrend_config is not None:
+            self._detrend_enabled = self._detrend_config.enable
+            self._detrend_config.observe(
+                self._on_detrend_changed,
+                names=["enable"],
+            )
+
+        if self._filter_config is not None:
+            self._filter_enabled = self._filter_config.enable
+            self._highpass = self._filter_config.highpass
+            self._lowpass = self._filter_config.lowpass
+            self._notch_freq = self._filter_config.notch_freq
+            self._filter_config.observe(
+                self._on_filter_changed,
+                names=["highpass", "lowpass", "notch_freq", "enable"],
+            )
+
+    def _on_filter_changed(self, change):
+        name = change["name"]
+        if name == "highpass":
+            self._highpass = change["new"]
+        elif name == "lowpass":
+            self._lowpass = change["new"]
+        elif name == "notch_freq":
+            self._notch_freq = change["new"]
+        elif name == "enable":
+            self._filter_enabled = change["new"]
+
+    def _on_detrend_changed(self, change):
+        self._detrend_enabled = change["new"]
+
+    def unobserve_configs(self):
+        """取消 config observe 注册。"""
+        if self._detrend_config is not None:
+            try:
+                self._detrend_config.unobserve(
+                    self._on_detrend_changed, names=["enable"]
+                )
+            except RuntimeError:
+                pass
+            self._detrend_config = None
+        if self._filter_config is not None:
+            try:
+                self._filter_config.unobserve(
+                    self._on_filter_changed,
+                    names=["highpass", "lowpass", "notch_freq", "enable"],
+                )
+            except RuntimeError:
+                pass
+            self._filter_config = None
+
+    def cleanup(self):
+        self.unobserve_configs()
+
+
+
+

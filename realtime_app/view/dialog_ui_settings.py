@@ -98,7 +98,10 @@ class DialogUiSettings(QDialog):
         super().reject()
 
     def closeEvent(self, event: QCloseEvent):
+        self.unbind_configs()
+        super().closeEvent(event)
+
+    def unbind_configs(self):
         if self._binder is not None:
             self._binder.unbind("theme")
             self._binder.unbind("color_mode")
-        super().closeEvent(event)

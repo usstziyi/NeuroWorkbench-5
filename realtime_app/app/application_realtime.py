@@ -2,6 +2,7 @@ from pathlib import Path
 
 from traitlets.config import Application
 from traitlets import Unicode
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from binder import ConfigBinder
 from configs.config_filter import ConfigFilter
@@ -56,7 +57,14 @@ class BCIRealtimeApp(Application):
         binder_time = ConfigBinder(self.config_time_domain)
         binder_recorder = ConfigBinder(self.config_recorder)
 
-        
+        self.apply_theme(self.config_theme.theme, self.config_theme.color_mode)
+        self.config_theme.observe(
+            lambda change: self.apply_theme(
+                self.config_theme.theme, self.config_theme.color_mode
+            ),
+            names=["theme", "color_mode"],
+        )
+
         self.main_window = MainWindow(
             app_info={
                 "name": self.name,
@@ -104,3 +112,15 @@ class BCIRealtimeApp(Application):
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         config_path = CONFIG_DIR / "bcirealtimeapp_config.py"
         config_path.write_text(content + "\n", encoding="utf-8")
+
+    @staticmethod
+    def apply_theme(theme: str, color_mode: str):
+        QApplication.setStyle(theme)
+        color_mode_map = {
+            "Light": Qt.ColorScheme.Light,
+            "Dark": Qt.ColorScheme.Dark,
+            "System": Qt.ColorScheme.Unknown,
+        }
+        QApplication.styleHints().setColorScheme(
+            color_mode_map.get(color_mode, Qt.ColorScheme.Unknown)
+        )
