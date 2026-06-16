@@ -17,6 +17,7 @@ from view.widget_properties import PropertiesWidget
 
 from view.dialog_ui_settings import DialogUiSettings
 from view.dialog_channel_choose import DialogChannelChoose
+from view.dialog_device_info import DialogDeviceInfo
 
 from superqt import (
     QLabeledSlider,
@@ -120,6 +121,15 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.right_dock.toggleViewAction())
         view_menu.addAction(self.bottom_dock.toggleViewAction())
 
+        # 设备
+        device_menu = menubar.addMenu("设备(&D)")
+        action = QAction("通道选择(&C)", self)
+        action.triggered.connect(self._show_channel_choose_dialog)
+        device_menu.addAction(action)
+        action = QAction("设备信息(&D)", self)
+        action.triggered.connect(self._show_device_info_dialog)
+        device_menu.addAction(action)
+
         # 设置
         settings_menu = menubar.addMenu("设置(&S)")
         action = QAction("外观设置(&S)", self)
@@ -150,6 +160,10 @@ class MainWindow(QMainWindow):
     
     def _show_channel_choose_dialog(self):
         dialog = DialogChannelChoose(binder=self._binder_time, parent=self)
+        dialog.exec()
+    
+    def _show_device_info_dialog(self):
+        dialog = DialogDeviceInfo(binder=self._binder_device, parent=self)
         dialog.exec()
     
     def _show_restore_default_action(self):

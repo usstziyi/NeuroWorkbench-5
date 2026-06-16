@@ -6,8 +6,6 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 
 BoardShim.disable_board_logger()
 
-log = logging.getLogger(__name__)
-
 # Device name → BoardShim board ID
 _NAME_TO_BOARD = {
     "synthetic": BoardIds.SYNTHETIC_BOARD,
@@ -62,7 +60,7 @@ class DeviceManager:
             board = BoardShim(board_id, params)
             board.prepare_session()
         except Exception as e:
-            log.exception("Failed to connect to %s", name)
+            print(f"Failed to connect to {name}: {e}")
             if board is not None:
                 try:
                     board.release_session()
@@ -76,11 +74,10 @@ class DeviceManager:
         self._streaming = False
         self._config_device.is_connected = True
         self._config_device.error_message = ""
+        self._config_device.device_info = self.board_descr
+
         if self._config_time_domain is not None:
             self._config_time_domain.channels = {name: True for name in self.eeg_names}
-            log.info("Updated config_time_domain.channels: %s",
-                     self._config_time_domain.channels)
-        log.info("Connected to %s (board_id=%s, port=%s)", name, board_id, port or "N/A")
 
     def disconnect(self):
         """Release the board session."""
@@ -92,13 +89,14 @@ class DeviceManager:
                 self._streaming = False
             self._board.release_session()
         except Exception:
-            log.exception("Error releasing board session")
+            print("Failed to releasing board session")
         finally:
             self._board = None
             self._board_id = -1
             self._config_device.is_connected = False
             self._config_device.is_streaming = False
-            log.info("Disconnected from device")
+            self._config_device.device_info = {}
+            print("Disconnected from device")
 
     def start_stream(self, buffer_size: int | None = None):
         """Start data streaming.
@@ -117,9 +115,9 @@ class DeviceManager:
                 self._board.start_stream(buffer_size)
             self._streaming = True
             self._config_device.is_streaming = True
-            log.info("Stream started")
+            print("Stream started")
         except Exception as e:
-            log.exception("Failed to start stream")
+            print(f"Failed to start stream: {e}")
             self._config_device.error_message = str(e)
 
     def stop_stream(self):
@@ -132,9 +130,9 @@ class DeviceManager:
             self._board.stop_stream()
             self._streaming = False
             self._config_device.is_streaming = False
-            log.info("Stream stopped")
+            print("Stream stopped")
         except Exception as e:
-            log.exception("Failed to stop stream")
+            print(f"Failed to stop stream: {e}")
             self._config_device.error_message = str(e)
 
     # ------------------------------------------------------------------
