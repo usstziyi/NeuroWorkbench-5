@@ -31,7 +31,7 @@ c.ConfigDevice.sampling_rate = 250
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
-c.ConfigFilter.enable = True
+c.ConfigFilter.enable = False
 c.ConfigFilter.highpass = 0.5
 c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.notch_freq = 50.0
@@ -53,7 +53,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 80.0
+c.ConfigTimeDomain.amplitude = 110.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

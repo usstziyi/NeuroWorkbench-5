@@ -114,7 +114,6 @@ class TimeDomainWidget(QWidget):
 
 
     def set_range(self, seconds, amplitude):
-        print(f"set_range: {seconds}, {amplitude}")
         """Set the range of the plot.
 
         Args:
