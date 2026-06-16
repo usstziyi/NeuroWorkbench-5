@@ -12,6 +12,9 @@ class SignalChain(QObject):
 
     def __init__(self, filter_config=None, detrend_config=None):
         super().__init__()
+        self._filter_config = filter_config
+        self._detrend_config = detrend_config
+        
         # 去趋势参数
         self._detrend_enabled = True
         # 滤波参数
@@ -20,9 +23,7 @@ class SignalChain(QObject):
         self._lowpass = 45.0
         self._notch_freq = 50.0
         self._sampling_rate = 250.0
-        
-        self._detrend_config = detrend_config
-        self._filter_config = filter_config
+
         self.observe_configs()
 
 
@@ -33,7 +34,7 @@ class SignalChain(QObject):
 
         result = {}
         for name, (t, y) in raw_data.items():
-            y_processed = y.astype(float).copy()
+            y_processed = y.copy()  # 复制一份，避免修改原始数据
 
             # 1. 去趋势
             # TODO: 接入 dsp/detrend.py
@@ -104,7 +105,7 @@ class SignalChain(QObject):
                 pass
             self._filter_config = None
 
-    def cleanup(self):
+    def dismiss(self):
         self.unobserve_configs()
 
 

@@ -208,7 +208,7 @@ class DeviceManager:
             raise RuntimeError("Device not connected")
         if not self.is_streaming:
             raise RuntimeError("Stream not started")
-        return self._board.get_board_data()
+        return self._board.get_board_data() # BrainFlow C API (copy)
 
     def get_current_board_data(self, num_samples: int = 100) -> np.ndarray:
         """获取环形缓冲区尾部最近 num_samples 个样本，不清空缓冲区。
@@ -226,7 +226,7 @@ class DeviceManager:
             raise RuntimeError("Device not connected")
         if not self.is_streaming:
             raise RuntimeError("Stream not started")
-        return self._board.get_current_board_data(num_samples)
+        return self._board.get_current_board_data(num_samples) # BrainFlow C API (copy)
 
     def peek_seconds(self, seconds: float) -> np.ndarray:
         """获取缓冲区中最近 seconds 秒的板载数据，不清空缓冲区。

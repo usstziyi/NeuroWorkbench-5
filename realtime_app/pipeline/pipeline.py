@@ -35,15 +35,33 @@ class Pipeline(QObject):
         # 监听 device_config 变化
         self.observe_configs()
 
+    def observe_configs(self):
+        # 监听 streaming 状态自动启停
+        if self._device_config is not None:
+            self._device_config.observe(
+                self._on_streaming_changed,
+                names=["is_streaming"],
+            )
 
-    def start(self):
+    def _on_streaming_changed(self, change):
+        streaming = change["new"]
+        print(f"[pp]Streaming config changed to {streaming}")
+        try:
+            if streaming and not self.is_running():
+                self.start_workers()
+            elif not streaming and self.is_running():
+                self.stop_workers()
+        except RuntimeError:
+            pass
+
+    def start_workers(self):
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)
         self._chain = SignalChain(self._filter_config, self._detrend_config)
 
-        # fetcher → chain
+        # fetcher → chain (引用)
         self._fetcher.raw_data_ready.connect(self._chain.process)
-        # chain → UI
+        # chain → UI (引用)
         self._chain.data_ready.connect(self.data_ready.emit)
 
         self._fetch_thread = QThread()
@@ -59,7 +77,7 @@ class Pipeline(QObject):
         self._fetch_thread.start()
         print("[pp]Pipeline started")
 
-    def stop(self):
+    def stop_workers(self):
         if self._fetch_thread is None:
             return
         self._fetch_thread.quit()
@@ -68,8 +86,8 @@ class Pipeline(QObject):
         self._chain_thread.wait()
 
         # 清理旧 worker 的 observer
-        self._fetcher.cleanup()
-        self._chain.cleanup()
+        self._fetcher.dismiss()
+        self._chain.dismiss()
         self._fetcher = None
         self._chain = None
         self._fetch_thread = None
@@ -78,26 +96,6 @@ class Pipeline(QObject):
 
     def is_running(self) -> bool:
         return self._fetch_thread is not None and self._fetch_thread.isRunning()
-    
-    
-    def observe_configs(self):
-        # 监听 streaming 状态自动启停
-        if self._device_config is not None:
-            self._device_config.observe(
-                self._on_streaming_changed,
-                names=["is_streaming"],
-            )
-
-    def _on_streaming_changed(self, change):
-        streaming = change["new"]
-        print(f"[pp]Streaming config changed to {streaming}")
-        try:
-            if streaming and not self.is_running():
-                self.start()
-            elif not streaming and self.is_running():
-                self.stop()
-        except RuntimeError:
-            pass
     
     def unobserve_configs(self):
         if self._device_config is not None:
@@ -109,14 +107,14 @@ class Pipeline(QObject):
                 pass  # C++ 对象已销毁
             self._device_config = None
 
-    def close(self):
+    def close_pipeline(self):
         """关闭管线：停止线程、取消 config observe 注册。
 
         应在 Pipeline 生命周期结束前调用，确保线程优雅退出且不留悬空回调。
         幂等：多次调用安全。
         """
-        # 1. 停止 worker 线程（stop 内部会 cleanup worker）
-        self.stop()
+        # 1. 停止 worker 线程（stop 内部会 dismiss worker）
+        self.stop_workers()
 
         # 2. 取消自身 config observe
         self.unobserve_configs()

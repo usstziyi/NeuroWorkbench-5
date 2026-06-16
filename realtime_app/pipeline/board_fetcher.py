@@ -14,6 +14,8 @@ class BoardFetcher(QObject):
     def __init__(self, device_manager, time_config=None):
         super().__init__()
         self._dm = device_manager
+        self._time_config = time_config
+
         self._seconds = 5
         self._interval_ms = 50
         self._channels = {}
@@ -22,7 +24,6 @@ class BoardFetcher(QObject):
         self._eeg_names = None
         self._sr = None
 
-        self._time_config = time_config
         self.observe_configs()
 
     def start(self):
@@ -35,11 +36,8 @@ class BoardFetcher(QObject):
         if self._timer is not None:
             self._timer.stop()
 
-
-    # ---- 内部 ----
     def _fetch_and_emit(self):
         board_data = self._dm.peek_seconds(self._seconds)
-
         if board_data.size == 0:
             return
 
@@ -48,7 +46,7 @@ class BoardFetcher(QObject):
             self._eeg_names = self._dm.eeg_names
             self._sr = self._dm.sampling_rate
 
-        eeg_data = board_data[self._eeg_channels]
+        eeg_data = board_data[self._eeg_channels] # fancy indexing (copy)
         n_actual = eeg_data.shape[1]
         t = np.arange(-n_actual, 0) / self._sr
 
@@ -56,7 +54,7 @@ class BoardFetcher(QObject):
         for i, name in enumerate(self._eeg_names):
             if not self._channels.get(name, False):
                 continue
-            result[name] = (t, eeg_data[i])
+            result[name] = (t, eeg_data[i]) # 切片 (view)
 
         self.raw_data_ready.emit(result)
 
@@ -94,5 +92,5 @@ class BoardFetcher(QObject):
                 pass
             self._time_config = None
 
-    def cleanup(self):
+    def dismiss(self):
         self.unobserve_configs()

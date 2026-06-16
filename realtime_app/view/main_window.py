@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         save_window_state(self)
-        self._pipeline.close()
+        self._pipeline.close_pipeline()
         if self._device_manager is not None:
             self._device_manager.disconnect()
         if self._save_config_callback is not None:

@@ -83,6 +83,7 @@ class TimeDomainWidget(QWidget):
         row = 0
         for idx, (channel, enabled) in enumerate(channels.items()):
             color = CET_R3[idx % len(CET_R3)]
+            pen = pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine)
             if enabled:
                 plot = self._plot_widget.addPlot(row=row, col=0)
                 plot.setLabel("left", channel, units='µV')
@@ -93,7 +94,7 @@ class TimeDomainWidget(QWidget):
                 plot.setDownsampling(auto=True, mode="peak")
                 plot.setClipToView(True)
                 plot.setMouseEnabled(x=False, y=False)
-                plot.addLine(y=0, pen=pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine))
+                plot.addLine(y=0, pen=pen)
                 plot.getAxis("bottom").autoSIPrefix = False
                 self._plot_widget.ci.layout.setRowFixedHeight(row, FIXED_PLOT_HEIGHT)
                 self._plots[channel] = plot
