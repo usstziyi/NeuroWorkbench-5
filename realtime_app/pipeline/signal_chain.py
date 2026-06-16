@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from dsp import detrend
+from dsp import detrend, apply_filters
 import numpy as np
 
 
@@ -42,10 +42,15 @@ class SignalChain(QObject):
         if self._detrend_enabled:
             raw_data = detrend(raw_data)
 
-        # 2. 滤波
-        # TODO: 接入 dsp/filters.py
-        # if self._filter_enabled:
-        #     raw_data = apply_filters(raw_data, self._sampling_rate, ...)
+        # 2. 滤波（对齐 openbci-gui：陷波 → 带通 → 环境噪声）
+        if self._filter_enabled:
+            raw_data = apply_filters(
+                raw_data,
+                self._sampling_rate,
+                self._highpass,
+                self._lowpass,
+                self._notch_freq,
+            )
 
         # {channel_name: (t_array, y_processed)}
         result = {name: (raw_dict[name][0], raw_data[i])
