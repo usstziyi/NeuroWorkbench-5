@@ -65,7 +65,9 @@ class Pipeline(QObject):
         self._chain.data_ready.connect(self.data_ready.emit)
 
         self._fetch_thread = QThread()
+        self._fetch_thread.setObjectName("FetchThread")
         self._chain_thread = QThread()
+        self._chain_thread.setObjectName("ChainThread")
 
         self._fetcher.moveToThread(self._fetch_thread)
         self._chain.moveToThread(self._chain_thread)
@@ -80,6 +82,7 @@ class Pipeline(QObject):
     def stop_workers(self):
         if self._fetch_thread is None:
             return
+        
         self._fetch_thread.quit()
         self._chain_thread.quit()
         self._fetch_thread.wait()

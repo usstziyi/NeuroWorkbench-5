@@ -10,6 +10,7 @@ class BoardFetcher(QObject):
     """
 
     raw_data_ready = Signal(dict)  # {channel_name: (t_array, y_array)}
+    _interval_changed = Signal(int)  # 内部信号：跨线程安全修改 QTimer 间隔
 
     def __init__(self, device_manager, time_config=None):
         super().__init__()
@@ -24,6 +25,7 @@ class BoardFetcher(QObject):
         self._eeg_names = None
         self._sr = None
 
+        self._interval_changed.connect(self._apply_interval)
         self.observe_configs()
 
     def start(self):
@@ -70,15 +72,21 @@ class BoardFetcher(QObject):
             )
 
     def on_config_changed(self, change):
+        """traitlets observe 回调，可能在主线程触发。"""
         name = change["name"]
         if name == "seconds":
             self._seconds = change["new"]
         elif name == "interval":
-            self._interval_ms = int(change["new"])
-            if self._timer is not None:
-                self._timer.setInterval(self._interval_ms)
+            # 通过 Signal emit 将操作投递到工作线程，避免跨线程操作 QTimer
+            self._interval_changed.emit(int(change["new"]))
         elif name == "channels":
             self._channels = dict(change["new"])
+
+    def _apply_interval(self, ms):
+        """在工作线程中修改 QTimer 间隔（slot）。"""
+        self._interval_ms = ms
+        if self._timer is not None and self._timer.isActive():
+            self._timer.start(ms)
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
