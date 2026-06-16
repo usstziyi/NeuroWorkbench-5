@@ -194,6 +194,7 @@ class MainWindow(QMainWindow):
         """创建数据管线。"""
         self._pipeline = Pipeline(
             self._device_manager,
+            parent=self,
             time_config=self.config_time,
             filter_config=self.config_filter,
             detrend_config=self.config_detrend,
@@ -203,11 +204,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         save_window_state(self)
-        try:
-            if self._pipeline.is_running():
-                self._pipeline.stop()
-        except RuntimeError:
-            pass
+        self._pipeline.shutdown()
         if self._save_config_callback:
             self._save_config_callback()
         super().closeEvent(event)

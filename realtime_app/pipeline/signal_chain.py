@@ -12,14 +12,21 @@ class SignalChain(QObject):
 
     def __init__(self, filter_config=None, detrend_config=None):
         super().__init__()
+        # 去趋势参数
+        self._detrend_enabled = True
         # 滤波参数
         self._filter_enabled = True
         self._highpass = 0.5
         self._lowpass = 45.0
         self._notch_freq = 50.0
         self._sampling_rate = 250.0
-        # 去趋势参数
-        self._detrend_enabled = True
+        
+        if detrend_config is not None:
+            self._detrend_enabled = detrend_config.enable
+            detrend_config.observe(
+                self._on_detrend_changed,
+                names=["enable"],
+            )
 
         if filter_config is not None:
             self._filter_enabled = filter_config.enable
@@ -31,12 +38,7 @@ class SignalChain(QObject):
                 names=["highpass", "lowpass", "notch_freq", "enable"],
             )
 
-        if detrend_config is not None:
-            self._detrend_enabled = detrend_config.enable
-            detrend_config.observe(
-                self._on_detrend_changed,
-                names=["enable"],
-            )
+
 
     def _on_filter_changed(self, change):
         name = change["name"]

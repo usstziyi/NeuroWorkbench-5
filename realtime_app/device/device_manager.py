@@ -196,6 +196,15 @@ class DeviceManager:
     # get data
     # ------------------------------------------------------------------     
     def get_board_data(self) -> np.ndarray:
+        """获取上次调用以来累积的所有新数据，并推进已读游标。
+
+        消费式读取：只推进内部已读游标，不删除数据。数据仍在环形缓冲区中，
+        get_current_board_data 依然能读到。两者操作独立指针，可安全并发调用。
+        非阻塞，仅做内存拷贝。
+
+        Returns:
+            numpy 数组，形状为 (通道数, 数据点数)。无新数据时返回空数组。
+        """
         if not self.is_connected:
             raise RuntimeError("Device not connected")
         if not self.is_streaming:
@@ -203,17 +212,30 @@ class DeviceManager:
         return self._board.get_board_data()
 
     def get_current_board_data(self, num_samples: int = 100) -> np.ndarray:
+        """获取环形缓冲区尾部最近 num_samples 个样本，不清空缓冲区。
+
+        窥视式读取：直接定位环尾倒数 n 个，不看已读游标。与 get_board_data
+        操作独立指针，可安全并发调用。非阻塞，仅做内存拷贝。
+
+        Args:
+            num_samples: 要获取的样本数。
+
+        Returns:
+            numpy 数组，形状为 (通道数, 数据点数)。缓冲区数据不足时返回实际有的量。
+        """
         if not self.is_connected:
             raise RuntimeError("Device not connected")
         if not self.is_streaming:
             raise RuntimeError("Stream not started")
         return self._board.get_current_board_data(num_samples)
 
-    def get_recent_data(self, seconds: float) -> np.ndarray:
-        """获取最近 *seconds* 秒的板载数据。
+    def peek_seconds(self, seconds: float) -> np.ndarray:
+        """获取缓冲区中最近 seconds 秒的板载数据，不清空缓冲区。
+
+        窥视式读取（基于 get_current_board_data），可重复调用获取同一窗口。
 
         Args:
-            seconds: 要获取的时间窗口（秒）。
+            seconds: 要获取的时间窗口长度（秒）。
         """
         n = int(seconds * self.sampling_rate)
         return self.get_current_board_data(n)

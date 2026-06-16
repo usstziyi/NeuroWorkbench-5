@@ -51,7 +51,7 @@ class BoardFetcher(QObject):
 
     # ---- 内部 ----
     def _fetch_and_emit(self):
-        board_data = self._dm.get_recent_data(self._seconds)
+        board_data = self._dm.peek_seconds(self._seconds)
 
         if board_data.size == 0:
             return
@@ -61,10 +61,10 @@ class BoardFetcher(QObject):
         sr = self._dm.sampling_rate
 
         eeg_data = board_data[eeg_channels]
-        n_actual = eeg_data.shape[1]
+        n_actual = eeg_data.shape[1] # 实际数据点数
         t = np.arange(-n_actual, 0) / sr
 
-        result = {}
+        result = {} # {channel_name: (t_array, y_array)}
         for i, name in enumerate(eeg_names):
             if not self._channels.get(name, False):
                 continue
