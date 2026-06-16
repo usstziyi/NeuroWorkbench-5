@@ -81,12 +81,13 @@ class TimeDomainWidget(QWidget):
         font.setPointSize(6)
 
         row = 0
-        for idx, (channel, enabled) in enumerate(channels.items()):
+        for idx, (name, enabled) in enumerate(channels.items()):
             color = CET_R3[idx % len(CET_R3)]
-            pen = pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine)
+            pen_dashline = pg.mkPen((255, 255, 255, 60), width=1, style=pg.QtCore.Qt.PenStyle.DashLine)
+            pen_curve = pg.mkPen(color, width=2)
             if enabled:
                 plot = self._plot_widget.addPlot(row=row, col=0)
-                plot.setLabel("left", channel, units='µV')
+                plot.setLabel("left", name, units='µV')
                 plot.getAxis("left").setWidth(60)
                 plot.getAxis("left").autoSIPrefix = False
                 plot.getAxis("left").setStyle(tickFont=font)
@@ -94,11 +95,11 @@ class TimeDomainWidget(QWidget):
                 plot.setDownsampling(auto=True, mode="peak")
                 plot.setClipToView(True)
                 plot.setMouseEnabled(x=False, y=False)
-                plot.addLine(y=0, pen=pen)
+                plot.addLine(y=0, pen=pen_dashline)
                 plot.getAxis("bottom").autoSIPrefix = False
                 self._plot_widget.ci.layout.setRowFixedHeight(row, FIXED_PLOT_HEIGHT)
-                self._plots[channel] = plot
-                self._curves[channel] = plot.plot(pen=pg.mkPen(color, width=1.5))
+                self._plots[name] = plot
+                self._curves[name] = plot.plot(pen=pen_curve)
                 row += 1
         # ✅ 关键修复：告诉 ScrollArea 内容的实际高度
         spacing = self._plot_widget.ci.layout.verticalSpacing()
@@ -113,6 +114,7 @@ class TimeDomainWidget(QWidget):
 
 
     def set_range(self, seconds, amplitude):
+        print(f"set_range: {seconds}, {amplitude}")
         """Set the range of the plot.
 
         Args:
@@ -167,6 +169,7 @@ class TimeDomainWidget(QWidget):
             self._time_config.observe(
                 self._on_channels_changed, names=["channels"]
             )
+
             self.set_range(self._time_config.seconds, self._time_config.amplitude)
             self._on_range_changed = lambda change: self.set_range(
                 self._time_config.seconds, self._time_config.amplitude
@@ -176,7 +179,6 @@ class TimeDomainWidget(QWidget):
             )
 
     def unobserve_configs(self):
-        print("$$$$$$$$$$$$$$$$$$$")
         """取消 config observe 注册。幂等。"""
         if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
             try:

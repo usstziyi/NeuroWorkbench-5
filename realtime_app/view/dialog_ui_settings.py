@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QWidget,
     QFormLayout, QPushButton,
 )
-from PySide6.QtGui import QCloseEvent
 
 from superqt import QCollapsible, QEnumComboBox
 from binder import ConfigBinder
@@ -97,9 +96,9 @@ class DialogUiSettings(QDialog):
             self._binder.restore()
         super().reject()
 
-    def closeEvent(self, event: QCloseEvent):
+    def done(self, result: int):
         self.unbind_configs()
-        super().closeEvent(event)
+        super().done(result)
 
     def unbind_configs(self):
         if self._binder is not None:
