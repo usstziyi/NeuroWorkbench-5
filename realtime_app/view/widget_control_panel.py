@@ -31,7 +31,7 @@ class DeviceName(str, Enum):
         return self.value
 
 
-class NotchFreq(str, Enum):
+class NoiseTypeEnum(str, Enum):
     Hz_50 = "50 Hz"
     Hz_60 = "60 Hz"
     none = "None"
@@ -176,9 +176,9 @@ class ControlPanelWidget(QWidget):
         self.bp_low_spin.setSingleStep(0.1)
         self.bp_low_spin.setSuffix(" Hz")
         filter_layout.addRow("低通滤波:", self.bp_low_spin)
-        # notch
-        self.notch_combo = QEnumComboBox(enum_class=NotchFreq)
-        filter_layout.addRow("工频滤波:", self.notch_combo) 
+        # powerline
+        self.noise_type_combo = QEnumComboBox(enum_class=NoiseTypeEnum)
+        filter_layout.addRow("工频滤波:", self.noise_type_combo) 
         # filter switch
         self.filter_switch = QToggleSwitch()
         self.filter_switch.setChecked(True)
@@ -295,14 +295,14 @@ class ControlPanelWidget(QWidget):
                 widget_signal="valueChanged",
             )
             self._binder_filter.bind(
-                "notch_freq",
-                self.notch_combo,
+                "noise_type",
+                self.noise_type_combo,
                 widget_property="currentEnum",
                 widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: NotchFreq.Hz_50 if v == 50.0
-                else (NotchFreq.Hz_60 if v == 60.0 else NotchFreq.none),
-                from_widget_func=lambda v: 50.0 if v is NotchFreq.Hz_50
-                else (60.0 if v is NotchFreq.Hz_60 else 0.0),
+                to_widget_func=lambda v: NoiseTypeEnum.Hz_50 if v == 50.0
+                else (NoiseTypeEnum.Hz_60 if v == 60.0 else NoiseTypeEnum.none),
+                from_widget_func=lambda v: 50.0 if v is NoiseTypeEnum.Hz_50
+                else (60.0 if v is NoiseTypeEnum.Hz_60 else 0.0),
             )
             self._binder_filter.bind(
                 "enable",

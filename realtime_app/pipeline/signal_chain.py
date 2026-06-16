@@ -24,8 +24,8 @@ class SignalChain(QObject):
         self._filter_enabled = True
         self._highpass = 0.5
         self._lowpass = 45.0
-        self._notch_freq = 50.0
         self._sampling_rate = 250.0
+        self._noise_type = 50.0
 
         self.observe_configs()
 
@@ -42,14 +42,14 @@ class SignalChain(QObject):
         if self._detrend_enabled:
             raw_data = detrend(raw_data)
 
-        # 2. 滤波（对齐 openbci-gui：陷波 → 带通 → 环境噪声）
+        # 2. 滤波（带通 → 环境噪声）
         if self._filter_enabled:
             raw_data = apply_filters(
-                raw_data,
-                self._sampling_rate,
-                self._highpass,
-                self._lowpass,
-                self._notch_freq,
+                data=raw_data,
+                sampling_rate=int(self._sampling_rate),
+                highpass=self._highpass,
+                lowpass=self._lowpass,
+                noise_type=self._noise_type,
             )
 
         # {channel_name: (t_array, y_processed)}
@@ -70,10 +70,10 @@ class SignalChain(QObject):
             self._filter_enabled = self._filter_config.enable
             self._highpass = self._filter_config.highpass
             self._lowpass = self._filter_config.lowpass
-            self._notch_freq = self._filter_config.notch_freq
+            self._noise_type = self._filter_config.noise_type
             self._filter_config.observe(
                 self._on_filter_changed,
-                names=["highpass", "lowpass", "notch_freq", "enable"],
+                names=[ "enable", "highpass", "lowpass", "noise_type"],
             )
 
     def _on_filter_changed(self, change):
@@ -82,10 +82,10 @@ class SignalChain(QObject):
             self._highpass = change["new"]
         elif name == "lowpass":
             self._lowpass = change["new"]
-        elif name == "notch_freq":
-            self._notch_freq = change["new"]
         elif name == "enable":
             self._filter_enabled = change["new"]
+        elif name == "noise_type":
+            self._noise_type = change["new"]
 
     def _on_detrend_changed(self, change):
         self._detrend_enabled = change["new"]
@@ -104,7 +104,7 @@ class SignalChain(QObject):
             try:
                 self._filter_config.unobserve(
                     self._on_filter_changed,
-                    names=["highpass", "lowpass", "notch_freq", "enable"],
+                    names=["highpass", "lowpass", "noise_type", "enable"],
                 )
             except RuntimeError:
                 pass
