@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
@@ -30,7 +30,7 @@ from superqt import (
 )
 
 from utils import restore_window_state, save_window_state
-from pipeline.stream_worker import StreamWorker
+from pipeline import Pipeline
 
 
 class MainWindow(QMainWindow):
@@ -79,9 +79,9 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-        center_widget = TimeDomainWidget(binder_theme=self._binder_theme,
-                                          binder_time=self._binder_time)
-        self.setCentralWidget(center_widget)
+        self._center_widget = TimeDomainWidget(theme_config=self._binder_theme.model if self._binder_theme else None,
+                                          time_config=self._binder_time.model)
+        self.setCentralWidget(self._center_widget)
 
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomainWidget(binder_freqs=self._binder_freqs)
+        bottom_widget = FreqsDomainWidget(freqs_config=self._binder_freqs.model if self._binder_freqs else None)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
@@ -156,11 +156,11 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(binder=self._binder_time, parent=self)
+        dialog = DialogChannelChoose(time_config=self._binder_time.model, parent=self)
         dialog.exec()
     
     def _show_device_info_dialog(self):
-        dialog = DialogDeviceInfo(binder=self._binder_device, parent=self)
+        dialog = DialogDeviceInfo(device_config=self._binder_device.model, parent=self)
         dialog.exec()
     
     def _show_restore_default_action(self):
@@ -191,39 +191,15 @@ class MainWindow(QMainWindow):
 
 
     def _setup_pipeline(self):
-        """创建数据管道线程，监听 streaming 状态自动启停。"""
-        time_model = self._binder_time.model
-
-        self._stream_worker = StreamWorker(self._device_manager)
-
-        self._pipeline_thread = QThread()
-        self._stream_worker.moveToThread(self._pipeline_thread)
-
-        # 数据信号 → 波形显示
-        center_widget = self.centralWidget()
-        self._stream_worker.data_ready.connect(center_widget.set_all_data)
-
-        # 线程生命周期
-        self._pipeline_thread.started.connect(self._stream_worker.start)
-        self._pipeline_thread.finished.connect(self._stream_worker.stop)
-        self._pipeline_thread.finished.connect(self._stream_worker.deleteLater)
-        self._pipeline_thread.finished.connect(self._pipeline_thread.deleteLater)
-
-        # 初始参数
-        self._stream_worker.set_params(time_model.seconds, int(time_model.interval))
-        self._stream_worker.set_channels(time_model.channels)
-
-        # config 变化 → 信号转发（Worker 不碰 config）
-        time_model.observe(
-            lambda change: self._stream_worker.set_params(
-                time_model.seconds, int(time_model.interval)
-            ),
-            names=["seconds", "interval"],
+        """创建数据管线，监听 streaming 状态自动启停。"""
+        self._pipeline = Pipeline(
+            self._device_manager,
+            time_config=self._binder_time.model,
+            filter_config=self._binder_filter.model if self._binder_filter else None,
+            detrend_config=self._binder_detrend.model if self._binder_detrend else None,
         )
-        time_model.observe(
-            lambda change: self._stream_worker.set_channels(time_model.channels),
-            names=["channels"],
-        )
+        self._pipeline.data_ready.connect(self._center_widget.set_all_data)
+
         self._binder_device.model.observe(
             lambda change: self._on_streaming_changed(change["new"]),
             names=["is_streaming"],
@@ -231,20 +207,18 @@ class MainWindow(QMainWindow):
 
     def _on_streaming_changed(self, streaming: bool):
         try:
-            if streaming and not self._pipeline_thread.isRunning():
-                self._pipeline_thread.start()
-            elif not streaming and self._pipeline_thread.isRunning():
-                self._pipeline_thread.quit()
-                self._pipeline_thread.wait()
+            if streaming and not self._pipeline.is_running():
+                self._pipeline.start()
+            elif not streaming and self._pipeline.is_running():
+                self._pipeline.stop()
         except RuntimeError:
             pass  # C++ 对象已被销毁，忽略
 
     def closeEvent(self, event):
         save_window_state(self)
         try:
-            if hasattr(self, '_pipeline_thread') and self._pipeline_thread.isRunning():
-                self._pipeline_thread.quit()
-                self._pipeline_thread.wait()
+            if hasattr(self, '_pipeline') and self._pipeline is not None:
+                self._pipeline.stop()
         except RuntimeError:
             pass  # C++ 对象已被 PySide6 提前销毁，忽略
         if self._save_config_callback:

@@ -38,10 +38,10 @@ FIXED_PLOT_HEIGHT = 120
 
 class TimeDomainWidget(QWidget):
     """Time domain widget with scrollable fixed-height plots."""
-    def __init__(self, binder_theme=None, binder_time=None):
+    def __init__(self, theme_config=None, time_config=None):
         super().__init__()
-        self._binder_theme = binder_theme
-        self._binder_time = binder_time
+        self._theme_config = theme_config
+        self._time_config = time_config
         self.setObjectName("time_domain_widget")
 
         self._plots = {}
@@ -58,24 +58,22 @@ class TimeDomainWidget(QWidget):
         self._scroll_area.setWidget(self._plot_widget)
         layout.addWidget(self._scroll_area)
 
-        if self._binder_theme is not None:
-            theme_model = self._binder_theme.model
-            self.apply_theme(theme_model.color_mode)
-            theme_model.observe(
-                lambda change: self.apply_theme(theme_model.color_mode),
+        if self._theme_config is not None:
+            self.apply_theme(self._theme_config.color_mode)
+            self._theme_config.observe(
+                lambda change: self.apply_theme(self._theme_config.color_mode),
                 names=["color_mode"]
             )
         
-        if self._binder_time is not None:
-            time_model = self._binder_time.model
-            self.apply_channels(time_model.channels)
-            time_model.observe(
-                lambda change: self.apply_channels(time_model.channels),
+        if self._time_config is not None:
+            self.apply_channels(self._time_config.channels)
+            self._time_config.observe(
+                lambda change: self.apply_channels(self._time_config.channels),
                 names=["channels"]
             )
-            self.set_range(time_model.seconds, time_model.amplitude)
-            time_model.observe(
-                lambda change: self.set_range(time_model.seconds, time_model.amplitude),
+            self.set_range(self._time_config.seconds, self._time_config.amplitude)
+            self._time_config.observe(
+                lambda change: self.set_range(self._time_config.seconds, self._time_config.amplitude),
                 names=["seconds", "amplitude"]
             )
 
@@ -125,9 +123,8 @@ class TimeDomainWidget(QWidget):
         # ✅ 确保 ScrollArea 允许内容撑开
         self._scroll_area.setWidgetResizable(True)
 
-        if self._binder_time is not None:
-            time_model = self._binder_time.model
-            self.set_range(time_model.seconds, time_model.amplitude)
+        if self._time_config is not None:
+            self.set_range(self._time_config.seconds, self._time_config.amplitude)
 
     def set_range(self, seconds, amplitude):
         """Set the range of the plot.

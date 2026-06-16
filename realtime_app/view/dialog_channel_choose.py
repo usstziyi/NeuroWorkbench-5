@@ -4,14 +4,13 @@ from PySide6.QtWidgets import (
 )
 
 from superqt import QToggleSwitch
-from binder import ConfigBinder
 
 
 class DialogChannelChoose(QDialog):
     """Channel choose dialog."""
-    def __init__(self, binder: ConfigBinder = None, parent=None):
+    def __init__(self, time_config=None, parent=None):
         super().__init__(parent)
-        self._binder_time = binder
+        self._time_config = time_config
         self._checkboxes: dict[str, QToggleSwitch] = {}
         self.setWindowTitle("通道选择")
         self.resize(400, 300)
@@ -23,7 +22,7 @@ class DialogChannelChoose(QDialog):
         main_layout = QVBoxLayout(self)
 
         # 根据配置添加通道选择框，每排两个（使用网格布局精准定位）
-        channels = self._binder_time.model.channels
+        channels = self._time_config.channels
         names = list(channels.keys())
         grid_layout = QGridLayout()
 
@@ -51,8 +50,7 @@ class DialogChannelChoose(QDialog):
         main_layout.addLayout(btn_layout)
     
     def accept(self):
-        self._binder_time.model.channels = {
+        self._time_config.channels = {
             name: switch.isChecked() for name, switch in self._checkboxes.items()
         }
         super().accept()
-        

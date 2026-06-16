@@ -4,14 +4,13 @@ from PySide6.QtWidgets import (
 )
 
 from superqt import QToggleSwitch
-from binder import ConfigBinder
 
 
 class DialogDeviceInfo(QDialog):
     """Device info dialog."""
-    def __init__(self, binder: ConfigBinder = None, parent=None):
+    def __init__(self, device_config=None, parent=None):
         super().__init__(parent)
-        self._binder_device = binder
+        self._device_config = device_config
         self.setWindowTitle("设备信息")
         self.resize(500, 400)
 
@@ -23,12 +22,9 @@ class DialogDeviceInfo(QDialog):
         self._device_info_text = QTextEdit()
         self._device_info_text.setReadOnly(True)
         self._device_info_text.setPlainText(
-            "\n".join(f"{k}: {v}" for k, v in self._binder_device.model.device_info.items())
+            "\n".join(f"{k}: {v}" for k, v in self._device_config.device_info.items())
         )
         main_layout.addWidget(self._device_info_text)
-
-        
-        # main_layout.addStretch(1)
 
         # 按钮
         btn_layout = QHBoxLayout()
@@ -43,4 +39,3 @@ class DialogDeviceInfo(QDialog):
     
     def accept(self):
         super().accept()
-        
