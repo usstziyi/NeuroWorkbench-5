@@ -1,4 +1,7 @@
 from PySide6.QtCore import QObject, Signal
+from dsp import detrend
+import numpy as np
+
 
 
 class SignalChain(QObject):
@@ -27,29 +30,26 @@ class SignalChain(QObject):
         self.observe_configs()
 
 
-    def process(self, raw_data: dict):
+    def process(self, raw_dict: dict):
         """接收原始数据，执行处理链，发射处理结果。"""
-        if not raw_data:
+        if not raw_dict:
             return
+        
+        names = list(raw_dict.keys())
+        raw_data = np.stack([y for _, y in raw_dict.values()])  # (新内存)
 
-        result = {}
-        for name, (t, y) in raw_data.items():
-            y_processed = y.copy()  # 复制一份，避免修改原始数据
+        # 1. 去趋势
+        if self._detrend_enabled:
+            raw_data = detrend(raw_data)
 
-            # 1. 去趋势
-            # TODO: 接入 dsp/detrend.py
-            # if self._detrend_enabled:
-            #     y_processed = detrend(y_processed)
+        # 2. 滤波
+        # TODO: 接入 dsp/filters.py
+        # if self._filter_enabled:
+        #     raw_data = apply_filters(raw_data, self._sampling_rate, ...)
 
-            # 2. 滤波
-            # TODO: 接入 dsp/filters.py
-            # if self._filter_enabled:
-            #     y_processed = apply_filters(
-            #         y_processed, self._sampling_rate,
-            #         self._highpass, self._lowpass, self._notch_freq,
-            #     )
-
-            result[name] = (t, y_processed)
+        # {channel_name: (t_array, y_processed)}
+        result = {name: (raw_dict[name][0], raw_data[i])
+                  for i, name in enumerate(names)}
 
         self.data_ready.emit(result)
 
