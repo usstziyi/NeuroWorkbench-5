@@ -212,8 +212,8 @@ def apply_filters(
     # --- 决定全量滤波还是增量滤波 ---
     n_new = n_samples - _state["n_saved"]
 
-    if _state["n_saved"] == 0 or n_new <= 0 or n_new > _state["n_saved"]:
-        # 首帧 / 窗口缩小 / 不可增量 → 全量滤波
+    if _state["n_saved"] == 0 or n_samples != _state["n_saved"] or n_new <= 0:
+        # 首帧 / 窗口大小变化 / 无新增 → 全量滤波
         return _full_filter(data, n_channels)
     else:
         # 正常增量路径：只处理尾部新增样本

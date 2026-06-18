@@ -1,3 +1,3 @@
 from .detrend import detrend, detrend_brainflow
-from .filters import apply_filters
+from .filters_stream_iir import apply_filters
 # TODO: from .spectrum import ...
