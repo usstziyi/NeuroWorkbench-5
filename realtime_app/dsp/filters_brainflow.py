@@ -1,12 +1,14 @@
 """信号滤波模块 —— 基于 BrainFlow DataFilter。
+(IIR)Infinite Impulse Response — 无限脉冲响应
+BrainFlow 的 perform_bandpass 使用的是传统的 b, a 系数直接形式 （Direct Form），不是 SOS。
 
 管线顺序：
     1. BandPass（带通）→ 保留目标频段
     2. Environmental Noise → 去除 50/60 Hz 工频噪声
 
 使用方式:
-    from dsp.filters import apply_filters
-    filtered = apply_filters(data, sampling_rate, highpass, lowpass, noise_freqs)
+    from dsp import apply_filters_brainflow
+    filtered = apply_filters_brainflow(data, sampling_rate, highpass, lowpass, noise_freqs)
 """
 
 import numpy as np

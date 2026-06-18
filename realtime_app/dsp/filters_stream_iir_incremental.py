@@ -7,7 +7,7 @@ Second-Order Sections
     - 消除离线滤波器全量重算导致的右端振铃问题
     - 计算量降低 ~100 倍（仅处理新增样本，不再反复滤整个窗口）
 
-对外接口 apply_filters() 签名与 filters.py 完全兼容，只需改 import 即可切换。
+对外接口 apply_filters() 签名与 filters_brainflow.py 完全兼容，只需改 import 即可切换。
 
 管线顺序：
     1. BandPass（带通）→ 保留目标频段
@@ -183,7 +183,7 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = F
 
 
 # ---------------------------------------------------------------------------
-# 对外接口（与 filters.py 签名兼容）
+# 对外接口（与 filters_brainflow.py 签名兼容）
 # ---------------------------------------------------------------------------
 
 def apply_filters(

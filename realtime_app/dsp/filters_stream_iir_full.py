@@ -1,13 +1,18 @@
 """流式 IIR 滤波器模块（全量版）—— 基于 scipy.signal。
 
-Second-Order Sections
+(SOS) Second-Order Sections  二阶滤波器设计
+(IIR) Infinite Impulse Response 无限脉冲响应
+SOS 是 IIR 滤波器的一种实现形式 ，不是并列关系
+高阶 IIR 滤波器直接用多项式系数（ b, a ）实现时，对数值误差极其敏感——系数稍微抖动，极点就可能跑出单位圆导致不稳定。
+SOS 的做法：把高阶 IIR 拆成多个二阶节的级联，每个节只有 2 个极点和 2 个零点，数值稳定得多。
+这就是 scipy output="sos" 比 BrainFlow 更优的原因。
 
 与 filters_stream_iir.py 的核心区别：
     - 每次调用 apply_filters() 都对整个窗口做全量滤波
     - 缓存滤波器系数，参数不变时不重复设计
     - 无内部状态维护，适合不需要增量处理的场景
 
-对外接口 apply_filters() 签名与 filters.py 完全兼容，只需改 import 即可切换。
+对外接口 apply_filters() 签名与 filters_brainflow.py 完全兼容，只需改 import 即可切换。
 
 管线顺序：
     1. BandPass（带通）→ 保留目标频段
@@ -15,7 +20,7 @@ Second-Order Sections
 
 使用方式:
     from dsp.filters_stream_iir_full import apply_filters   # 只需改这一行
-    filtered = apply_filters(data, sampling_rate, highpass, lowpass, noise_freqs)
+    filtered = apply_filters_full(data, sampling_rate, highpass, lowpass, noise_freqs)
 """
 
 import numpy as np
@@ -32,7 +37,8 @@ _cache: dict = {
 }
 
 
-def _params_tuple(sampling_rate: int, highpass: float, lowpass: float, order: int, noise_freqs: int) -> tuple:
+def _params_tuple(sampling_rate: int, 
+    highpass: float, lowpass: float, order: int, noise_freqs: int) -> tuple:
     """将滤波参数打包为元组，用于检测参数变化。"""
     return (sampling_rate, highpass, lowpass, order, noise_freqs)
 
@@ -110,7 +116,7 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# 对外接口（与 filters.py 签名兼容）
+# 对外接口（与 filters_brainflow.py 签名兼容）
 # ---------------------------------------------------------------------------
 
 def apply_filters(

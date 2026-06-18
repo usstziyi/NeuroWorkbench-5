@@ -33,7 +33,7 @@ c.ConfigDevice.sampling_rate = 250
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
 c.ConfigFilter.highpass = 5.0
-c.ConfigFilter.lowpass = 50.0
+c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.noise_freqs = 50
 
 #------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1140.0
+c.ConfigTimeDomain.amplitude = 1000.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
