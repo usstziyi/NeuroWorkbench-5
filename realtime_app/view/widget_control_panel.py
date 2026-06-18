@@ -31,13 +31,13 @@ class DeviceName(str, Enum):
         return self.value
 
 
-class NoiseTypeEnum(str, Enum):
-    Hz_50 = "50 Hz"
-    Hz_60 = "60 Hz"
-    none = "None"
+class NoiseTypeEnum(int, Enum):
+    Hz_50 = 50
+    Hz_60 = 60
+    none = 0
 
     def __str__(self):
-        return self.value
+        return f"{self.value} Hz" if self.value != 0 else "None"
 
 
 class WindowType(str, Enum):
@@ -177,8 +177,8 @@ class ControlPanelWidget(QWidget):
         self.bp_low_spin.setSuffix(" Hz")
         filter_layout.addRow("低通滤波:", self.bp_low_spin)
         # powerline
-        self.noise_type_combo = QEnumComboBox(enum_class=NoiseTypeEnum)
-        filter_layout.addRow("工频滤波:", self.noise_type_combo) 
+        self.noise_freqs_combo = QEnumComboBox(enum_class=NoiseTypeEnum)
+        filter_layout.addRow("工频滤波:", self.noise_freqs_combo) 
         # filter switch
         self.filter_switch = QToggleSwitch()
         self.filter_switch.setChecked(True)
@@ -295,14 +295,12 @@ class ControlPanelWidget(QWidget):
                 widget_signal="valueChanged",
             )
             self._binder_filter.bind(
-                "noise_type",
-                self.noise_type_combo,
+                "noise_freqs",
+                self.noise_freqs_combo,
                 widget_property="currentEnum",
                 widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: NoiseTypeEnum.Hz_50 if v == 50.0
-                else (NoiseTypeEnum.Hz_60 if v == 60.0 else NoiseTypeEnum.none),
-                from_widget_func=lambda v: 50.0 if v is NoiseTypeEnum.Hz_50
-                else (60.0 if v is NoiseTypeEnum.Hz_60 else 0.0),
+                to_widget_func=lambda v: NoiseTypeEnum(v),
+                from_widget_func=lambda v: v.value,
             )
             self._binder_filter.bind(
                 "enable",

@@ -1,3 +1,3 @@
 from .board_fetcher import BoardFetcher
-from .signal_chain import SignalChain
+from .data_chain import DataChain
 from .pipeline import Pipeline

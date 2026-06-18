@@ -4,8 +4,8 @@ import numpy as np
 
 
 
-class SignalChain(QObject):
-    """信号处理链：对原始数据依次做去趋势、滤波等处理。
+class DataChain(QObject):
+    """数据处理链：对原始数据依次做去趋势、滤波等处理。
 
     放在 QThread 中使用，接收 BoardFetcher 的原始数据，
     处理后发射给 UI。注入 config 后自行 observe，外部无需手动更新参数。
@@ -25,7 +25,7 @@ class SignalChain(QObject):
         self._highpass = 0.5
         self._lowpass = 45.0
         self._sampling_rate = 250.0
-        self._noise_type = 50.0
+        self._noise_freqs = 50
 
         self.observe_configs()
 
@@ -49,7 +49,7 @@ class SignalChain(QObject):
                 sampling_rate=int(self._sampling_rate),
                 highpass=self._highpass,
                 lowpass=self._lowpass,
-                noise_type=self._noise_type,
+                noise_freqs=self._noise_freqs,
             )
 
         # {channel_name: (t_array, y_processed)}
@@ -70,11 +70,14 @@ class SignalChain(QObject):
             self._filter_enabled = self._filter_config.enable
             self._highpass = self._filter_config.highpass
             self._lowpass = self._filter_config.lowpass
-            self._noise_type = self._filter_config.noise_type
+            self._noise_freqs = self._filter_config.noise_freqs
             self._filter_config.observe(
                 self._on_filter_changed,
-                names=[ "enable", "highpass", "lowpass", "noise_type"],
+                names=[ "enable", "highpass", "lowpass", "noise_freqs"],
             )
+
+    def _on_detrend_changed(self, change):
+        self._detrend_enabled = change["new"]
 
     def _on_filter_changed(self, change):
         name = change["name"]
@@ -84,11 +87,10 @@ class SignalChain(QObject):
             self._lowpass = change["new"]
         elif name == "enable":
             self._filter_enabled = change["new"]
-        elif name == "noise_type":
-            self._noise_type = change["new"]
+        elif name == "noise_freqs":
+            self._noise_freqs = change["new"]
 
-    def _on_detrend_changed(self, change):
-        self._detrend_enabled = change["new"]
+
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
@@ -104,7 +106,7 @@ class SignalChain(QObject):
             try:
                 self._filter_config.unobserve(
                     self._on_filter_changed,
-                    names=["highpass", "lowpass", "noise_type", "enable"],
+                    names=["highpass", "lowpass", "noise_freqs", "enable"],
                 )
             except RuntimeError:
                 pass
@@ -112,7 +114,3 @@ class SignalChain(QObject):
 
     def dismiss(self):
         self.unobserve_configs()
-
-
-
-

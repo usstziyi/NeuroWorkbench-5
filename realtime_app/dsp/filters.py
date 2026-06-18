@@ -6,16 +6,18 @@
 
 使用方式:
     from dsp.filters import apply_filters
-    filtered = apply_filters(data, sampling_rate, highpass, lowpass)
+    filtered = apply_filters(data, sampling_rate, highpass, lowpass, noise_freqs)
 """
 
 import numpy as np
 from brainflow.data_filter import DataFilter, FilterTypes, NoiseTypes
 
 
-def _freq_to_noise_type(freq: float) -> int:
+def _noise_freqs_to_noise_type(noise_freqs: int) -> int | None:
     """将工频频率值映射为 BrainFlow NoiseTypes 枚举值。"""
-    return NoiseTypes.FIFTY.value if freq <= 50.0 else NoiseTypes.SIXTY.value
+    if noise_freqs <= 0:
+        return None
+    return NoiseTypes.FIFTY.value if noise_freqs <= 50 else NoiseTypes.SIXTY.value
 
 
 def apply_filters(
@@ -25,7 +27,7 @@ def apply_filters(
     lowpass: float = 45.0,
     order: int = 4,
     filter_type: int = FilterTypes.BUTTERWORTH.value,
-    noise_type: int = NoiseTypes.FIFTY.value,
+    noise_freqs: int = 50,
 ) -> np.ndarray:
     """对多通道信号执行完整滤波管线（逐通道处理，in-place）。
 
@@ -40,7 +42,7 @@ def apply_filters(
         lowpass: 低通截止频率 (Hz)，默认 45.0。
         order: 滤波器阶数，默认 4。
         filter_type: 滤波器类型，默认 BUTTERWORTH。
-        noise_type: 工频噪声频率，50.0 或 60.0 Hz，默认 50.0。
+        noise_freqs: 工频噪声频率，50 或 60，默认 50。
 
     Returns:
         滤波后信号数组，形状与输入相同（与 data 同一对象）。
@@ -59,10 +61,12 @@ def apply_filters(
             )
 
         # 2. Environmental Noise —— 去除工频噪声
-        DataFilter.remove_environmental_noise(
-            data[ch],
-            sampling_rate,
-            _freq_to_noise_type(noise_type),
-        )
+        noise_type = _noise_freqs_to_noise_type(noise_freqs)
+        if noise_type is not None:
+            DataFilter.remove_environmental_noise(
+                data[ch],
+                sampling_rate,
+                noise_type,
+            )
 
     return data

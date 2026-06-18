@@ -1,11 +1,11 @@
 from PySide6.QtCore import QObject, Signal, QThread
 
 from pipeline.board_fetcher import BoardFetcher
-from pipeline.signal_chain import SignalChain
+from pipeline.data_chain import DataChain
 
 
 class Pipeline(QObject):
-    """数据管线编排器：管理 BoardFetcher → SignalChain → UI 的完整管线。
+    """数据管线编排器：管理 BoardFetcher → DataChain → UI 的完整管线。
 
     负责线程创建、stage 连线、启停控制。
     Config 模型直接注入 stage，各 stage 自行 observe 参数变化。
@@ -57,7 +57,7 @@ class Pipeline(QObject):
     def start_workers(self):
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)
-        self._chain = SignalChain(self._filter_config, self._detrend_config)
+        self._chain = DataChain(self._filter_config, self._detrend_config)
 
         # fetcher → chain (引用)
         self._fetcher.raw_data_ready.connect(self._chain.process)
