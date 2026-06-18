@@ -53,7 +53,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1180.0
+c.ConfigTimeDomain.amplitude = 1520.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

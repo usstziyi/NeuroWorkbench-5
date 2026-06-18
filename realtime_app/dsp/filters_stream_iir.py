@@ -78,6 +78,7 @@ def _design_notch_sos(sampling_rate: int, noise_freqs: int, order: int = 4) -> n
 # 内部滤波实现
 # ---------------------------------------------------------------------------
 
+
 def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
     """全量滤波冷启动 —— 首帧或参数重置时调用。
 
@@ -107,29 +108,15 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
 
         # 1. BandPass
         if sos_bp is not None:
-            if _state["zi_bp"] is None or _state["zi_bp"][ch] is None:
-                zi_bp = np.zeros((n_sections_bp, 2))
-            else:
-                zi_bp = _state["zi_bp"][ch]
-            old_zi_bp = zi_bp.copy()
+            zi_bp = np.zeros((n_sections_bp, 2))
             x, zi_bp = sosfilt(sos_bp, x, zi=zi_bp)
-            if ch==1:
-                if not np.array_equal(old_zi_bp, zi_bp):
-                    print(f"[ch={ch}] zi_bp changed",zi_bp)
         else:
             zi_bp = None
 
         # 2. Notch
         if sos_notch is not None:
-            if _state["zi_notch"] is None or _state["zi_notch"][ch] is None:
-                zi_notch = np.zeros((n_sections_notch, 2))
-            else:
-                zi_notch = _state["zi_notch"][ch]
-            old_zi_notch = zi_notch
+            zi_notch = np.zeros((n_sections_notch, 2))
             x, zi_notch = sosfilt(sos_notch, x, zi=zi_notch)
-            if ch==1:
-                if not np.array_equal(old_zi_notch, zi_notch):
-                    print(f"[ch={ch}] zi_notch changed",zi_notch)
         else:
             zi_notch = None
 
@@ -146,11 +133,12 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
     return result
 
 
-def _incremental_filter(new_part: np.ndarray, n_channels: int) -> np.ndarray:
+def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = False) -> np.ndarray:
     """增量滤波 —— 仅处理窗口尾部新增的 n_new 个样本。
 
-    沿用上帧保存的 zi 状态继续滤波，然后将新增结果拼接到旧结果尾部，
-    同时从旧结果头部丢弃等量样本以保持窗口大小不变。
+    沿用上帧保存的 zi 状态继续滤波。
+    - growing=False: 滑窗模式，从旧结果头部丢弃 n_new 个，尾部追加新结果。
+    - growing=True:  增长模式，窗口未满，直接拼接新结果到旧结果尾部。
     """
     sos_bp = _state["sos_bp"]
     sos_notch = _state["sos_notch"]
@@ -167,19 +155,13 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int) -> np.ndarray:
 
         # 1. BandPass 增量
         if sos_bp is not None:
-            zi_bp_prev_copy = zi_bp_prev.copy() if zi_bp_prev is not None else None
             x, zi_bp = sosfilt(sos_bp, x, zi=zi_bp_prev)
-            if zi_bp_prev_copy is None or not np.array_equal(zi_bp_prev_copy, zi_bp):
-                print(f"[ch={ch}] zi_bp changed")
         else:
             zi_bp = None
 
         # 2. Notch 增量
         if sos_notch is not None:
-            zi_notch_prev_copy = zi_notch_prev.copy() if zi_notch_prev is not None else None
             x, zi_notch = sosfilt(sos_notch, x, zi=zi_notch_prev)
-            if zi_notch_prev_copy is None or not np.array_equal(zi_notch_prev_copy, zi_notch):
-                print(f"[ch={ch}] zi_notch changed")
         else:
             zi_notch = None
 
@@ -191,13 +173,20 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int) -> np.ndarray:
     _state["zi_bp"] = new_zi_bp
     _state["zi_notch"] = new_zi_notch
 
-    # 滑窗拼接：从旧结果头部丢弃 n_new 个，尾部追加新滤波结果
-    result = _state["saved_output"]
-    result[:,:-n_new] = result[:,n_new:]
-    result[:,-n_new:] = result_new
+    prev = _state["saved_output"]
+    if growing:
+        # 窗口增长中：直接拼接，不丢弃旧数据
+        result = np.concatenate((prev, result_new), axis=1)
+    else:
+        # 滑窗模式：移位丢弃旧样本，尾部追加新结果
+        result = prev
+        result[:, :-n_new] = result[:, n_new:]
+        result[:, -n_new:] = result_new
 
     _state["saved_output"] = result
     _state["n_saved"] = result.shape[1]
+    print(f"incremental_filter: {result.shape}")
+    print(growing)
 
     return result
 
@@ -249,14 +238,12 @@ def apply_filters(
     # --- 决定全量滤波还是增量滤波 ---
     n_new = n_samples - _state["n_saved"]
 
-    # if _state["n_saved"] == 0 or n_samples != _state["n_saved"] or n_new <= 0:
-    #     # 首帧 / 窗口大小变化 / 无新增 → 全量滤波
-    #     return _full_filter(data, n_channels)
-    # else:
-    #     # 正常增量路径：只处理尾部新增样本
-    #     new_part = data[:, -n_new:]
-    #     return _incremental_filter(new_part, n_channels)
-    return _full_filter(data, n_channels)
+    if _state["n_saved"] == 0:
+        # 首帧 / 无新增 → 全量滤波冷启动
+        return _full_filter(data, n_channels)
+    else:
+        growing = n_samples != _state["n_saved"]  # 窗口是否还在增长（未满）
+        return _incremental_filter(new_part, n_channels, growing=growing)
 
 
 def reset_state() -> None:
@@ -265,4 +252,4 @@ def reset_state() -> None:
     _state["saved_output"] = None
     _state["zi_bp"] = None
     _state["zi_notch"] = None
-    _state["params_key"] = None
+    _state["params_tuple"] = None
