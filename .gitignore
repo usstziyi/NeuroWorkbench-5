@@ -19,3 +19,6 @@ recording/
 
 # macos
 .DS_Store
+
+# openbci
+openbci-gui/
