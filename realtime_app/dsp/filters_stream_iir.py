@@ -107,18 +107,29 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
 
         # 1. BandPass
         if sos_bp is not None:
-            zi0 = np.zeros((n_sections_bp, 2))
-            #                 ↑              ↑
-            #            二阶节的数量    每个节的状态数(=2)
-            # sosfilt 返回的是滤波结束后的最终状态。
-            x, zi_bp = sosfilt(sos_bp, x, zi=zi0)
+            if _state["zi_bp"] is None or _state["zi_bp"][ch] is None:
+                zi_bp = np.zeros((n_sections_bp, 2))
+            else:
+                zi_bp = _state["zi_bp"][ch]
+            old_zi_bp = zi_bp.copy()
+            x, zi_bp = sosfilt(sos_bp, x, zi=zi_bp)
+            if ch==1:
+                if not np.array_equal(old_zi_bp, zi_bp):
+                    print(f"[ch={ch}] zi_bp changed",zi_bp)
         else:
             zi_bp = None
 
         # 2. Notch
         if sos_notch is not None:
-            zi0 = np.zeros((n_sections_notch, 2))
-            x, zi_notch = sosfilt(sos_notch, x, zi=zi0)
+            if _state["zi_notch"] is None or _state["zi_notch"][ch] is None:
+                zi_notch = np.zeros((n_sections_notch, 2))
+            else:
+                zi_notch = _state["zi_notch"][ch]
+            old_zi_notch = zi_notch
+            x, zi_notch = sosfilt(sos_notch, x, zi=zi_notch)
+            if ch==1:
+                if not np.array_equal(old_zi_notch, zi_notch):
+                    print(f"[ch={ch}] zi_notch changed",zi_notch)
         else:
             zi_notch = None
 
@@ -156,13 +167,19 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int) -> np.ndarray:
 
         # 1. BandPass 增量
         if sos_bp is not None:
+            zi_bp_prev_copy = zi_bp_prev.copy() if zi_bp_prev is not None else None
             x, zi_bp = sosfilt(sos_bp, x, zi=zi_bp_prev)
+            if zi_bp_prev_copy is None or not np.array_equal(zi_bp_prev_copy, zi_bp):
+                print(f"[ch={ch}] zi_bp changed")
         else:
             zi_bp = None
 
         # 2. Notch 增量
         if sos_notch is not None:
+            zi_notch_prev_copy = zi_notch_prev.copy() if zi_notch_prev is not None else None
             x, zi_notch = sosfilt(sos_notch, x, zi=zi_notch_prev)
+            if zi_notch_prev_copy is None or not np.array_equal(zi_notch_prev_copy, zi_notch):
+                print(f"[ch={ch}] zi_notch changed")
         else:
             zi_notch = None
 
