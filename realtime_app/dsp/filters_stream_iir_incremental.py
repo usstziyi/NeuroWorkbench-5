@@ -26,7 +26,6 @@ from scipy.signal import butter, sosfilt
 # 模块级状态 —— 跨帧保留滤波器内部状态，实现真正的流式滤波
 # ---------------------------------------------------------------------------
 _state: dict = {
-    "n_saved": 0,            # 上帧样本数，用于检测新增量
     "saved_output": None,    # (n_channels, n_samples) 上帧完整滤波结果
     "zi_bp": None,           # list[ndarray | None] 每通道带通滤波器 zi，形状 (n_sections, 2)
     "zi_notch": None,        # list[ndarray | None] 每通道陷波器 zi，形状 (n_sections, 2)
@@ -79,7 +78,7 @@ def _design_notch_sos(sampling_rate: int, noise_freqs: int, order: int = 4) -> n
 # ---------------------------------------------------------------------------
 
 
-def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
+def _full_filter(data: np.ndarray) -> np.ndarray:
     """全量滤波冷启动 —— 首帧或参数重置时调用。
 
     用零初始 zi 启动滤波器，同时捕获最终的 zi 状态供后续增量帧使用。
@@ -99,7 +98,7 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
     zi_notch_list: list = []
     result = np.empty_like(data)
 
-    for ch in range(n_channels):
+    for ch in range(data.shape[0]):
         x = data[ch]
 
         # 1. BandPass
@@ -123,17 +122,14 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
     _state["zi_bp"] = zi_bp_list
     _state["zi_notch"] = zi_notch_list
     _state["saved_output"] = result
-    _state["n_saved"] = data.shape[1]
 
     return result
 
 
-def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = False) -> np.ndarray:
+def _incremental_filter(new_part: np.ndarray) -> np.ndarray:
     """增量滤波 —— 仅处理窗口尾部新增的 n_new 个样本。
 
     沿用上帧保存的 zi 状态继续滤波。
-    - growing=False: 滑窗模式，从旧结果头部丢弃 n_new 个，尾部追加新结果。
-    - growing=True:  增长模式，窗口未满，直接拼接新结果到旧结果尾部。
     """
     sos_bp = _state["sos_bp"]
     sos_notch = _state["sos_notch"]
@@ -143,7 +139,7 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = F
     new_zi_bp: list = []
     new_zi_notch: list = []
 
-    for ch in range(n_channels):
+    for ch in range(new_part.shape[0]):
         x = new_part[ch]
         zi_bp_prev = _state["zi_bp"][ch] if _state["zi_bp"] is not None else None
         zi_notch_prev = _state["zi_notch"][ch] if _state["zi_notch"] is not None else None
@@ -168,16 +164,16 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = F
     _state["zi_bp"] = new_zi_bp
     _state["zi_notch"] = new_zi_notch
 
+
+
     prev = _state["saved_output"]
-    if growing:
-        result = np.concatenate((prev, result_new), axis=1)
-    else:
-        result = prev
-        result[:, :-n_new] = result[:, n_new:]
-        result[:, -n_new:] = result_new
+
+
+    result = np.concatenate((prev, result_new), axis=1)
+    if result.shape[1] > 1250:
+        result = result[:, -1250:]
 
     _state["saved_output"] = result
-    _state["n_saved"] = result.shape[1]
 
     return result
 
@@ -212,30 +208,22 @@ def apply_filters(
     Returns:
         滤波后信号数组，形状与输入相同。
     """
-    n_channels, n_samples = data.shape
-
     pt = _params_tuple(sampling_rate, highpass, lowpass, order, noise_freqs)
     if pt != _state["params_tuple"]:
         _state["params_tuple"] = pt
-        _state["n_saved"] = 0
         _state["saved_output"] = None
         _state["zi_bp"] = None
         _state["zi_notch"] = None
         _state["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
         _state["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs)
 
-    n_new = n_samples - _state["n_saved"]
-
-    if _state["n_saved"] == 0:
-        return _full_filter(data, n_channels)
+        return _full_filter(data)
     else:
-        growing = n_samples != _state["n_saved"]
-        return _incremental_filter(new_part, n_channels, growing=growing)
+        return _incremental_filter(data)
 
 
 def reset_state() -> None:
     """手动重置滤波器状态（例如重新开始流式采集时调用）。"""
-    _state["n_saved"] = 0
     _state["saved_output"] = None
     _state["zi_bp"] = None
     _state["zi_notch"] = None

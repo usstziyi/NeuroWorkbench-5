@@ -84,7 +84,7 @@ def _design_notch_sos(sampling_rate: int, noise_freqs: int, order: int = 4) -> n
 # 内部滤波实现
 # ---------------------------------------------------------------------------
 
-def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
+def _full_filter(data: np.ndarray) -> np.ndarray:
     """全量滤波 —— 对整个窗口做完整的 IIR 滤波。
 
     每次调用时使用零初始 zi 启动滤波器。
@@ -99,7 +99,7 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
 
     result = np.empty_like(data)
 
-    for ch in range(n_channels):
+    for ch in range(data.shape[0]):
         x = data[ch]
 
         # 1. BandPass
@@ -144,7 +144,6 @@ def apply_filters(
     Returns:
         滤波后信号数组，形状与输入相同。
     """
-    n_channels = data.shape[0]
 
     pt = _params_tuple(sampling_rate, highpass, lowpass, order, noise_freqs)
     if pt != _cache["params_tuple"]:
@@ -152,4 +151,4 @@ def apply_filters(
         _cache["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
         _cache["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs)
 
-    return _full_filter(data, n_channels)
+    return _full_filter(data)
