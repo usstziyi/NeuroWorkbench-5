@@ -1,6 +1,5 @@
 from PySide6.QtCore import QObject, Signal, QThread
 
-from dsp.filters_stream_iir import reset_state
 from pipeline.board_fetcher import BoardFetcher
 from pipeline.data_chain import DataChain
 
@@ -56,8 +55,6 @@ class Pipeline(QObject):
             pass
 
     def start_workers(self):
-        # 重置流式 IIR 滤波器状态，避免旧 session 状态污染
-        reset_state()
 
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)

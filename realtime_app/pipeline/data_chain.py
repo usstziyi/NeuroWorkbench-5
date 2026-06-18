@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from dsp import detrend, apply_filters
+from dsp import detrend, apply_filters, reset_state, apply_filters_full
 import numpy as np
 
 
@@ -44,7 +44,7 @@ class DataChain(QObject):
 
         # 2. 滤波（带通 → 环境噪声）
         if self._filter_enabled:
-            raw_data = apply_filters(
+            raw_data = apply_filters_full(
                 data=raw_data,
                 sampling_rate=int(self._sampling_rate),
                 highpass=self._highpass,

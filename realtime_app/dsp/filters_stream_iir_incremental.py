@@ -1,4 +1,4 @@
-"""流式 IIR 滤波器模块 —— 基于 scipy.signal。
+"""流式 IIR 滤波器模块（增量版）—— 基于 scipy.signal。
 
 Second-Order Sections
 
@@ -14,7 +14,7 @@ Second-Order Sections
     2. Notch（陷波）→ 去除工频噪声
 
 使用方式:
-    from dsp.filters_stream_iir import apply_filters   # 只需改这一行
+    from dsp.filters_stream_iir_incremental import apply_filters   # 只需改这一行
     filtered = apply_filters(data, sampling_rate, highpass, lowpass, noise_freqs)
 """
 
@@ -47,10 +47,10 @@ def _design_bandpass_sos(sampling_rate: int, highpass: float, lowpass: float, or
     nyq = sampling_rate / 2
     if highpass > 0 and lowpass < nyq and highpass < lowpass:
         return butter(
-            N=order, 
-            Wn=[highpass, lowpass], 
+            N=order,
+            Wn=[highpass, lowpass],
             btype="bandpass",
-            fs=sampling_rate, 
+            fs=sampling_rate,
             output="sos"
         )
     return None
@@ -66,10 +66,10 @@ def _design_notch_sos(sampling_rate: int, noise_freqs: int, order: int = 4) -> n
     low = max(0.5, noise_freqs - bw / 2)
     high = min(nyq - 0.5, noise_freqs + bw / 2)
     return butter(
-        N=order, 
-        Wn=[low, high], 
+        N=order,
+        Wn=[low, high],
         btype="bandstop",
-        fs=sampling_rate, 
+        fs=sampling_rate,
         output="sos"
     )
 
@@ -92,13 +92,9 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
     sos_bp = _state["sos_bp"]
     sos_notch = _state["sos_notch"]
 
-    # 获取带通滤波器的 级联节数（SOS 格式每行代表一个二阶节），若未启用则为 0
-    # SOS中二阶节的个数，每个二阶节有 6 个系数
     n_sections_bp = sos_bp.shape[0] if sos_bp is not None else 0
-    # 获取陷波滤波器的 级联节数，若未启用则为 0
     n_sections_notch = sos_notch.shape[0] if sos_notch is not None else 0
 
-    # 保存每个通道的 zi 状态，用于后续增量帧使用
     zi_bp_list: list = []
     zi_notch_list: list = []
     result = np.empty_like(data)
@@ -123,7 +119,6 @@ def _full_filter(data: np.ndarray, n_channels: int) -> np.ndarray:
         result[ch] = x
         zi_bp_list.append(zi_bp)
         zi_notch_list.append(zi_notch)
-        
 
     _state["zi_bp"] = zi_bp_list
     _state["zi_notch"] = zi_notch_list
@@ -175,18 +170,14 @@ def _incremental_filter(new_part: np.ndarray, n_channels: int, growing: bool = F
 
     prev = _state["saved_output"]
     if growing:
-        # 窗口增长中：直接拼接，不丢弃旧数据
         result = np.concatenate((prev, result_new), axis=1)
     else:
-        # 滑窗模式：移位丢弃旧样本，尾部追加新结果
         result = prev
         result[:, :-n_new] = result[:, n_new:]
         result[:, -n_new:] = result_new
 
     _state["saved_output"] = result
     _state["n_saved"] = result.shape[1]
-    print(f"incremental_filter: {result.shape}")
-    print(growing)
 
     return result
 
@@ -223,9 +214,7 @@ def apply_filters(
     """
     n_channels, n_samples = data.shape
 
-    # 将当前滤波参数打包为元组，用于检测参数是否发生变化
     pt = _params_tuple(sampling_rate, highpass, lowpass, order, noise_freqs)
-    # 检测本轮滤波参数和上轮参数是否发生变化，若变化则重置所有状态并重新设计滤波器
     if pt != _state["params_tuple"]:
         _state["params_tuple"] = pt
         _state["n_saved"] = 0
@@ -235,14 +224,12 @@ def apply_filters(
         _state["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
         _state["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs)
 
-    # --- 决定全量滤波还是增量滤波 ---
     n_new = n_samples - _state["n_saved"]
 
     if _state["n_saved"] == 0:
-        # 首帧 / 无新增 → 全量滤波冷启动
         return _full_filter(data, n_channels)
     else:
-        growing = n_samples != _state["n_saved"]  # 窗口是否还在增长（未满）
+        growing = n_samples != _state["n_saved"]
         return _incremental_filter(new_part, n_channels, growing=growing)
 
 
