@@ -40,6 +40,7 @@ class BoardFetcher(QObject):
 
     def _fetch_and_emit(self):
         board_data = self._dm.peek_seconds(self._seconds)
+        # board_data = self._dm.get_board_data()
         if board_data.size == 0:
             return
 

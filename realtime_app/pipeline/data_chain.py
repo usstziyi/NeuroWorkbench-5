@@ -36,6 +36,7 @@ class DataChain(QObject):
             return
         
         names = list(raw_dict.keys())
+        # dict -> np.ndarray (n_channels, n_samples)
         raw_data = np.stack([y for _, y in raw_dict.values()])  # (新内存)
 
         # 1. 去趋势
@@ -52,8 +53,11 @@ class DataChain(QObject):
                 noise_freqs=self._noise_freqs,
             )
 
-        # {channel_name: (t_array, y_processed)}
-        result = {name: (raw_dict[name][0], raw_data[i])
+        # 重新计算t
+        t = np.arange(-raw_data.shape[1],0) / self._sampling_rate
+
+        # np.ndarray (n_channels, n_samples) -> dict {channel_name: (t_array, y_processed)}
+        result = {name: (t, raw_data[i])
                   for i, name in enumerate(names)}
 
         self.data_ready.emit(result)

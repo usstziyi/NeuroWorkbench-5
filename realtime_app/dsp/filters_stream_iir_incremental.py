@@ -126,21 +126,20 @@ def _full_filter(data: np.ndarray) -> np.ndarray:
     return result
 
 
-def _incremental_filter(new_part: np.ndarray) -> np.ndarray:
+def _incremental_filter(new_data: np.ndarray) -> np.ndarray:
     """增量滤波 —— 仅处理窗口尾部新增的 n_new 个样本。
 
     沿用上帧保存的 zi 状态继续滤波。
     """
     sos_bp = _state["sos_bp"]
     sos_notch = _state["sos_notch"]
-    n_new = new_part.shape[1]
 
-    result_new = np.empty_like(new_part)
+    result_new = np.empty_like(new_data)
     new_zi_bp: list = []
     new_zi_notch: list = []
 
-    for ch in range(new_part.shape[0]):
-        x = new_part[ch]
+    for ch in range(new_data.shape[0]):
+        x = new_data[ch]
         zi_bp_prev = _state["zi_bp"][ch] if _state["zi_bp"] is not None else None
         zi_notch_prev = _state["zi_notch"][ch] if _state["zi_notch"] is not None else None
 
@@ -164,14 +163,11 @@ def _incremental_filter(new_part: np.ndarray) -> np.ndarray:
     _state["zi_bp"] = new_zi_bp
     _state["zi_notch"] = new_zi_notch
 
-
-
     prev = _state["saved_output"]
-
-
     result = np.concatenate((prev, result_new), axis=1)
     if result.shape[1] > 1250:
         result = result[:, -1250:]
+
 
     _state["saved_output"] = result
 
@@ -223,7 +219,17 @@ def apply_filters(
 
 
 def reset_state() -> None:
-    """手动重置滤波器状态（例如重新开始流式采集时调用）。"""
+    """手动重置滤波器状态，强制下次 apply_filters() 走全量冷启动。
+
+    将 params_tuple 置为 None 是关键——当数据流重连时，滤波参数
+    可能不变，单靠 apply_filters 内部的 params_tuple 对比无法触发
+    冷启动。但旧 zi 状态来自上一段数据流，对全新数据流已无效，
+    继续增量滤波会导致结果错误。
+
+    调用时机：
+        - 设备重连后（数据管线重新初始化时）
+        - 手动切换策略到 INCREMENTAL 时（filter_strategy 内部已调用）
+    """
     _state["saved_output"] = None
     _state["zi_bp"] = None
     _state["zi_notch"] = None

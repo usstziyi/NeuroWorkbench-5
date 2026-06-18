@@ -52,6 +52,7 @@ def apply_filters(
     for ch in range(data.shape[0]):
         # 1. BandPass（带通）—— 保留目标频段
         if highpass > 0 or lowpass < sampling_rate / 2:
+            # DataFilter.perform_bandpass 每次调用都会重新设计滤波器
             DataFilter.perform_bandpass(
                 data[ch],
                 sampling_rate,
