@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'cyton'
-c.ConfigDevice.port = '/dev/cu.usbmodem12201'
+c.ConfigDevice.port = '/dev/cu.usbmodem12101'
 c.ConfigDevice.sampling_rate = 250
 
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ c.ConfigDevice.sampling_rate = 250
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
 c.ConfigFilter.highpass = 5.0
-c.ConfigFilter.lowpass = 45.0
+c.ConfigFilter.lowpass = 50.0
 c.ConfigFilter.noise_freqs = 50
 
 #------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ c.ConfigFreqsDomain.window_type = 'hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 870.0
+c.ConfigTimeDomain.amplitude = 1380.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
