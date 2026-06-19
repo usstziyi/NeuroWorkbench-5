@@ -61,7 +61,7 @@ class FreqsDomainWidget(QWidget):
         font_bottom.setPointSize(12)
 
         self._plot = self._plot_widget.addPlot(0, 0)
-        self._plot.setLabel("left", "Amplitude", units="dB")
+        self._plot.setLabel("left", "Amplitude", units="μV")
         self._plot.getAxis("left").setWidth(60)
         self._plot.getAxis("left").autoSIPrefix = False
         self._plot.getAxis("left").setStyle(tickFont=font_left)
