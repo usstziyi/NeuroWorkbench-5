@@ -51,12 +51,13 @@ c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
+c.ConfigFreqsDomain.smooth_factor = 0.92
 c.ConfigFreqsDomain.window_type = 'Hann'
 
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 2000.0
+c.ConfigTimeDomain.amplitude = 1500.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

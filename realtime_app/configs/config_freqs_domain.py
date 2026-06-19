@@ -10,5 +10,6 @@ class ConfigFreqsDomain(Configurable):
     amp_range = List(Float(), default_value=[0.0, 200], help="Amplitude range to display (dB).").tag(config=True)
     channels = List(Unicode(), default_value=['CH1'], help="List of channels to display.").tag(config=True)
 
+    smooth_factor = Float(0.92, help="Smoothing factor (0~1) for spectrum amplitude.").tag(config=True)
     fft_enable = Bool(True, help="Enable FFT.").tag(config=True)
     dsp_enable = Bool(False, help="Enable DSP.").tag(config=True)
