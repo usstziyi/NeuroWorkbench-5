@@ -54,24 +54,28 @@ class FreqsDomainWidget(QWidget):
         layout.addWidget(self._plot_widget)
         
 
-        font = QtGui.QFont()
-        font.setPointSize(6)
+        font_left = QtGui.QFont()
+        font_left.setPointSize(6)
+
+        font_bottom = QtGui.QFont()
+        font_bottom.setPointSize(12)
+
         self._plot = self._plot_widget.addPlot(0, 0)
         self._plot.setLabel("left", "Amplitude", units="dB")
         self._plot.getAxis("left").setWidth(60)
         self._plot.getAxis("left").autoSIPrefix = False
-        self._plot.getAxis("left").setStyle(tickFont=font)
+        self._plot.getAxis("left").setStyle(tickFont=font_left)
 
         self._plot.setLabel("bottom", "Frequency", units="Hz")
         self._plot.getAxis("bottom").autoSIPrefix = False
-        # self._plot.getAxis("bottom").setStyle(tickFont=font)
+        self._plot.getAxis("bottom").setStyle(tickFont=font_bottom)
 
 
         self._plot.setDownsampling(auto=True, mode="peak")
         self._plot.setClipToView(True)
         self._plot.setMouseEnabled(x=False, y=False)
         self._plot.showGrid(x=True, y=True, alpha=0.3)
-        self._plot.setLogMode(x=False, y=True)
+        # self._plot.setLogMode(x=False, y=True)
 
     def observe_configs(self):
         """Observe config changes."""
