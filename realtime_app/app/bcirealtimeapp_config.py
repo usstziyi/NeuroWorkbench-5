@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'cyton'
-c.ConfigDevice.port = '/dev/cu.usbmodem12101'
+c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 c.ConfigDevice.sampling_rate = 250
 
 #------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
+c.ConfigFreqsDomain.amp_range = [0.0, 200.0]
 c.ConfigFreqsDomain.channels = ['CH1']
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
@@ -55,7 +56,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 2000.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

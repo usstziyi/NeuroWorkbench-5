@@ -105,6 +105,13 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_range_changed, names=["freqs_range"]
             )
+            self.apply_amp_range(self._freqs_config.amp_range)
+            self._on_amp_range_changed = lambda change: self.apply_amp_range(
+                self._freqs_config.amp_range
+            )
+            self._freqs_config.observe(
+                self._on_amp_range_changed, names=["amp_range"]
+            )
 
 
     def apply_theme(self, color_mode):
@@ -131,6 +138,11 @@ class FreqsDomainWidget(QWidget):
     def apply_range(self, freqs_range):
         left, right = freqs_range
         self._plot.setXRange(left, right)
+
+    def apply_amp_range(self, amp_range):
+        bottom, top = amp_range
+        self._plot.setYRange(bottom, top)
+        self._plot.enableAutoRange(y=False)
 
     def set_data(self, channel, freq, amp):
         """Update data for a specific channel.
@@ -182,4 +194,12 @@ class FreqsDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_range_changed
+            if hasattr(self, "_on_amp_range_changed"):
+                try:
+                    self._freqs_config.unobserve(
+                        self._on_amp_range_changed, names=["amp_range"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_amp_range_changed
         

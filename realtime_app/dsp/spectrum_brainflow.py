@@ -65,6 +65,9 @@ def compute_spectrum_amplitude_fft(
     while nfft > n_samples:
         nfft = max(nfft // 2, 2)
     
+    if nfft>256:
+        nfft = 256
+    
     print(f"nfft: {nfft}, n_samples: {n_samples}")
 
 
