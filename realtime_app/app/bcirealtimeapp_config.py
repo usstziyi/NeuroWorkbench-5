@@ -45,10 +45,11 @@ c.ConfigDetrend.enable = True
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.ampls_range = [0.0, 200.0]
-c.ConfigFreqsDomain.channels = ['CH1']
+c.ConfigFreqsDomain.channels = ['Fp1']
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
+c.ConfigFreqsDomain.log_y = 'Linear'
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
 c.ConfigFreqsDomain.smooth_factor = 0.92

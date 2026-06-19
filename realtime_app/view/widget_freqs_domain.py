@@ -75,7 +75,6 @@ class FreqsDomainWidget(QWidget):
         self._plot.setClipToView(True)
         self._plot.setMouseEnabled(x=False, y=False)
         self._plot.showGrid(x=True, y=True, alpha=0.3)
-        # self._plot.setLogMode(x=False, y=True)
 
     def observe_configs(self):
         """Observe config changes."""
@@ -112,6 +111,13 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_amp_range_changed, names=["ampls_range"]
             )
+            self.apply_log_y(self._freqs_config.log_y)
+            self._on_log_y_changed = lambda change: self.apply_log_y(
+                self._freqs_config.log_y
+            )
+            self._freqs_config.observe(
+                self._on_log_y_changed, names=["log_y"]
+            )
 
 
     def apply_theme(self, color_mode):
@@ -143,6 +149,9 @@ class FreqsDomainWidget(QWidget):
         bottom, top = ampls_range
         self._plot.setYRange(bottom, top)
         self._plot.enableAutoRange(y=False)
+
+    def apply_log_y(self, scale: str):
+        self._plot.setLogMode(x=False, y=(scale == "Log"))
 
     def set_data(self, channel, freq, amp):
         """Update data for a specific channel.
@@ -202,4 +211,12 @@ class FreqsDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_amp_range_changed
+            if hasattr(self, "_on_log_y_changed"):
+                try:
+                    self._freqs_config.unobserve(
+                        self._on_log_y_changed, names=["log_y"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_log_y_changed
         

@@ -50,6 +50,14 @@ class WindowType(str, Enum):
         return self.value
 
 
+class YScaleEnum(str, Enum):
+    Linear = "Linear"
+    Log = "Log"
+
+    def __str__(self):
+        return self.value
+
+
 class PortComboBox(QComboBox):
     def get_ports(self):
         return sorted(p.device for p in comports())
@@ -205,6 +213,8 @@ class ControlPanelWidget(QWidget):
         self.freqs_right.setRange(0.0, 125.0)
         self.freqs_right.setSingleStep(5)
         freqs_domain_layout.addRow("频率范围:",self.freqs_right)
+        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
+        freqs_domain_layout.addRow("Y轴尺度:",self.log_y_combo)
         return freqs_domain_group
 
 
@@ -343,6 +353,14 @@ class ControlPanelWidget(QWidget):
                     self._binder_freqs.get("freqs_range")[0],
                     v,
                 ],
+            )
+            self._binder_freqs.bind(
+                "log_y",
+                self.log_y_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: YScaleEnum(v),
+                from_widget_func=lambda v: v.value,
             )
 
         # --- Time Domain ---
