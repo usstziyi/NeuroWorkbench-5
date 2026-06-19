@@ -72,9 +72,9 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
-        self._center_widget = TimeDomainWidget(theme_config=self.config_theme,
+        self.center_widget = TimeDomainWidget(theme_config=self.config_theme,
                                           time_config=self.config_time)
-        self.setCentralWidget(self._center_widget)
+        self.setCentralWidget(self.center_widget)
 
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")
@@ -99,10 +99,10 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomainWidget(theme_config=self.config_theme,
+        self.bottom_widget = FreqsDomainWidget(theme_config=self.config_theme,
                                             time_config=self.config_time,
                                             freqs_config=self.config_freqs)
-        self.bottom_dock.setWidget(bottom_widget)
+        self.bottom_dock.setWidget(self.bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
         
@@ -191,7 +191,8 @@ class MainWindow(QMainWindow):
             freqs_config=self.config_freqs,
             device_config=self.config_device,
         )
-        self._pipeline.data_ready.connect(self._center_widget.set_all_data)
+        self._pipeline.data_ready.connect(self.center_widget.set_all_data)
+        self._pipeline.ampls_ready.connect(self.bottom_widget.set_all_data)
 
 
     def closeEvent(self, event):

@@ -74,9 +74,9 @@ class DataChain(QObject):
             )
 
 
-            fft_result = {name: (freqs, ampls_2d[i])
+            ampls_result = {name: (freqs, ampls_2d[i])
                           for i, name in enumerate(names)}
-            self.ampls_ready.emit(fft_result)
+            self.ampls_ready.emit(ampls_result)
 
 
 
@@ -100,6 +100,8 @@ class DataChain(QObject):
 
         if self._freqs_config is not None:
             self._window_type = self._freqs_config.window_type
+            self._fft_enable = self._freqs_config.fft_enable
+            self._dsp_enable = self._freqs_config.dsp_enable
             self._freqs_config.observe(
                 self._on_freq_changed,
                 names=["fft_enable", "dsp_enable", "window_type"],

@@ -13,6 +13,7 @@ class Pipeline(QObject):
     """
 
     data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
+    ampls_ready = Signal(dict)  # {channel_name: (freqs, ampls)}
 
     def __init__(self, device_manager, parent=None,
                  time_config=None,
@@ -66,6 +67,7 @@ class Pipeline(QObject):
         self._fetcher.raw_data_ready.connect(self._chain.process)
         # chain → UI (引用)
         self._chain.data_ready.connect(self.data_ready.emit)
+        self._chain.ampls_ready.connect(self.ampls_ready.emit)
 
         self._fetch_thread = QThread()
         self._fetch_thread.setObjectName("FetchThread")
