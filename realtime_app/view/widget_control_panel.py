@@ -205,7 +205,6 @@ class ControlPanelWidget(QWidget):
         self.ampls_up.setRange(0.0, 1000.0)
         self.ampls_up.setSingleStep(20)
         freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
-        
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
         self.freqs_right.setRange(0.0, 125.0)
