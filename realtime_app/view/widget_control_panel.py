@@ -198,23 +198,20 @@ class ControlPanelWidget(QWidget):
         freqs_domain_layout = QFormLayout(freqs_domain_group)
         self.window_type = QEnumComboBox(enum_class=WindowType)
         freqs_domain_layout.addRow("窗口类型:",self.window_type)
-        self.spectrum_window = QDoubleSpinBox()
-        self.spectrum_window.setSuffix(" s")
-        self.spectrum_window.setRange(2, 5.0)
-        self.spectrum_window.setSingleStep(0.5)
-        freqs_domain_layout.addRow("频谱窗长:",self.spectrum_window)
-        self.overlap_ratio = QSpinBox()
-        self.overlap_ratio.setSuffix(" %")
-        self.overlap_ratio.setRange(10,50)
-        self.overlap_ratio.setSingleStep(5)
-        freqs_domain_layout.addRow("重叠比例:",self.overlap_ratio)
+        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
+        freqs_domain_layout.addRow("Y轴尺度:",self.log_y_combo)
+        self.ampls_up = QDoubleSpinBox()
+        self.ampls_up.setSuffix(" μV")
+        self.ampls_up.setRange(0.0, 1000.0)
+        self.ampls_up.setSingleStep(20)
+        freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
+        
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
         self.freqs_right.setRange(0.0, 125.0)
         self.freqs_right.setSingleStep(5)
         freqs_domain_layout.addRow("频率范围:",self.freqs_right)
-        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
-        freqs_domain_layout.addRow("Y轴尺度:",self.log_y_combo)
+
         return freqs_domain_group
 
 
@@ -328,20 +325,6 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: WindowType(v.capitalize()),
                 from_widget_func=lambda v: v.value,
             )
-            self._binder_freqs.bind(
-                "seconds",
-                self.spectrum_window,
-                widget_property="value",
-                widget_signal="valueChanged",
-            )
-            self._binder_freqs.bind(
-                "overlap_ratio",
-                self.overlap_ratio,
-                widget_property="value",
-                widget_signal="valueChanged",
-                to_widget_func=lambda v: int(v * 100),
-                from_widget_func=lambda v: v / 100.0,
-            )
             # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
             self._binder_freqs.bind(
                 "freqs_range",
@@ -351,6 +334,18 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: v[1],
                 from_widget_func=lambda v: [
                     self._binder_freqs.get("freqs_range")[0],
+                    v,
+                ],
+            )
+            # ampls_range 同理，绑到右界（上限）
+            self._binder_freqs.bind(
+                "ampls_range",
+                self.ampls_up,
+                widget_property="value",
+                widget_signal="valueChanged",
+                to_widget_func=lambda v: v[1],
+                from_widget_func=lambda v: [
+                    self._binder_freqs.get("ampls_range")[0],
                     v,
                 ],
             )
