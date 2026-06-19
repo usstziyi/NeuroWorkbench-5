@@ -18,7 +18,7 @@ c.BCIRealtimeApp.version = '0.1.0'
 #------------------------------------------------------------------------------
 # ConfigTheme configuration
 #------------------------------------------------------------------------------
-c.ConfigTheme.color_mode = 'System'
+c.ConfigTheme.color_mode = 'Light'
 c.ConfigTheme.theme = 'Fusion'
 
 #------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ c.ConfigDetrend.enable = True
 c.ConfigFreqsDomain.channels = ['CH1']
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = False
-c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
 c.ConfigFreqsDomain.window_type = 'hann'

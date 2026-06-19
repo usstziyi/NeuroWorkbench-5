@@ -15,11 +15,11 @@ class DataChain(QObject):
     data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
     ampls_ready = Signal(dict)  # {channel_name: (freqs_1d, ampls_1d)}
 
-    def __init__(self, detrend_config=None, filter_config=None, freq_config=None):
+    def __init__(self, detrend_config=None, filter_config=None, freqs_config=None):
         super().__init__()
         self._detrend_config = detrend_config
         self._filter_config = filter_config
-        self._freq_config = freq_config
+        self._freqs_config = freqs_config
         
         # 去趋势参数
         self._detrend_enabled = True
@@ -73,7 +73,7 @@ class DataChain(QObject):
                 window=self._window_type,
             )
 
-            
+
             fft_result = {name: (freqs, ampls_2d[i])
                           for i, name in enumerate(names)}
             self.ampls_ready.emit(fft_result)
@@ -98,9 +98,9 @@ class DataChain(QObject):
                 names=[ "enable", "highpass", "lowpass", "noise_freqs"],
             )
 
-        if self._freq_config is not None:
-            self._window_type = self._freq_config.window_type
-            self._freq_config.observe(
+        if self._freqs_config is not None:
+            self._window_type = self._freqs_config.window_type
+            self._freqs_config.observe(
                 self._on_freq_changed,
                 names=["fft_enable", "dsp_enable", "window_type"],
             )

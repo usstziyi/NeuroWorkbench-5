@@ -1,6 +1,7 @@
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFrame,
     QScrollArea,
     QVBoxLayout,
     QWidget,
@@ -32,7 +33,6 @@ CET_R3 = [
     (197, 50, 120),
 ]
 
-CET_R3_DEFAULT = CET_R3 * 4
 
 FIXED_PLOT_HEIGHT = 120
 
@@ -47,20 +47,22 @@ class TimeDomainWidget(QWidget):
         self._plots = {}
         self._curves = {}
 
+        self.init_ui()
+        self.observer_configs()
+        self.destroyed.connect(self.unobserve_configs)
+
+    def init_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         self._scroll_area = QScrollArea()
+        self._scroll_area.setFrameShape(QFrame.NoFrame)
         self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self._plot_widget = pg.GraphicsLayoutWidget()
         self._scroll_area.setWidget(self._plot_widget)
         layout.addWidget(self._scroll_area)
-
-        self.observer_configs()
-        self.destroyed.connect(self.unobserve_configs)
-
     
     def apply_theme(self, color_mode):
         if color_mode == "Light":

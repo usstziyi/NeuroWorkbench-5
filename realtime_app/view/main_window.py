@@ -99,7 +99,9 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        bottom_widget = FreqsDomainWidget(freqs_config=self.config_freqs)
+        bottom_widget = FreqsDomainWidget(theme_config=self.config_theme,
+                                            time_config=self.config_time,
+                                            freqs_config=self.config_freqs)
         self.bottom_dock.setWidget(bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
@@ -186,7 +188,7 @@ class MainWindow(QMainWindow):
             time_config=self.config_time,
             filter_config=self.config_filter,
             detrend_config=self.config_detrend,
-            freq_config=self.config_freqs,
+            freqs_config=self.config_freqs,
             device_config=self.config_device,
         )
         self._pipeline.data_ready.connect(self._center_widget.set_all_data)
