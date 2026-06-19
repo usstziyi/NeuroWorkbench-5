@@ -10,6 +10,7 @@ from .spectrum_brainflow import (
     WindowType,
     compute_spectrum_amplitude_fft,
     SpectrumSmoother,
+    make_spectrum_smoother,
 )
 
 # 频带功率（独立模块）

@@ -1,6 +1,8 @@
 from PySide6.QtCore import QObject, Signal
-from dsp import detrend, apply_filters, reset_state
+from dsp import detrend
+from dsp import apply_filters, reset_state
 from dsp import compute_spectrum_amplitude_fft
+from dsp import SpectrumSmoother, make_spectrum_smoother
 import numpy as np
 
 
@@ -34,6 +36,8 @@ class DataChain(QObject):
         self._fft_enable = False    
         self._dsp_enable = False
         self._window_type = None
+        self._smooth_factor = 0.92
+        self._smoother = SpectrumSmoother()
 
         self.observe_configs()
 
@@ -72,6 +76,8 @@ class DataChain(QObject):
                 sampling_rate=int(self._sampling_rate),
                 window=self._window_type,
             )
+            # 平滑频幅谱
+            ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
 
 
             ampls_result = {name: (freqs, ampls_2d[i])
@@ -104,7 +110,7 @@ class DataChain(QObject):
             self._dsp_enable = self._freqs_config.dsp_enable
             self._freqs_config.observe(
                 self._on_freq_changed,
-                names=["fft_enable", "dsp_enable", "window_type"],
+                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor"],
             )
 
     def _on_detrend_changed(self, change):
@@ -129,6 +135,8 @@ class DataChain(QObject):
             self._dsp_enable = change["new"]
         elif name == "window_type":
             self._window_type = change["new"]
+        elif name == "smooth_factor":
+            self._smooth_factor = change["new"]
 
 
     def unobserve_configs(self):
