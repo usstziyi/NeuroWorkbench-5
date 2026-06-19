@@ -196,16 +196,24 @@ class ControlPanelWidget(QWidget):
         freqs_domain_group = QGroupBox("频域分析")
         freqs_domain_group = QGroupBox("频域分析")
         freqs_domain_layout = QFormLayout(freqs_domain_group)
+
         self.window_type = QEnumComboBox(enum_class=WindowType)
         freqs_domain_layout.addRow("窗口类型:",self.window_type)
+
+        self.smooth_factor_spin = QDoubleSpinBox()
+        self.smooth_factor_spin.setRange(0.01, 0.99)
+        self.smooth_factor_spin.setSingleStep(0.01)
+        freqs_domain_layout.addRow("平滑系数:",self.smooth_factor_spin)
+        
         self.ampls_up = QDoubleSpinBox()
         self.ampls_up.setSuffix(" μV")
-        self.ampls_up.setRange(0.0, 1000.0)
-        self.ampls_up.setSingleStep(20)
+        self.ampls_up.setRange(10, 1000.0)
+        self.ampls_up.setSingleStep(10)
         freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
+
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
-        self.freqs_right.setRange(0.0, 125.0)
+        self.freqs_right.setRange(5, 125.0)
         self.freqs_right.setSingleStep(5)
         freqs_domain_layout.addRow("频率范围:",self.freqs_right)
 
@@ -321,6 +329,12 @@ class ControlPanelWidget(QWidget):
                 widget_signal="currentEnumChanged",
                 to_widget_func=lambda v: WindowType(v.capitalize()),
                 from_widget_func=lambda v: v.value,
+            )
+            self._binder_freqs.bind(
+                "smooth_factor",
+                self.smooth_factor_spin,
+                widget_property="value",
+                widget_signal="valueChanged",
             )
             # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
             self._binder_freqs.bind(
