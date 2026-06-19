@@ -1,1 +1,0 @@
- log_ampls_range = np.log10(self._freqs_config.ampls_range)
