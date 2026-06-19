@@ -316,7 +316,7 @@ class ControlPanelWidget(QWidget):
                 widget_property="currentEnum",
                 widget_signal="currentEnumChanged",
                 to_widget_func=lambda v: WindowType(v.capitalize()),
-                from_widget_func=lambda v: v.value.lower(),
+                from_widget_func=lambda v: v.value,
             )
             self._binder_freqs.bind(
                 "seconds",
