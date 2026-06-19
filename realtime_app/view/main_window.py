@@ -18,6 +18,7 @@ from view.widget_properties import PropertiesWidget
 from view.dialog_ui_settings import DialogUiSettings
 from view.dialog_channel_choose import DialogChannelChoose
 from view.dialog_device_info import DialogDeviceInfo
+from view.dialog_fft_settings import DialogFftSettings
 
 from superqt import (
     QLabeledSlider, QRangeSlider, QEnumComboBox,
@@ -127,6 +128,13 @@ class MainWindow(QMainWindow):
 
         # 设置
         settings_menu = menubar.addMenu("设置(&S)")
+        action = QAction("FFT设置(&F)", self)
+        action.triggered.connect(self._show_fft_settings_dialog)
+        settings_menu.addAction(action)
+        action = QAction("DSP设置(&D)", self)
+        action.triggered.connect(self._show_dsp_settings_dialog)
+        settings_menu.addAction(action)
+        settings_menu.addSeparator()
         action = QAction("外观设置(&S)", self)
         action.triggered.connect(self._show_ui_settings_dialog)
         settings_menu.addAction(action)
@@ -140,6 +148,14 @@ class MainWindow(QMainWindow):
         action = QAction("关于(&A)", self)
         action.triggered.connect(self._show_about_dialog)
         about_menu.addAction(action)
+
+    def _show_fft_settings_dialog(self):
+        dialog = DialogFftSettings(binder=self._binder_freqs, parent=self)
+        dialog.exec()
+
+    def _show_dsp_settings_dialog(self):
+        dialog = DialogDspSettings(binder=self._binder_freqs, parent=self)
+        dialog.exec()
     
     
     def _show_about_dialog(self):

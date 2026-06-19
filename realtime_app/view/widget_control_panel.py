@@ -198,8 +198,6 @@ class ControlPanelWidget(QWidget):
         freqs_domain_layout = QFormLayout(freqs_domain_group)
         self.window_type = QEnumComboBox(enum_class=WindowType)
         freqs_domain_layout.addRow("窗口类型:",self.window_type)
-        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
-        freqs_domain_layout.addRow("Y轴尺度:",self.log_y_combo)
         self.ampls_up = QDoubleSpinBox()
         self.ampls_up.setSuffix(" μV")
         self.ampls_up.setRange(0.0, 1000.0)
@@ -347,14 +345,6 @@ class ControlPanelWidget(QWidget):
                     self._binder_freqs.get("ampls_range")[0],
                     v,
                 ],
-            )
-            self._binder_freqs.bind(
-                "log_y",
-                self.log_y_combo,
-                widget_property="currentEnum",
-                widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: YScaleEnum(v),
-                from_widget_func=lambda v: v.value,
             )
 
         # --- Time Domain ---
