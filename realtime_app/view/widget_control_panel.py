@@ -173,13 +173,13 @@ class ControlPanelWidget(QWidget):
         filter_layout.addRow("去除漂移:",self.detrend_switch)
         # BandPass high
         self.bp_high_spin = QDoubleSpinBox()
-        self.bp_high_spin.setRange(0.1, 20.0)
+        self.bp_high_spin.setRange(0.1, 20.0) # 真实区间
         self.bp_high_spin.setSingleStep(0.1)
         self.bp_high_spin.setSuffix(" Hz")
         filter_layout.addRow("高通滤波:", self.bp_high_spin)
         # BandPass low
         self.bp_low_spin = QDoubleSpinBox()
-        self.bp_low_spin.setRange(20.0, 100.0)
+        self.bp_low_spin.setRange(20.0, 100.0) # 真实区间
         self.bp_low_spin.setSingleStep(0.1)
         self.bp_low_spin.setSuffix(" Hz")
         filter_layout.addRow("低通滤波:", self.bp_low_spin)
@@ -194,26 +194,25 @@ class ControlPanelWidget(QWidget):
 
     def build_freqs_domain_group(self):
         freqs_domain_group = QGroupBox("频域分析")
-        freqs_domain_group = QGroupBox("频域分析")
         freqs_domain_layout = QFormLayout(freqs_domain_group)
 
         self.window_type = QEnumComboBox(enum_class=WindowType)
         freqs_domain_layout.addRow("窗口类型:",self.window_type)
 
         self.smooth_factor_spin = QDoubleSpinBox()
-        self.smooth_factor_spin.setRange(0.01, 0.99)
+        self.smooth_factor_spin.setRange(0.01, 0.99) # 真实区间
         self.smooth_factor_spin.setSingleStep(0.01)
         freqs_domain_layout.addRow("平滑系数:",self.smooth_factor_spin)
         
         self.ampls_up = QDoubleSpinBox()
         self.ampls_up.setSuffix(" μV")
-        self.ampls_up.setRange(10, 1000.0)
+        self.ampls_up.setRange(1, 1000.0) # 区间右值
         self.ampls_up.setSingleStep(10)
         freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
 
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
-        self.freqs_right.setRange(5, 125.0)
+        self.freqs_right.setRange(5, 125.0) # 区间右值
         self.freqs_right.setSingleStep(5)
         freqs_domain_layout.addRow("频率范围:",self.freqs_right)
 

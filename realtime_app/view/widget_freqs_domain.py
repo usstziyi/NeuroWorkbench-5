@@ -1,3 +1,4 @@
+import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -104,6 +105,7 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_range_changed, names=["freqs_range"]
             )
+
             self.apply_amp_range(self._freqs_config.ampls_range)
             self._on_amp_range_changed = lambda change: self.apply_amp_range(
                 self._freqs_config.ampls_range
@@ -111,6 +113,7 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_amp_range_changed, names=["ampls_range"]
             )
+
             self.apply_log_y(self._freqs_config.log_y)
             self._on_log_y_changed = lambda change: self.apply_log_y(
                 self._freqs_config.log_y
@@ -146,12 +149,15 @@ class FreqsDomainWidget(QWidget):
         self._plot.setXRange(left, right)
 
     def apply_amp_range(self, ampls_range):
+        if self._freqs_config.log_y == "Log":
+            ampls_range = np.log10(ampls_range)
         bottom, top = ampls_range
         self._plot.setYRange(bottom, top)
         self._plot.enableAutoRange(y=False)
 
     def apply_log_y(self, scale: str):
         self._plot.setLogMode(x=False, y=(scale == "Log"))
+        self.apply_amp_range(self._freqs_config.ampls_range)
 
     def set_data(self, channel, freq, amp):
         """Update data for a specific channel.

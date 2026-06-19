@@ -6,12 +6,12 @@ from traitlets import Float, Int, Unicode, List, Bool
 class ConfigFreqsDomain(Configurable): 
     """common configuration."""
     window_type = Unicode("Hann", help="Window type for the FFT.").tag(config=True)
-    
+
     """Frequency domain configuration."""
     fft_enable = Bool(True, help="Enable FFT.").tag(config=True)
     smooth_factor = Float(0.92, help="Smoothing factor (0~1) for spectrum amplitude.").tag(config=True)
-    ampls_range = List(Float(), default_value=[0.0, 200], help="Amplitude range to display (μV).").tag(config=True)
-    freqs_range = List(Float(), default_value=[0.0, 125.0], help="Frequency range to display (Hz).").tag(config=True)
+    ampls_range = List(Float(), default_value=[0.001, 1000], help="Amplitude range to display (μV).").tag(config=True)
+    freqs_range = List(Float(), default_value=[5.0, 125.0], help="Frequency range to display (Hz).").tag(config=True)
     log_y = Unicode("Linear", help="Y axis scale: Linear or Log.").tag(config=True)
 
     """DSP configuration."""
