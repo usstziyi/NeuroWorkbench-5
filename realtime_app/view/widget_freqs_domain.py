@@ -105,12 +105,12 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_range_changed, names=["freqs_range"]
             )
-            self.apply_amp_range(self._freqs_config.amp_range)
+            self.apply_amp_range(self._freqs_config.ampls_range)
             self._on_amp_range_changed = lambda change: self.apply_amp_range(
-                self._freqs_config.amp_range
+                self._freqs_config.ampls_range
             )
             self._freqs_config.observe(
-                self._on_amp_range_changed, names=["amp_range"]
+                self._on_amp_range_changed, names=["ampls_range"]
             )
 
 
@@ -139,8 +139,8 @@ class FreqsDomainWidget(QWidget):
         left, right = freqs_range
         self._plot.setXRange(left, right)
 
-    def apply_amp_range(self, amp_range):
-        bottom, top = amp_range
+    def apply_amp_range(self, ampls_range):
+        bottom, top = ampls_range
         self._plot.setYRange(bottom, top)
         self._plot.enableAutoRange(y=False)
 
@@ -197,7 +197,7 @@ class FreqsDomainWidget(QWidget):
             if hasattr(self, "_on_amp_range_changed"):
                 try:
                     self._freqs_config.unobserve(
-                        self._on_amp_range_changed, names=["amp_range"]
+                        self._on_amp_range_changed, names=["ampls_range"]
                     )
                 except RuntimeError:
                     pass

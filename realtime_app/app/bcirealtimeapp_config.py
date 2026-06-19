@@ -44,7 +44,7 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.amp_range = [0.0, 200.0]
+c.ConfigFreqsDomain.ampls_range = [0.0, 200.0]
 c.ConfigFreqsDomain.channels = ['CH1']
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
