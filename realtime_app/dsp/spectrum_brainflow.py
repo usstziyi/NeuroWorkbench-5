@@ -90,6 +90,7 @@ def compute_spectrum_amplitude_fft(
 
 class SpectrumSmoother:
     """在 dB 域对幅度谱做指数加权滑动平均（EMA），对齐 openbci-gui 的平滑逻辑。
+    dB 域解决了 线性域 EMA 对大信号敏感、对小信号不敏感 的问题，让全频段的平滑行为均匀。
 
     使用方式（每组通道一个实例）:
         smoother = SpectrumSmoother(n_freqs=129, smooth_factor=0.9)
