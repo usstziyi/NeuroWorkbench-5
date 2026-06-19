@@ -64,6 +64,10 @@ def compute_spectrum_amplitude_fft(
         nfft = DataFilter.get_nearest_power_of_two(n_samples)
     while nfft > n_samples:
         nfft = max(nfft // 2, 2)
+    
+    print(f"nfft: {nfft}, n_samples: {n_samples}")
+
+
 
     data = data[:, -nfft:]  # 只取末尾 nfft 个样本
 
