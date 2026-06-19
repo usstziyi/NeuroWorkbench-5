@@ -106,8 +106,8 @@ class FreqsDomainWidget(QWidget):
                 self._on_freqs_range_change, names=["freqs_range"]
             )
 
-            self.apply_amp_range(self._freqs_config.ampls_range)
-            self._on_amp_range_changed = lambda change: self.apply_amp_range(
+            self.apply_ampls_range(self._freqs_config.ampls_range)
+            self._on_amp_range_changed = lambda change: self.apply_ampls_range(
                 self._freqs_config.ampls_range
             )
             self._freqs_config.observe(
@@ -149,7 +149,7 @@ class FreqsDomainWidget(QWidget):
         self._plot.setXRange(left, right)
         self._plot.enableAutoRange(x=False)
 
-    def apply_amp_range(self, ampls_range):
+    def apply_ampls_range(self, ampls_range):
         if self._freqs_config.log_y == "Log":
             ampls_range = np.log10(ampls_range)
         bottom, top = ampls_range
@@ -158,7 +158,7 @@ class FreqsDomainWidget(QWidget):
 
     def apply_log_y(self, scale: str):
         self._plot.setLogMode(x=False, y=(scale == "Log"))
-        self.apply_amp_range(self._freqs_config.ampls_range)
+        self.apply_ampls_range(self._freqs_config.ampls_range)
         # setLogMode 触发 updateLogMode → enableAutoRange() 会重新打开 X 自动缩放
         # 因此需要重新禁用 X 自动缩放并恢复频率范围
         self.apply_freqs_range(self._freqs_config.freqs_range)
