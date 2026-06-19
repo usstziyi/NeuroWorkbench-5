@@ -49,7 +49,7 @@ def get_strategy() -> FilterStrategy:
 
 def apply_filters(
     data: np.ndarray,
-    sampling_rate: int = 250,
+    sampling_rate: float = 250.0,
     highpass: float = 0.5,
     lowpass: float = 45.0,
     order: int = 4,

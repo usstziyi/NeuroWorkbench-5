@@ -24,7 +24,7 @@ def _noise_freqs_to_noise_type(noise_freqs: int) -> int | None:
 
 def apply_filters(
     data: np.ndarray,
-    sampling_rate: int = 250,
+    sampling_rate: float = 250.0,
     highpass: float = 0.5,
     lowpass: float = 45.0,
     order: int = 4,
@@ -55,7 +55,7 @@ def apply_filters(
             # DataFilter.perform_bandpass 每次调用都会重新设计滤波器
             DataFilter.perform_bandpass(
                 data[ch],
-                sampling_rate,
+                int(sampling_rate),
                 highpass,
                 lowpass,
                 order,
@@ -68,7 +68,7 @@ def apply_filters(
         if noise_type is not None:
             DataFilter.remove_environmental_noise(
                 data[ch],
-                sampling_rate,
+                int(sampling_rate),
                 noise_type,
             )
 

@@ -44,7 +44,6 @@ class WindowType(str, Enum):
     Hann = "Hann"
     Hamming = "Hamming"
     Blackman = "Blackman"
-    Bartlett = "Bartlett"
     Rectangular = "Rectangular"
 
     def __str__(self):

@@ -40,7 +40,7 @@ def _params_tuple(sampling_rate: int, highpass: float, lowpass: float, order: in
     return (sampling_rate, highpass, lowpass, order, noise_freqs)
 
 
-def _design_bandpass_sos(sampling_rate: int, highpass: float, lowpass: float, order: int) -> np.ndarray | None:
+def _design_bandpass_sos(sampling_rate: float, highpass: float, lowpass: float, order: int) -> np.ndarray | None:
     """设计带通 Butterworth 带通滤波器（SOS 格式，数值最稳定）。
     """
     nyq = sampling_rate / 2
@@ -55,7 +55,7 @@ def _design_bandpass_sos(sampling_rate: int, highpass: float, lowpass: float, or
     return None
 
 
-def _design_notch_sos(sampling_rate: int, noise_freqs: int, order: int = 4) -> np.ndarray | None:
+def _design_notch_sos(sampling_rate: float, noise_freqs: int, order: int = 4) -> np.ndarray | None:
     """设计工频陷波器（带阻 Butterworth ±2 Hz 带宽，SOS 格式）。
     """
     if noise_freqs <= 0:
@@ -180,7 +180,7 @@ def _incremental_filter(new_data: np.ndarray) -> np.ndarray:
 
 def apply_filters(
     data: np.ndarray,
-    sampling_rate: int = 250,
+    sampling_rate: float = 250.0,
     highpass: float = 0.5,
     lowpass: float = 45.0,
     order: int = 4,

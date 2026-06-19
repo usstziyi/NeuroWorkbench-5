@@ -7,6 +7,7 @@ from .psd_brainflow import compute_psd_welch
 
 # 频谱分析（基于 BrainFlow DataFilter）
 from .spectrum_brainflow import (
+    WindowType,
     compute_spectrum_amplitude_fft,
     SpectrumSmoother,
 )

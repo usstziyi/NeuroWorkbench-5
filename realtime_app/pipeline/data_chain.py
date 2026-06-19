@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 from dsp import detrend, apply_filters, reset_state
+from dsp import compute_spectrum_amplitude_fft
 import numpy as np
 
 
@@ -12,11 +13,13 @@ class DataChain(QObject):
     """
 
     data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
+    ampls_ready = Signal(dict)  # {channel_name: (freqs_1d, ampls_1d)}
 
-    def __init__(self, filter_config=None, detrend_config=None):
+    def __init__(self, detrend_config=None, filter_config=None, freq_config=None):
         super().__init__()
-        self._filter_config = filter_config
         self._detrend_config = detrend_config
+        self._filter_config = filter_config
+        self._freq_config = freq_config
         
         # 去趋势参数
         self._detrend_enabled = True
@@ -24,8 +27,13 @@ class DataChain(QObject):
         self._filter_enabled = True
         self._highpass = 0.5
         self._lowpass = 45.0
-        self._sampling_rate = 250.0
+        self._sampling_rate = 250
         self._noise_freqs = 50
+
+        # 频谱参数
+        self._fft_enable = False    
+        self._dsp_enable = False
+        self._window_type = None
 
         self.observe_configs()
 
@@ -47,20 +55,30 @@ class DataChain(QObject):
         if self._filter_enabled:
             raw_data = apply_filters(
                 data=raw_data,
-                sampling_rate=int(self._sampling_rate),
+                sampling_rate=float(self._sampling_rate),
                 highpass=self._highpass,
                 lowpass=self._lowpass,
                 noise_freqs=self._noise_freqs,
             )
 
-        # 重新计算t
-        t = np.arange(-raw_data.shape[1],0) / self._sampling_rate
-
-        # np.ndarray (n_channels, n_samples) -> dict {channel_name: (t_array, y_processed)}
-        result = {name: (t, raw_data[i])
+        result = {name: (raw_dict[name][0], raw_data[i])
                   for i, name in enumerate(names)}
-
         self.data_ready.emit(result)
+
+        # 3. 计算频幅谱
+        if self._fft_enable:
+            freqs, ampls_2d = compute_spectrum_amplitude_fft(
+                data=raw_data,
+                sampling_rate=int(self._sampling_rate),
+                window=self._window_type,
+            )
+
+            
+            fft_result = {name: (freqs, ampls_2d[i])
+                          for i, name in enumerate(names)}
+            self.ampls_ready.emit(fft_result)
+
+
 
     def observe_configs(self):
         if self._detrend_config is not None:
@@ -80,6 +98,13 @@ class DataChain(QObject):
                 names=[ "enable", "highpass", "lowpass", "noise_freqs"],
             )
 
+        if self._freq_config is not None:
+            self._window_type = self._freq_config.window_type
+            self._freq_config.observe(
+                self._on_freq_changed,
+                names=["fft_enable", "dsp_enable", "window_type"],
+            )
+
     def _on_detrend_changed(self, change):
         self._detrend_enabled = change["new"]
 
@@ -94,6 +119,14 @@ class DataChain(QObject):
         elif name == "noise_freqs":
             self._noise_freqs = change["new"]
 
+    def _on_freq_changed(self, change):
+        name = change["name"]
+        if name == "fft_enable":
+            self._fft_enable = change["new"]
+        elif name == "dsp_enable":
+            self._dsp_enable = change["new"]
+        elif name == "window_type":
+            self._window_type = change["new"]
 
 
     def unobserve_configs(self):

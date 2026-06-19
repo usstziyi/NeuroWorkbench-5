@@ -12,57 +12,75 @@ PSD 计算已移至 dsp.psd_brainflow，频带功率已移至 dsp.band_power。
     from dsp.spectrum_brainflow import compute_spectrum_amplitude_fft, SpectrumSmoother
 """
 
+from enum import Enum
+
 import numpy as np
 from brainflow.data_filter import DataFilter, WindowOperations
+
+"""
+将来如果不用 BrainFlow 了，改 _WINDOW_MAP 就行，上百个调用点不用动.
+外部用字符串枚举，内部自动映射为 BrainFlow WindowOperations 值。
+接口用 业务概念（"Hann"）
+内部用 技术概念（ WindowOperations ），映射放在边界上
+"""
+_WINDOW_MAP = {
+    "Hann": WindowOperations.HANNING,
+    "Hamming": WindowOperations.HAMMING,
+    "Blackman": WindowOperations.BLACKMAN_HARRIS,
+    "Rectangular": WindowOperations.NO_WINDOW,
+}
+
+class WindowType(str, Enum):
+    Hann = "Hann"
+    Hamming = "Hamming"
+    Blackman = "Blackman"
+    Rectangular = "Rectangular"
+
+    def to_brainflow(self) -> int:
+        return _WINDOW_MAP[self.value]
 
 
 def compute_spectrum_amplitude_fft(
     data: np.ndarray,
     sampling_rate: int,
     nfft: int | None = None,
-    window: int = WindowOperations.HAMMING.value,
-) -> np.ndarray:
-    """单通道直接 FFT，返回单边幅度谱。
-
-    对齐 openbci-gui 的 initializeFFTObjects() 中 forward() 调用模式：
-        - 取最后 nfft 个样本
-        - 加窗 → forward FFT
-        - 仅返回单边幅度（非 dB）
-
-    注：此函数不做平滑，适合一次性分析。实时应用请用 SpectrumSmoother。
+    window: WindowType | str = WindowType.Hamming,
+) -> tuple[np.ndarray, np.ndarray]:
+    """直接 FFT，返回单边幅度谱。对齐 openbci-gui forward() 调用模式。
 
     Args:
-        data: 一维时域信号数组（float64）。
+        data: 二维时域信号，形状 (n_channels, n_samples)。
         sampling_rate: 采样率 (Hz)。
-        nfft: FFT 点数，默认取最近的 2 的幂。
-        window: 窗函数，默认 HAMMING（对齐 openbci-gui）。
+        nfft: FFT 点数（2 的幂），默认自动取 nearest_power_of_two(n_samples)。
+        window: 窗函数，默认 Hamming。
 
     Returns:
-        (freqs, ampls) 元组，freqs/ampls 均为 (nfft//2+1,) 的一维数组。
+        (freqs, ampls)。
+        freqs: 一维 (nfft//2+1,)。
+        ampls: 二维 (n_channels, nfft//2+1)。
     """
-    n_samples = len(data)
+    n_samples = data.shape[-1]
     if nfft is None:
         nfft = DataFilter.get_nearest_power_of_two(n_samples)
-        if nfft > n_samples:
-            nfft = max(nfft // 2, 2)
+    while nfft > n_samples:
+        nfft = max(nfft // 2, 2)
 
-    # 取最后 nfft 个样本（对齐 openbci-gui）
-    if n_samples > nfft:
-        data = data[-nfft:]
+    data = data[:, -nfft:]  # 只取末尾 nfft 个样本
 
-    # 去均值（对齐 openbci-gui: remove the mean for a better looking FFT）
-    data = data.astype(np.float64).copy()
-    data -= data.mean()
+    # 外部传入字符串/WindowType，内部转为 BrainFlow WindowOperations int
+    window_bf = window.to_brainflow() if isinstance(window, WindowType) else _WINDOW_MAP[window]
 
-    # BrainFlow perform_fft 返回复数，仅含正频率 (size = nfft//2 + 1)
-    complex_spectrum = np.array(DataFilter.perform_fft(data, window))
-    # 单边幅度归一化: ampl = |X| / nfft，非 DC/Nyquist 再 ×2
-    ampls = np.abs(complex_spectrum) / nfft
-    ampls[1:-1] *= 2.0  # DC 和 Nyquist 不变
+    n_channels = data.shape[0]
+    n_freqs = nfft // 2 + 1
+    ampls = np.empty((n_channels, n_freqs), dtype=np.float64)
+    for ch in range(n_channels):
+        fft_result = DataFilter.perform_fft(data[ch], window_bf)
+        ampls[ch] = np.abs(fft_result) / nfft
 
-    # 频率轴
-    freqs = np.arange(nfft // 2 + 1, dtype=np.float64) * (sampling_rate / nfft)
+    # 还原物理幅度: |X|/nfft, 非 DC/Nyquist 补全双边能量
+    ampls[:, 1:-1] *= 2.0
 
+    freqs = np.fft.rfftfreq(nfft, d=1.0 / sampling_rate)
     return freqs, ampls
 
 
@@ -100,7 +118,6 @@ class SpectrumSmoother:
         Returns:
             平滑后的一维幅度数组，长度 n_freqs。
         """
-        ampls = np.asarray(ampls, dtype=np.float64)
         if ampls.shape != (self._n_freqs,):
             raise ValueError(
                 f"ampls 长度应为 {self._n_freqs}，实际为 {ampls.shape[0]}"
@@ -108,23 +125,31 @@ class SpectrumSmoother:
 
         # 裁底避免 log(0)
         min_val = 0.01
+        # 逐元素 clamp 到最小值 0.01，保证后续 np.log10(np.square(...)) 不出 -inf
         amplified = np.maximum(ampls, min_val)
 
-        # 转换到 dB 功率域
+        # 幅度转换到 dB 功率域：
+        # 先平方 → 功率，再 10·log₁₀ → dB
+        # power_db = 10 · log₁₀(amplified²)
+        # power_db = 20 · log₁₀(amplified)
         power_db = 10.0 * np.log10(np.square(amplified))
 
+        # 首次调用没有历史帧，无法做 EMA，直接返回当前帧
         if self._prev_power_db is None:
-            self._prev_power_db = power_db.copy()
+            self._prev_power_db = power_db
             return ampls
 
-        # EMA 平滑: foo = (1-α)*log(pow^2) + α*prev_log(pow^2)
+        # EMA 平滑: S_t = (1 - α) · P_t + α · S_{t-1}
+        # 其中 α 是平滑系数，P_t 是当前帧功率db，S_{t-1} 是上一帧平滑后的功率db
         alpha = self._smooth_factor
         smoothed_db = (1.0 - alpha) * power_db + alpha * self._prev_power_db
+        self._prev_power_db = smoothed_db
 
         # 回到线性幅度域: ampl = sqrt(10^(dB/10))
+        # 这是 dB 功率域 → 线性幅度域的逆变换
+        # 1、 dB → 功率 : 10**(smoothed_db / 10) — 把 dB 还原为功率值
+        # 2、 功率 → 幅度 : sqrt(...) — 功率开平方得到幅度
         smoothed_ampls = np.sqrt(np.power(10.0, smoothed_db / 10.0))
-
-        self._prev_power_db = smoothed_db
 
         return smoothed_ampls
 

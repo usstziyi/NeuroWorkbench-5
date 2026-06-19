@@ -10,7 +10,8 @@
 """
 
 import numpy as np
-from brainflow.data_filter import DataFilter, WindowOperations
+from brainflow.data_filter import DataFilter
+from .spectrum_brainflow import WindowType, _WINDOW_MAP
 
 
 def compute_psd_welch(
@@ -19,7 +20,7 @@ def compute_psd_welch(
     nfft: int | None = None,
     overlap: int | None = None,
     overlap_ratio: float = 0.5,
-    window: int = WindowOperations.HANNING.value,
+    window: WindowType | str = WindowType.Hann,
 ) -> np.ndarray:
     """对多通道信号逐通道计算 Welch PSD。
 
@@ -51,9 +52,12 @@ def compute_psd_welch(
     n_freqs = nfft // 2 + 1
     result = np.empty((n_channels, n_freqs, 2), dtype=np.float64)
 
+    # 外部传入字符串/WindowType，内部转为 BrainFlow WindowOperations int
+    window_bf = window.to_brainflow() if isinstance(window, WindowType) else _WINDOW_MAP[window]
+
     for ch in range(n_channels):
         ampls, freqs = DataFilter.get_psd_welch(
-            data[ch], nfft, overlap, sampling_rate, window
+            data[ch], nfft, overlap, sampling_rate, window_bf
         )
         result[ch, :, 0] = freqs
         result[ch, :, 1] = ampls
