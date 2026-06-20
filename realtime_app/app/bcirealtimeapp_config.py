@@ -24,7 +24,7 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.name = 'synthetic'
 c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 c.ConfigDevice.sampling_rate = 250
 
@@ -51,7 +51,7 @@ c.ConfigFreqsDomain.freqs_range = [5.0, 55.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5
-c.ConfigFreqsDomain.smooth_factor = 0.4
+c.ConfigFreqsDomain.smooth_factor = 0.92
 c.ConfigFreqsDomain.window_type = 'Hann'
 
 #------------------------------------------------------------------------------

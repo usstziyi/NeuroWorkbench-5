@@ -463,8 +463,7 @@ class ControlPanelWidget(QWidget):
             return
         name = self._binder_device.get("name")
         port = self._binder_device.get("port")
-        sampling_rate = self._binder_device.get("sampling_rate")
-        self._device_manager.connect(name, port, sampling_rate)
+        self._device_manager.connect(name, port)
 
     def on_disconnect(self):
         if not self._device_manager:

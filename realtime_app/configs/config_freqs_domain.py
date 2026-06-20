@@ -1,11 +1,20 @@
 from traitlets.config import Configurable
-from traitlets import Float, Int, Unicode, List, Bool
+from traitlets import Float, Int, Unicode, List, Bool, Dict
+
 
 
 
 class ConfigFreqsDomain(Configurable): 
     """common configuration."""
     window_type = Unicode("Hann", help="Window type for the FFT.").tag(config=True)
+    channels = Dict(
+        key_trait=Unicode(), value_trait=Bool(),
+        default_value={
+            'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 
+            'P7': True, 'P8': True, 'O1': True, 'O2': True,
+        },
+        help="Channel name → enabled state.",
+    ).tag(config=False)
 
     """Frequency domain configuration."""
     fft_enable = Bool(True, help="Enable FFT.").tag(config=True)

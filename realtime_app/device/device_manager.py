@@ -20,9 +20,10 @@ class DeviceManager:
     This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
-    def __init__(self, config_device=None, config_time_domain=None):
+    def __init__(self, config_device=None, config_time_domain=None, config_freqs_domain=None):
         self._config_device = config_device
         self._config_time_domain = config_time_domain
+        self._config_freqs_domain = config_freqs_domain
         self._board_id = -1
         self._board: BoardShim | None = None
         self._streaming = False
@@ -31,13 +32,12 @@ class DeviceManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def connect(self, name: str, port: str = "", sampling_rate: int = 250):
+    def connect(self, name: str, port: str = ""):
         """Connect to the device specified by *name* (e.g. 'synthetic', 'cyton').
 
         Args:
             name: Device name matching a key in _NAME_TO_BOARD.
             port: Serial port string (empty for synthetic board).
-            sampling_rate: Desired sampling rate in Hz.
         """
         if self._config_device is None:
             return
@@ -72,12 +72,17 @@ class DeviceManager:
         self._board = board
         self._board_id = board_id
         self._streaming = False
+        self._config_device.sampling_rate = self.sampling_rate
+        self._config_device.device_info = self.board_descr
         self._config_device.is_connected = True
         self._config_device.error_message = ""
-        self._config_device.device_info = self.board_descr
+        
 
         if self._config_time_domain is not None:
             self._config_time_domain.channels = {name: True for name in self.eeg_names}
+        if self._config_freqs_domain is not None:
+            self._config_freqs_domain.channels = {name: True for name in self.eeg_names}
+        
         print(f"[dm]Connected to {name} with port {port}")
 
     def disconnect(self):

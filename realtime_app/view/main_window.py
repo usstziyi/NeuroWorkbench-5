@@ -37,8 +37,8 @@ class MainWindow(QMainWindow):
                  save_config_callback=None,
                  device_manager=None,
                  binder_theme=None, binder_device=None, binder_filter=None,
-                 binder_detrend=None, binder_freqs=None,
-                 binder_time=None, binder_recorder=None):
+                 binder_detrend=None, binder_freqs=None,binder_time=None, 
+                 binder_recorder=None):
         super().__init__()
         app_info = app_info or {}
         self._app_name = app_info.get("name", "BCIRealtimeApp")
