@@ -42,6 +42,7 @@ class DataChain(QObject):
         self._window_type = None
         self._smooth_factor = 0.92
         self._nfft = 256
+        self._channels = {}
         self._smoother = SpectrumSmoother()
         self._add_frame, _ = make_spectrogram(n_frames=100)
 
@@ -123,9 +124,10 @@ class DataChain(QObject):
             self._fft_enable = self._freqs_config.fft_enable
             self._dsp_enable = self._freqs_config.dsp_enable
             self._nfft = self._freqs_config.nfft
+            self._channels = self._freqs_config.channels
             self._freqs_config.observe(
                 self._on_freq_changed,
-                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft"],
+                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft", "channels"],
             )
 
     def _on_detrend_changed(self, change):
@@ -154,6 +156,8 @@ class DataChain(QObject):
             self._smooth_factor = change["new"]
         elif name == "nfft":
             self._nfft = change["new"]
+        elif name == "channels":
+            self._channels = change["new"]
 
 
     def unobserve_configs(self):
@@ -175,6 +179,15 @@ class DataChain(QObject):
             except RuntimeError:
                 pass
             self._filter_config = None
+        if self._freqs_config is not None:
+            try:
+                self._freqs_config.unobserve(
+                    self._on_freq_changed,
+                    names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft", "channels"],
+                )
+            except RuntimeError:
+                pass
+            self._freqs_config = None
 
     def dismiss(self):
         self.unobserve_configs()
