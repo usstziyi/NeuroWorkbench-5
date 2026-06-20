@@ -13,28 +13,8 @@ import pyqtgraph as pg
 from PySide6 import QtGui
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QFrame,
     QVBoxLayout,
     QWidget,
-)
-
-# 仿 Jet 色阶，从蓝（低）到红（高）
-_JET_COLOR_MAP = pg.ColorMap(
-    pos=np.linspace(0, 1, 12),
-    color=np.array([
-        [0, 0, 143],
-        [0, 0, 207],
-        [0, 47, 255],
-        [0, 143, 255],
-        [0, 207, 207],
-        [0, 255, 111],
-        [79, 255, 0],
-        [175, 255, 0],
-        [255, 239, 0],
-        [255, 143, 0],
-        [255, 47, 0],
-        [207, 0, 0],
-    ], dtype=np.uint8),
 )
 
 class SpectrogramWidget(QWidget):
@@ -47,12 +27,12 @@ class SpectrogramWidget(QWidget):
     def __init__(
         self,
         theme_config=None,
-        spectrogram_config=None,
+        freqs_config=None,
         parent=None,
     ):
         super().__init__(parent)
         self._theme_config = theme_config
-        self._spectrogram_config = spectrogram_config
+        self._freqs_config = freqs_config
         self.setObjectName("spectrogram_widget")
 
         self._image_item: pg.ImageItem | None = None
