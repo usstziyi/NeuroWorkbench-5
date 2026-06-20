@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QWidget,
@@ -15,6 +15,15 @@ class YScaleEnum(str, Enum):
 
     def __str__(self):
         return self.value
+
+
+class NfftEnum(IntEnum):
+    N_256 = 256
+    N_512 = 512
+    N_1024 = 1024
+
+    def __str__(self):
+        return str(self.value)
 
 
 class DialogFftSettings(QDialog):
@@ -36,6 +45,9 @@ class DialogFftSettings(QDialog):
         form = QFormLayout(form_container)
         form.setContentsMargins(8, 8, 8, 8)
 
+        self.nfft_combo = QEnumComboBox(enum_class=NfftEnum)
+        form.addRow("FFT点数:", self.nfft_combo)
+
         self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
         form.addRow("Y轴尺度:", self.log_y_combo)
 
@@ -55,6 +67,14 @@ class DialogFftSettings(QDialog):
 
     def _bind_configs(self):
         if self._binder is not None:
+            self._binder.bind(
+                "nfft",
+                self.nfft_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: NfftEnum(v),
+                from_widget_func=lambda v: v.value,
+            )
             self._binder.bind(
                 "log_y",
                 self.log_y_combo,
@@ -76,4 +96,5 @@ class DialogFftSettings(QDialog):
 
     def unbind_configs(self):
         if self._binder is not None:
+            self._binder.unbind("nfft")
             self._binder.unbind("log_y")

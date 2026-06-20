@@ -22,6 +22,7 @@ class ConfigFreqsDomain(Configurable):
     ampls_range = List(Float(), default_value=[0.01, 200.0], help="Amplitude range to display (μV).").tag(config=True)
     freqs_range = List(Float(), default_value=[0.0, 60.0], help="Frequency range to display (Hz).").tag(config=True)
     log_y = Unicode("Linear", help="Y axis scale: Linear or Log.").tag(config=True)
+    nfft = Int(256, help="FFT points (256/512/1024).").tag(config=True)
 
     """DSP configuration."""
     dsp_enable = Bool(False, help="Enable DSP.").tag(config=True)
