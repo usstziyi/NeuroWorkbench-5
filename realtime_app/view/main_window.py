@@ -62,8 +62,6 @@ class MainWindow(QMainWindow):
         self.config_time = self._binder_time.model if self._binder_time else None
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
 
-        self._channel_choose_dialog = None
-
         self.setWindowTitle(self._app_name)
 
         self.init_ui()
@@ -153,10 +151,12 @@ class MainWindow(QMainWindow):
 
     def _show_fft_settings_dialog(self):
         dialog = DialogFftSettings(binder=self._binder_freqs, parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
 
     def _show_dsp_settings_dialog(self):
         dialog = DialogDspSettings(binder=self._binder_freqs, parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     
@@ -166,19 +166,17 @@ class MainWindow(QMainWindow):
     
     def _show_ui_settings_dialog(self):
         dialog = DialogUiSettings(binder=self._binder_theme, parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        if self._channel_choose_dialog is None:
-            self._channel_choose_dialog = DialogChannelChoose(
-                time_config=self.config_time,
-                freqs_config=self.config_freqs,
-                parent=self,
-            )
-        self._channel_choose_dialog.exec()
+        dialog = DialogChannelChoose(time_config=self.config_time, freqs_config=self.config_freqs, parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.exec()
     
     def _show_device_info_dialog(self):
         dialog = DialogDeviceInfo(device_config=self.config_device, parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     def _show_restore_default_action(self):

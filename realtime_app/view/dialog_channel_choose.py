@@ -1,10 +1,21 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, 
-    QPushButton, QGridLayout, QLabel
+    QPushButton, QGridLayout, QLabel, QWidget
 )
 
 from superqt import QToggleSwitch
+
+CET_R3 = [
+    (214, 68, 60),
+    (239, 143, 44),
+    (200, 202, 52),
+    (65, 183, 130),
+    (50, 138, 190),
+    (80, 82, 185),
+    (139, 61, 159),
+    (197, 50, 120),
+]
 
 
 class DialogChannelChoose(QDialog):
@@ -44,6 +55,7 @@ class DialogChannelChoose(QDialog):
             switch.toggled.connect(
                 lambda checked, n=name: self._sync_freq_switch(n, checked)
             )
+            time_layout.addWidget(self._make_color_line(i))
             time_layout.addWidget(switch)
 
         freqs_layout = QVBoxLayout()
@@ -55,6 +67,7 @@ class DialogChannelChoose(QDialog):
             switch = QToggleSwitch(name)
             switch.setChecked(freqs_channels[name])
             self._checkboxes_freqs[name] = switch
+            freqs_layout.addWidget(self._make_color_line(i))
             freqs_layout.addWidget(switch)
 
         h_layout.addLayout(time_layout)
@@ -73,6 +86,14 @@ class DialogChannelChoose(QDialog):
         btn_layout.addWidget(btn_cancel)
         main_layout.addLayout(btn_layout)
     
+    def _make_color_line(self, index: int) -> QWidget:
+        """创建一个带颜色的横线指示器，颜色来自 CET_R3 循环。"""
+        r, g, b = CET_R3[index % len(CET_R3)]
+        widget = QWidget()
+        widget.setFixedHeight(3)
+        widget.setStyleSheet(f"background-color: rgb({r}, {g}, {b});")
+        return widget
+
     def _sync_freq_switch(self, name: str, checked: bool):
         """时间域开关变化时同步对应频率域开关，仅单向（时间→频率）。"""
         freq_switch = self._checkboxes_freqs.get(name)
