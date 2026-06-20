@@ -62,6 +62,8 @@ class MainWindow(QMainWindow):
         self.config_time = self._binder_time.model if self._binder_time else None
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
 
+        self._channel_choose_dialog = None
+
         self.setWindowTitle(self._app_name)
 
         self.init_ui()
@@ -167,8 +169,13 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(time_config=self.config_time, parent=self)
-        dialog.exec()
+        if self._channel_choose_dialog is None:
+            self._channel_choose_dialog = DialogChannelChoose(
+                time_config=self.config_time,
+                freqs_config=self.config_freqs,
+                parent=self,
+            )
+        self._channel_choose_dialog.exec()
     
     def _show_device_info_dialog(self):
         dialog = DialogDeviceInfo(device_config=self.config_device, parent=self)
