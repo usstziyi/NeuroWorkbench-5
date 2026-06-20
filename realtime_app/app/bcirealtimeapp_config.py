@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = '/dev/cu.debug-console'
+c.ConfigDevice.port = '/dev/cu.Bluetooth-Incoming-Port'
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration

@@ -95,6 +95,8 @@ class ControlPanelWidget(QWidget):
     
     def init_ui(self):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        # 设置最大宽度
+        self.setMaximumWidth(250)
         main_layout = QVBoxLayout(self)
 
         device_group = self.build_device_group()
