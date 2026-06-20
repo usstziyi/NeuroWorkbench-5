@@ -12,11 +12,10 @@
 import numpy as np
 
 
-def make_spectrogram(n_freqs: int = 60, n_frames: int = 100):
+def make_spectrogram(n_frames: int = 100):
     """创建时频图累加器闭包。
 
     Args:
-        n_freqs: 频率 bin 数。
         n_frames: 最大保留帧数。
 
     Returns:
@@ -27,26 +26,31 @@ def make_spectrogram(n_freqs: int = 60, n_frames: int = 100):
         reset: () -> None
             清空累积的时频图。
     """
-    buffer: np.ndarray = np.zeros((n_frames, n_freqs), dtype=np.float64)
+    buffer = None
+    prev_n_freqs = None
 
     def add_frame(ampls: np.ndarray) -> np.ndarray:
-        nonlocal buffer
+        nonlocal buffer, prev_n_freqs
         if ampls.ndim != 2:
             raise ValueError(f"ampls 必须为二维数组，实际 shape 为 {ampls.shape}")
-        # if ampls.shape[1] != n_freqs:
-        #     raise ValueError(f"ampls 频率维度不匹配：期望 {n_freqs}，实际 {ampls.shape[1]}")
+        
+        n_freqs = ampls.shape[1]
 
+        if n_freqs != prev_n_freqs:
+            reset((n_frames, n_freqs))
+        
         # 跨通道平均 
         frame_mean = ampls.mean(axis=0) if ampls.shape[0] > 1 else ampls[0]
 
         # 所有行下移，新数据写入第一行（最新帧在顶部）
         buffer[1:] = buffer[:-1]
-        buffer[0] = frame_mean[:n_freqs]
+        buffer[0] = frame_mean
 
         return buffer
 
-    def reset() -> None:
-        nonlocal buffer
-        buffer = np.zeros((n_frames, n_freqs), dtype=np.float64)
+    def reset(shape: tuple) -> None:
+        nonlocal buffer, prev_n_freqs
+        prev_n_freqs = shape[1]
+        buffer = np.zeros(shape, dtype=np.float64)
 
     return add_frame, reset

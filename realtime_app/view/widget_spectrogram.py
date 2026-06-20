@@ -13,6 +13,7 @@ import pyqtgraph as pg
 from PySide6 import QtGui
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFrame,
     QVBoxLayout,
     QWidget,
 )
@@ -58,6 +59,8 @@ class SpectrogramWidget(QWidget):
         self._color_bar: pg.ColorBarItem | None = None
         self._plot: pg.PlotItem | None = None
 
+
+
         self.init_ui()
         self.observe_configs()
         self.destroyed.connect(self.unobserve_configs)
@@ -71,10 +74,13 @@ class SpectrogramWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self._plot_widget = pg.GraphicsLayoutWidget()
+        _, _, _, bottom = self._plot_widget.ci.layout.getContentsMargins()
+        self._plot_widget.ci.layout.setContentsMargins(0, 0, 0, bottom)
         layout.addWidget(self._plot_widget)
 
         # 创建 PlotItem
         self._plot = self._plot_widget.addPlot(0, 0)
+        self._plot.layout.setContentsMargins(0, 0, 0, 0)
 
         font_axis = QtGui.QFont()
         font_axis.setPointSize(10)
@@ -82,9 +88,10 @@ class SpectrogramWidget(QWidget):
         self._plot.setLabel("bottom", "Frequency", units="Hz")
         self._plot.getAxis("bottom").autoSIPrefix = False
         self._plot.getAxis("bottom").setStyle(tickFont=font_axis)
-        self._plot.setLabel("left", "Time")
-        self._plot.getAxis("left").autoSIPrefix = False
-        self._plot.getAxis("left").setStyle(tickFont=font_axis)
+        self._plot.disableAutoRange()
+
+
+        self._plot.showAxis("left", False)
 
         self._plot.setMouseEnabled(x=False, y=False)
 
@@ -95,20 +102,12 @@ class SpectrogramWidget(QWidget):
         # row = 时间 (Y轴), col = 频率 (X轴)
         self._image_item = pg.ImageItem()
         self._image_item.setOpts(axisOrder="row-major")
+        cmap = pg.colormap.get("plasma") #plasma #magma
+        self._image_item.setLookupTable(cmap.getLookupTable(nPts=256))
         self._plot.addItem(self._image_item)
 
-        # 颜色条（右侧），使用 jet 色阶
-        self._color_bar = pg.ColorBarItem(
-            values=(0, 1),
-            colorMap=_JET_COLOR_MAP,
-            width=10,
-            interactive=False,
-        )
-        self._color_bar.setImageItem(self._image_item)
 
-        # 默认时间/频率范围
-        self._default_freq_range = (0.0, 60.0)
-        self._default_time_span = 5.0  # 秒
+
 
     # ------------------------------------------------------------------
     # 主题
@@ -148,7 +147,8 @@ class SpectrogramWidget(QWidget):
         """更新时频图。
 
         Args:
-            data: {"image": np.ndarray of shape (n_time, n_freqs)}
+            data: {"image": np.ndarray of shape (n_time, n_freqs),
+                   "freqs": np.ndarray of shape (n_freqs,)}
         """
         image = data["image"]
         if image.size == 0:
@@ -156,12 +156,19 @@ class SpectrogramWidget(QWidget):
 
         n_time, n_freqs = image.shape
 
-        self._image_item.setImage(image)
-        # 坐标映射：(n_time, n_freqs) → [left, bottom, width, height]
-        self._image_item.setRect(0, 0, n_freqs, n_time)
-        # 自动色阶，忽略零值（未填充的区域）
-        nonzero = image[image > 0]
-        vmax = float(np.percentile(nonzero, 99)) if nonzero.size > 0 else 1.0
-        self._image_item.setLevels((0, vmax))
+        # X 轴：映射到实际频率 (Hz)
+        freqs = data.get("freqs", None)
+        left, right = float(freqs[0]), float(freqs[-1])
+
+        # 设置图像数据
+        self._image_item.setImage(
+            image, 
+            levels=(0, 100), 
+            autoLevels=False,
+            rect=(left, 0, right - left, n_time)
+        )
+        self._plot.setXRange(0, 60, padding=0)
+        self._plot.setYRange(0, n_time, padding=0)
+
 
     

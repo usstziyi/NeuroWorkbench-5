@@ -14,7 +14,7 @@ class Pipeline(QObject):
 
     data_ready = Signal(dict)     # {channel_name: (t_array, y_processed)}
     ampls_ready = Signal(dict)    # {channel_name: (freqs, ampls)}
-    spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs)}
+    spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
     def __init__(self, device_manager, parent=None,
                  time_config=None,

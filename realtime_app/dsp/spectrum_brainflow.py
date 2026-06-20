@@ -173,7 +173,7 @@ def make_spectrum_smoother():
         if ampls.ndim != 2:
             raise ValueError(f"ampls 必须为二维数组，实际 shape 为 {ampls.shape}")
         if prev_shape is not None and ampls.shape != prev_shape:
-            prev_db = None  # 通道数或频率点数变了，重置状态
+            reset() # 通道数或频率点数变了，重置状态
         prev_shape = ampls.shape
         clamped = np.maximum(ampls, 0.01)
         power_db = 10.0 * np.log10(np.square(clamped))

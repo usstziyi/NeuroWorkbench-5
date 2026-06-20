@@ -18,7 +18,7 @@ class DataChain(QObject):
 
     data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
     ampls_ready = Signal(dict)  # {channel_name: (freqs_1d, ampls_1d)}
-    spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs)}
+    spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
     def __init__(self, detrend_config=None, filter_config=None, freqs_config=None):
@@ -43,7 +43,7 @@ class DataChain(QObject):
         self._smooth_factor = 0.92
         self._nfft = 256
         self._smoother = SpectrumSmoother()
-        self._add_frame, _ = make_spectrogram(n_freqs=60, n_frames=100)
+        self._add_frame, _ = make_spectrogram(n_frames=100)
 
         self.observe_configs()
 
@@ -77,6 +77,7 @@ class DataChain(QObject):
 
         # 3. 计算频幅谱
         if self._fft_enable:
+            # ampls_2d的n_freqs是nfft//2+1,可变化
             freqs, ampls_2d = compute_spectrum_amplitude_fft(
                 data=raw_data,
                 sampling_rate=int(self._sampling_rate),
@@ -94,8 +95,9 @@ class DataChain(QObject):
             self.ampls_ready.emit(ampls_result)
 
             # 4. 时频图
-            spectrogram_2d = self._add_frame(ampls_2d)
-            self.spectrogram_ready.emit({"image": spectrogram_2d})
+            if ampls_2d.shape[1] == self._nfft//2+1:
+                spectrogram_2d = self._add_frame(ampls_2d)
+                self.spectrogram_ready.emit({"image": spectrogram_2d, "freqs": freqs})
 
 
     def observe_configs(self):
