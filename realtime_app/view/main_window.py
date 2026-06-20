@@ -19,6 +19,8 @@ from view.dialog_ui_settings import DialogUiSettings
 from view.dialog_channel_choose import DialogChannelChoose
 from view.dialog_device_info import DialogDeviceInfo
 from view.dialog_fft_settings import DialogFftSettings
+from view.widget_band_power import BandPowerWidget
+from view.widget_head_plot import HeadPlotWidget
 
 from superqt import (
     QLabeledSlider, QRangeSlider, QEnumComboBox,

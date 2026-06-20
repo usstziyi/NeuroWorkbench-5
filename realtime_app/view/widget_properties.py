@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (
 )
 
 from view.widget_spectrogram import SpectrogramWidget
+from view.widget_band_power import BandPowerWidget
+from view.widget_head_plot import HeadPlotWidget
 
 
 class PropertiesWidget(QWidget):
@@ -26,10 +28,15 @@ class PropertiesWidget(QWidget):
 
         splitter = QSplitter(Qt.Vertical)
 
-        # 上部：占位
-        placeholder = QLabel("Properties")
-        placeholder.setAlignment(Qt.AlignCenter)
-        splitter.addWidget(placeholder)
+        # 上部：头图
+        self._head_plot = HeadPlotWidget(parent=self)
+        splitter.addWidget(self._head_plot)
+ 
+
+        # 中间：频谱功率
+        self._band_power = BandPowerWidget(parent=self)
+        splitter.addWidget(self._band_power)
+
 
         # 下部：时频图
         self._spectrogram = SpectrogramWidget(
@@ -39,10 +46,6 @@ class PropertiesWidget(QWidget):
         )
         splitter.addWidget(self._spectrogram)
 
-        # 默认比例：上部 30%，下部 70%
-        splitter.setStretchFactor(0, 7)
-        splitter.setStretchFactor(1, 3)
-        splitter.setSizes([700, 300])
 
         layout.addWidget(splitter)
 
