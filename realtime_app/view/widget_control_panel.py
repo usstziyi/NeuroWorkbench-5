@@ -59,12 +59,13 @@ class YScaleEnum(str, Enum):
 
 
 class PortComboBox(QComboBox):
-    def get_ports(self):
-        return sorted(p.device for p in comports())
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.addItems(sorted(p.device for p in comports()))
 
     def showPopup(self):
         self.clear()
-        self.addItems(self.get_ports())
+        self.addItems(sorted(p.device for p in comports()))
         super().showPopup()
 
 
