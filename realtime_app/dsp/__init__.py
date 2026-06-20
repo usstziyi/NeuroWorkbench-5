@@ -18,4 +18,7 @@ from .spectrum_brainflow import (
 # 频带功率（独立模块）
 from .band_power import compute_band_powers, PROCESSING_BAND_LOW_HZ, PROCESSING_BAND_HIGH_HZ, BAND_NAMES
 
+# 时频图（闭包累加器）
+from .spectrogram import make_spectrogram
+
 

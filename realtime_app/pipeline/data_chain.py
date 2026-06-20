@@ -3,6 +3,8 @@ from dsp import detrend
 from dsp import apply_filters, reset_state
 from dsp import compute_spectrum_amplitude_fft
 from dsp import SpectrumSmoother, smooth_spectrum_freq
+from dsp import make_spectrogram
+
 import numpy as np
 
 
@@ -16,6 +18,8 @@ class DataChain(QObject):
 
     data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
     ampls_ready = Signal(dict)  # {channel_name: (freqs_1d, ampls_1d)}
+    spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs)}
+
 
     def __init__(self, detrend_config=None, filter_config=None, freqs_config=None):
         super().__init__()
@@ -39,6 +43,7 @@ class DataChain(QObject):
         self._smooth_factor = 0.92
         self._nfft = 256
         self._smoother = SpectrumSmoother()
+        self._add_frame, _ = make_spectrogram(n_freqs=60, n_frames=100)
 
         self.observe_configs()
 
@@ -88,6 +93,9 @@ class DataChain(QObject):
                           for i, name in enumerate(names)}
             self.ampls_ready.emit(ampls_result)
 
+            # 4. 时频图
+            spectrogram_2d = self._add_frame(ampls_2d)
+            self.spectrogram_ready.emit({"image": spectrogram_2d})
 
 
     def observe_configs(self):

@@ -93,8 +93,11 @@ class MainWindow(QMainWindow):
         self.right_dock = QDockWidget("右侧面板")
         self.right_dock.setObjectName("right_dock")
         self.right_dock.setTitleBarWidget(QWidget())
-        right_widget = PropertiesWidget()
-        self.right_dock.setWidget(right_widget)
+        self.right_widget = PropertiesWidget(
+            theme_config=self.config_theme,
+            spectrogram_config=self.config_freqs,
+        )
+        self.right_dock.setWidget(self.right_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
 
         self.bottom_dock = QDockWidget("底部面板")
@@ -213,6 +216,7 @@ class MainWindow(QMainWindow):
         )
         self._pipeline.data_ready.connect(self.center_widget.set_all_data)
         self._pipeline.ampls_ready.connect(self.bottom_widget.set_all_data)
+        self._pipeline.spectrogram_ready.connect(self.right_widget.spectrogram.set_data)
 
 
     def closeEvent(self, event):

@@ -1,39 +1,51 @@
-from enum import Enum
-from pathlib import Path
-
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
-from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QFormLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLineEdit,
-    QPushButton,
-    QScrollArea,
-    QSizePolicy,
-    QSpinBox,
+    QSplitter,
     QVBoxLayout,
     QWidget,
     QLabel,
-    QLabel,
 )
 
+from view.widget_spectrogram import SpectrogramWidget
+
+
 class PropertiesWidget(QWidget):
-    """Properties widget."""
-    def __init__(self):
-        super().__init__()
+    """Properties widget with a splitter: placeholder on top, spectrogram on bottom."""
+
+    def __init__(self, theme_config=None, spectrogram_config=None, parent=None):
+        super().__init__(parent)
+        self._theme_config = theme_config
+        self._spectrogram_config = spectrogram_config
         self.setObjectName("properties_widget")
         self.init_ui()
-    
-    def init_ui(self):
-        """Initialize the user interface."""
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
 
-        label = QLabel("Properties")
-        self.layout.addWidget(label)
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        splitter = QSplitter(Qt.Vertical)
+
+        # 上部：占位
+        placeholder = QLabel("Properties")
+        placeholder.setAlignment(Qt.AlignCenter)
+        splitter.addWidget(placeholder)
+
+        # 下部：时频图
+        self._spectrogram = SpectrogramWidget(
+            theme_config=self._theme_config,
+            spectrogram_config=self._spectrogram_config,
+            parent=self,
+        )
+        splitter.addWidget(self._spectrogram)
+
+        # 默认比例：上部 30%，下部 70%
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 7)
+
+        layout.addWidget(splitter)
+
+    @property
+    def spectrogram(self) -> SpectrogramWidget:
+        """供外部访问时频图 widget。"""
+        return self._spectrogram
