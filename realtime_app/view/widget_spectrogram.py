@@ -163,8 +163,8 @@ class SpectrogramWidget(QWidget):
         # 设置图像数据
         self._image_item.setImage(
             image, 
-            levels=(0, 100), 
-            autoLevels=False,
+            # levels=(0, 100), 
+            autoLevels=True,
             rect=(left, 0, right - left, n_time)
         )
         self._plot.setXRange(0, 60, padding=0)
