@@ -72,16 +72,16 @@ def compute_spectrum_amplitude_fft(
 
     n_channels = data.shape[0]
     n_freqs = nfft // 2 + 1
-    ampls = np.empty((n_channels, n_freqs), dtype=np.float64)
+    ampls_2d = np.empty((n_channels, n_freqs), dtype=np.float64)
     for ch in range(n_channels):
-        fft_result = DataFilter.perform_fft(data[ch], window_bf)
-        ampls[ch] = np.abs(fft_result) / nfft
+        ampls_1d = DataFilter.perform_fft(data[ch], window_bf)
+        ampls_2d[ch] = np.abs(ampls_1d) / nfft
 
     # 还原物理幅度: |X|/nfft, 非 DC/Nyquist 补全双边能量
-    ampls[:, 1:-1] *= 2.0
+    ampls_2d[:, 1:-1] *= 2.0
 
     freqs = np.fft.rfftfreq(nfft, d=1.0 / sampling_rate)
-    return freqs, ampls
+    return freqs, ampls_2d
 
 
 class SpectrumSmoother:
