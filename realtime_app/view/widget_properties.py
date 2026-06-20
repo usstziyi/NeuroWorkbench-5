@@ -40,8 +40,9 @@ class PropertiesWidget(QWidget):
         splitter.addWidget(self._spectrogram)
 
         # 默认比例：上部 30%，下部 70%
-        splitter.setStretchFactor(0, 3)
-        splitter.setStretchFactor(1, 7)
+        splitter.setStretchFactor(0, 7)
+        splitter.setStretchFactor(1, 3)
+        splitter.setSizes([700, 300])
 
         layout.addWidget(splitter)
 
