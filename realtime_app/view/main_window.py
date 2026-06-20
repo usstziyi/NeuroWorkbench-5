@@ -101,7 +101,6 @@ class MainWindow(QMainWindow):
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
         self.bottom_widget = FreqsDomainWidget(theme_config=self.config_theme,
-                                            time_config=self.config_time,
                                             freqs_config=self.config_freqs)
         self.bottom_dock.setWidget(self.bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)

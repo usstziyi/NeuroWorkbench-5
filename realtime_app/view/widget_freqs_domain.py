@@ -34,10 +34,9 @@ CET_R3 = [
 
 class FreqsDomainWidget(QWidget):
     """Frequency domain widget."""
-    def __init__(self, theme_config=None, time_config=None, freqs_config=None, parent=None):
+    def __init__(self, theme_config=None, freqs_config=None, parent=None):
         super().__init__(parent)
         self._theme_config = theme_config
-        self._time_config = time_config
         self._freqs_config = freqs_config
         self.setObjectName("freqs_domain_widget")
 
@@ -89,12 +88,12 @@ class FreqsDomainWidget(QWidget):
             self._theme_config.observe(
                 self._on_theme_changed, names=["color_mode"]
             )
-        if self._time_config is not None:
-            self.apply_channels(self._time_config.channels)
+        if self._freqs_config is not None:
+            self.apply_channels(self._freqs_config.channels)
             self._on_channels_changed = lambda change: self.apply_channels(
-                self._time_config.channels
+                self._freqs_config.channels
             )
-            self._time_config.observe(
+            self._freqs_config.observe(
                 self._on_channels_changed, names=["channels"]
             )
         if self._freqs_config is not None:
@@ -195,10 +194,10 @@ class FreqsDomainWidget(QWidget):
             except RuntimeError:
                 pass
             del self._on_theme_changed
-        if self._time_config is not None:
+        if self._freqs_config is not None:
             if hasattr(self, "_on_channels_changed"):
                 try:
-                    self._time_config.unobserve(
+                    self._freqs_config.unobserve(
                         self._on_channels_changed, names=["channels"]
                     )
                 except RuntimeError:
