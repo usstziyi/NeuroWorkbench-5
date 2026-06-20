@@ -24,8 +24,8 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = '/dev/cu.Bluetooth-Incoming-Port'
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.usbmodem12101'
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
@@ -43,7 +43,7 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 120.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]

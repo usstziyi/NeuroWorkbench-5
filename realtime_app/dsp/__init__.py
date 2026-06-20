@@ -9,8 +9,10 @@ from .psd_brainflow import compute_psd_welch
 from .spectrum_brainflow import (
     WindowType,
     compute_spectrum_amplitude_fft,
+    smooth_spectrum_freq,
     SpectrumSmoother,
     make_spectrum_smoother,
+
 )
 
 # 频带功率（独立模块）

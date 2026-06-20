@@ -83,6 +83,17 @@ def compute_spectrum_amplitude_fft(
     freqs = np.fft.rfftfreq(nfft, d=1.0 / sampling_rate)
     return freqs, ampls_2d
 
+# 在 compute_spectrum_amplitude_fft 返回后、送入 SpectrumSmoother 前插入
+from scipy.ndimage import uniform_filter1d
+
+def smooth_spectrum_freq(ampls: np.ndarray, kernel_size: int = 3) -> np.ndarray:
+    """在频率轴上做简单的移动平均，消除 bin 级别的锯齿。
+    
+    Args:
+        ampls: (n_channels, n_freqs)
+        kernel_size: 平滑窗口大小，建议 3~5（对应 ~1.5-2.5 Hz）
+    """
+    return uniform_filter1d(ampls, size=kernel_size, axis=-1, mode='nearest')
 
 class SpectrumSmoother:
     """在 dB 域对多通道幅度谱做指数加权滑动平均（EMA），对齐 openbci-gui 的平滑逻辑。

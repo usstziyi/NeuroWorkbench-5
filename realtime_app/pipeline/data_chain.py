@@ -2,7 +2,7 @@ from PySide6.QtCore import QObject, Signal
 from dsp import detrend
 from dsp import apply_filters, reset_state
 from dsp import compute_spectrum_amplitude_fft
-from dsp import SpectrumSmoother, make_spectrum_smoother
+from dsp import SpectrumSmoother, smooth_spectrum_freq
 import numpy as np
 
 
@@ -78,6 +78,8 @@ class DataChain(QObject):
                 nfft=self._nfft,
                 window=self._window_type,
             )
+            # 平滑频轴
+            ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
             # 平滑频幅谱
             ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
 
