@@ -10,12 +10,12 @@ from view.widget_spectrogram import SpectrogramWidget
 
 
 class PropertiesWidget(QWidget):
-    """Properties widget with a splitter: placeholder on top, spectrogram on bottom."""
+    """Properties widget with a splitter: placeholder on top, freqs on bottom."""
 
-    def __init__(self, theme_config=None, spectrogram_config=None, parent=None):
+    def __init__(self, theme_config=None, freqs_config=None, parent=None):
         super().__init__(parent)
         self._theme_config = theme_config
-        self._spectrogram_config = spectrogram_config
+        self._freqs_config = freqs_config
         self.setObjectName("properties_widget")
         self.init_ui()
 
@@ -34,7 +34,7 @@ class PropertiesWidget(QWidget):
         # 下部：时频图
         self._spectrogram = SpectrogramWidget(
             theme_config=self._theme_config,
-            spectrogram_config=self._spectrogram_config,
+            freqs_config=self._freqs_config,
             parent=self,
         )
         splitter.addWidget(self._spectrogram)

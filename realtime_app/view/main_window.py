@@ -95,7 +95,7 @@ class MainWindow(QMainWindow):
         self.right_dock.setTitleBarWidget(QWidget())
         self.right_widget = PropertiesWidget(
             theme_config=self.config_theme,
-            spectrogram_config=self.config_freqs,
+            freqs_config=self.config_freqs,
         )
         self.right_dock.setWidget(self.right_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
