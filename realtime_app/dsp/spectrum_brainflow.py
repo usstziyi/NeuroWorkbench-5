@@ -60,15 +60,10 @@ def compute_spectrum_amplitude_fft(
         ampls: 二维 (n_channels, nfft//2+1)。
     """
     n_samples = data.shape[-1]
-    if nfft is None:
+    if nfft is None or nfft > n_samples:
         nfft = DataFilter.get_nearest_power_of_two(n_samples)
-    while nfft > n_samples:
-        nfft = max(nfft // 2, 2)
-    
-    if nfft>512:
-        nfft = 512
-
-
+        while nfft > n_samples:
+            nfft = max(nfft // 2, 2)
 
     data = data[:, -nfft:]  # 只取末尾 nfft 个样本
 

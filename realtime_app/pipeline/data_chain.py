@@ -37,6 +37,7 @@ class DataChain(QObject):
         self._dsp_enable = False
         self._window_type = None
         self._smooth_factor = 0.92
+        self._nfft = 256
         self._smoother = SpectrumSmoother()
 
         self.observe_configs()
@@ -74,6 +75,7 @@ class DataChain(QObject):
             freqs, ampls_2d = compute_spectrum_amplitude_fft(
                 data=raw_data,
                 sampling_rate=int(self._sampling_rate),
+                nfft=self._nfft,
                 window=self._window_type,
             )
             # 平滑频幅谱
@@ -108,9 +110,10 @@ class DataChain(QObject):
             self._window_type = self._freqs_config.window_type
             self._fft_enable = self._freqs_config.fft_enable
             self._dsp_enable = self._freqs_config.dsp_enable
+            self._nfft = self._freqs_config.nfft
             self._freqs_config.observe(
                 self._on_freq_changed,
-                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor"],
+                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft"],
             )
 
     def _on_detrend_changed(self, change):
@@ -137,6 +140,8 @@ class DataChain(QObject):
             self._window_type = change["new"]
         elif name == "smooth_factor":
             self._smooth_factor = change["new"]
+        elif name == "nfft":
+            self._nfft = change["new"]
 
 
     def unobserve_configs(self):
