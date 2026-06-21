@@ -21,6 +21,6 @@ from .band_power_brainflow import compute_band_powers, PROCESSING_BAND_LOW_HZ, P
 # 时频图（闭包累加器）
 from .spectrogram import make_spectrogram
 
-from .psd_brainflow import get_psd_welch_multichannel
+from .psd_welch_brainflow import get_psd_welch_multichannel
 
 
