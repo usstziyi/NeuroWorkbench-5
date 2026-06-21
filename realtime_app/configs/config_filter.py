@@ -1,5 +1,5 @@
 from traitlets.config import Configurable
-from traitlets import Float, Bool, Int
+from traitlets import Float, Bool, Int, Unicode
 
 class ConfigFilter(Configurable):
     """Filter configuration."""
@@ -8,4 +8,5 @@ class ConfigFilter(Configurable):
     noise_freqs = Int(50, help="Powerline noise frequency to remove: 50 or 60 (Hz).").tag(config=True, unit="Hz")
 
     enable = Bool(True, help="Enable all filters.").tag(config=True)
+    method = Unicode("scipy-sosfilt-full", help="scipy-sosfilt-full / scipy-sosfilt-incremental / brainflow-full").tag(config=True)
 

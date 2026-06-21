@@ -33,6 +33,7 @@ c.ConfigDevice.port = ''
 c.ConfigFilter.enable = True
 c.ConfigFilter.highpass = 5.0
 c.ConfigFilter.lowpass = 45.0
+c.ConfigFilter.method = 'scipy-sosfilt-full'
 c.ConfigFilter.noise_freqs = 50
 
 #------------------------------------------------------------------------------
@@ -48,6 +49,7 @@ c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.log_y = 'Log'
+c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
 c.ConfigFreqsDomain.nfft = 512
 c.ConfigFreqsDomain.overlap_ratio = 0.5
 c.ConfigFreqsDomain.seconds = 5

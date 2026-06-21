@@ -28,3 +28,5 @@ class ConfigFreqsDomain(Configurable):
     dsp_enable = Bool(False, help="Enable DSP.").tag(config=True)
     seconds = Int(5, help="Number of seconds to display (s).").tag(config=True, unit="s")
     overlap_ratio = Float(0.5, help="Overlap ratio for the FFT.").tag(config=True)
+
+    method = Unicode("brainflow-perform_fft", help="brainflow-perform_fft / scipy-fft-rfft").tag(config=True)
