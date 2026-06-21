@@ -4,6 +4,9 @@ from dsp import apply_filters, reset_state
 from dsp import compute_spectrum_amplitude_fft
 from dsp import SpectrumSmoother, smooth_spectrum_freq
 from dsp import make_spectrogram
+from dsp import get_psd_welch_multichannel
+
+
 
 import numpy as np
 
@@ -78,27 +81,42 @@ class DataChain(QObject):
 
         # 3. 计算频幅谱
         if self._fft_enable:
-            # ampls_2d的n_freqs是nfft//2+1,可变化
-            freqs, ampls_2d = compute_spectrum_amplitude_fft(
-                data=raw_data,
-                sampling_rate=int(self._sampling_rate),
-                nfft=self._nfft,
-                window=self._window_type,
-            )
-            # 平滑频轴
-            # ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
-            # 平滑频幅谱
-            ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
 
 
-            ampls_result = {name: (freqs, ampls_2d[i])
-                          for i, name in enumerate(names)}
-            self.ampls_ready.emit(ampls_result)
+            # 3.1 计算 Welch PSD
 
-            # 4. 时频图
-            if ampls_2d.shape[1] == self._nfft//2+1:
-                spectrogram_2d = self._add_frame(ampls_2d)
-                self.spectrogram_ready.emit({"image": spectrogram_2d, "freqs": freqs})
+            if raw_data.shape[1] >= 512:
+                ampls_2d, freqs = get_psd_welch_multichannel(
+                    data=raw_data,
+                    n_fft=512,
+                    overlap=256,
+                    sampling_rate=int(self._sampling_rate),
+                    window=1,
+                )
+
+
+
+            # # ampls_2d的n_freqs是nfft//2+1,可变化
+            # freqs, ampls_2d = compute_spectrum_amplitude_fft(
+            #     data=raw_data,
+            #     sampling_rate=int(self._sampling_rate),
+            #     nfft=self._nfft,
+            #     window=self._window_type,
+            # )
+            # # 平滑频轴
+            # # ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
+            # # 平滑频幅谱
+            # ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
+
+
+                ampls_result = {name: (freqs, ampls_2d[i])
+                            for i, name in enumerate(names)}
+                self.ampls_ready.emit(ampls_result)
+
+                # 4. 时频图
+                if ampls_2d.shape[1] == self._nfft//2+1:
+                    spectrogram_2d = self._add_frame(ampls_2d)
+                    self.spectrogram_ready.emit({"image": spectrogram_2d, "freqs": freqs})
 
 
     def observe_configs(self):

@@ -1,9 +1,9 @@
-from .detrend import detrend, detrend_brainflow
+from .detrend import detrend
 
 # 策略统一入口（推荐）
 from .filter_strategy import apply_filters, reset_state, FilterStrategy, set_strategy, get_strategy
 
-from .psd_brainflow import compute_psd_welch
+
 
 # 频谱分析（基于 BrainFlow DataFilter）
 from .spectrum_brainflow import (
@@ -20,5 +20,7 @@ from .band_power import compute_band_powers, PROCESSING_BAND_LOW_HZ, PROCESSING_
 
 # 时频图（闭包累加器）
 from .spectrogram import make_spectrogram
+
+from .psd_brainflow import get_psd_welch_multichannel
 
 

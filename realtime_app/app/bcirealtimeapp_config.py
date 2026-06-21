@@ -44,10 +44,10 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 1000.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
 c.ConfigFreqsDomain.nfft = 512

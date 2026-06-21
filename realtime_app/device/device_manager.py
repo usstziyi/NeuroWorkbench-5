@@ -245,7 +245,12 @@ class DeviceManager:
         return self.get_current_board_data(n)
         # return self.generate_sample_data(seconds)
 
-    def generate_sample_data(self, seconds: float, sampling_rate: int = 250, n_channels: int = 30, base_freq: float = 10.0) -> np.ndarray:
+    def generate_sample_data(
+        self, seconds: float, 
+        sampling_rate: int = 250, 
+        n_channels: int = 30, 
+        base_freq: float = 10.0
+    ) -> np.ndarray:
         """生成模拟多通道正弦波数据，用于替代 get_current_board_data。
 
         每个通道生成不同频率的正弦波，频率从 base_freq 开始，每个通道递增 base_freq Hz。
@@ -264,9 +269,10 @@ class DeviceManager:
         data = np.zeros((n_channels, n_samples), dtype=np.float64)
         for i in range(0,16):
             freq = base_freq * (i + 1)
-            data[i+1, :] = (100 * np.sin(2 * np.pi * freq * t)
+            data[i+1, :] = (10 * np.sin(2 * np.pi * freq * t)
                               + 30 * np.sin(2 * np.pi * 2 * freq * t)
-                              + 15 * np.sin(2 * np.pi * 3 * freq * t))
+                              + 15 * np.sin(2 * np.pi * 3 * freq * t)
+                              + 5 * np.random.randn(n_samples))
             # data[i+1, :] = 100 * np.sin(2 * np.pi * freq * t) + np.random.randn(n_samples)
         return data
 
