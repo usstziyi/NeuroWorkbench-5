@@ -32,6 +32,9 @@ class BandPowerWidget(QWidget):
         font_axis = QtGui.QFont()
         font_axis.setPointSize(10)
 
+        self._plot.showAxis("left", False)
+
+
 
 
     def observe_configs(self):

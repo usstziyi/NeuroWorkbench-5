@@ -24,7 +24,7 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.name = 'synthetic'
 c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 
 #------------------------------------------------------------------------------

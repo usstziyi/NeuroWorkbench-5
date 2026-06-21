@@ -28,6 +28,11 @@ class HeadPlotWidget(QWidget):
         self._plot = self._plot_widget.addPlot(0, 0)
         self._plot.layout.setContentsMargins(0, 0, 0, 0)
 
+        self._plot.showAxis("left", False)
+        self._plot.showAxis("bottom", False)
+
+
+
         font_axis = QtGui.QFont()
         font_axis.setPointSize(10)
 
