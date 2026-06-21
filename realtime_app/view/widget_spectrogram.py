@@ -55,7 +55,7 @@ class SpectrogramWidget(QWidget):
 
         self._plot_widget = pg.GraphicsLayoutWidget()
         _, _, _, bottom = self._plot_widget.ci.layout.getContentsMargins()
-        self._plot_widget.ci.layout.setContentsMargins(0, 0, 0, bottom)
+        self._plot_widget.ci.layout.setContentsMargins(0, 0, 0, bottom+1)
         layout.addWidget(self._plot_widget)
 
         # 创建 PlotItem

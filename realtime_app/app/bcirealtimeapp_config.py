@@ -24,8 +24,8 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = '/dev/cu.usbmodem12101'
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
@@ -57,7 +57,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 1070.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
