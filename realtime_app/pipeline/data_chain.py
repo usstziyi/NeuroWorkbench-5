@@ -86,7 +86,7 @@ class DataChain(QObject):
                 window=self._window_type,
             )
             # 平滑频轴
-            ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
+            # ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
             # 平滑频幅谱
             ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
 
