@@ -91,15 +91,12 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
-        qss_path = Path(__file__).parent.parent / "stylesheet" / "main.qss"
-        qss_text = qss_path.read_text(encoding="utf-8")
 
         # 用 QProxyStyle 只改分隔条，不使用 setStyleSheet 避免触发子控件 CSS 渲染
         self.setStyle(SeparatorStyle(QCommonStyle()))
 
         self.center_widget = TimeDomainWidget(theme_config=self.config_theme,
                                           time_config=self.config_time)
-        self.center_widget.setStyleSheet(qss_text)
         self.setCentralWidget(self.center_widget)
 
         self.left_dock = QDockWidget("控制面板")
@@ -122,7 +119,6 @@ class MainWindow(QMainWindow):
             theme_config=self.config_theme,
             freqs_config=self.config_freqs,
         )
-        self.right_widget.setStyleSheet(qss_text)
         self.right_dock.setWidget(self.right_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
 

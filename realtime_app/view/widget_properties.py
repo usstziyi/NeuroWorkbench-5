@@ -27,6 +27,7 @@ class PropertiesWidget(QWidget):
         layout.setSpacing(0)
 
         splitter = QSplitter(Qt.Vertical)
+        splitter.setStyleSheet("QSplitter::handle { width: 2px; height: 2px; image: none; }")
 
         # 上部：头图
         self._head_plot = HeadPlotWidget(parent=self)

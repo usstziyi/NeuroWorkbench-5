@@ -1,5 +1,5 @@
 import pyqtgraph as pg
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtWidgets import (
     QFrame,
     QScrollArea,
@@ -36,6 +36,39 @@ CET_R3 = [
 
 FIXED_PLOT_HEIGHT = 120
 
+
+class _WheelForwarder(QObject):
+    """Forwards wheel events from a watched widget to a QScrollArea."""
+    def __init__(self, scroll_area, parent=None):
+        super().__init__(parent)
+        self._scroll_area = scroll_area
+
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.Wheel:
+            self._scroll_area.wheelEvent(event)
+            return True
+        return super().eventFilter(watched, event)
+
+
+class _ScrollBarHover(QObject):
+    """Hover 时显示滚动条滑块，离开时隐藏（轨道始终占位）。"""
+    _BASE = "QScrollBar:vertical { width: 4px; background: transparent; } QScrollBar::add-line, QScrollBar::sub-line { height: 0px; width: 0px; }"
+    _VISIBLE = _BASE + " QScrollBar::handle:vertical { background: rgba(128, 128, 128, 180); border-radius: 2px; min-height: 20px; }"
+    _HIDDEN  = _BASE + " QScrollBar::handle:vertical { background: rgba(128, 128, 128, 0); border-radius: 2px; min-height: 20px; }"
+
+    def __init__(self, scroll_area, parent=None):
+        super().__init__(parent)
+        self._scroll_area = scroll_area
+        self._scroll_area.verticalScrollBar().setStyleSheet(self._HIDDEN)
+
+    def eventFilter(self, watched, event):
+        if event.type() == QEvent.Enter:
+            self._scroll_area.verticalScrollBar().setStyleSheet(self._VISIBLE)
+        elif event.type() == QEvent.Leave:
+            self._scroll_area.verticalScrollBar().setStyleSheet(self._HIDDEN)
+        return super().eventFilter(watched, event)
+
+
 class TimeDomainWidget(QWidget):
     """Time domain widget with scrollable fixed-height plots."""
     def __init__(self, theme_config=None, time_config=None, parent=None):
@@ -57,18 +90,29 @@ class TimeDomainWidget(QWidget):
 
         self._scroll_area = QScrollArea()
         self._scroll_area.setFrameShape(QFrame.NoFrame)
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self._plot_widget = pg.GraphicsLayoutWidget()
         self._scroll_area.setWidget(self._plot_widget)
         layout.addWidget(self._scroll_area)
+
+        # 将 plot widget 的滚轮事件转发给 QScrollArea
+        self._wheel_forwarder = _WheelForwarder(self._scroll_area, self)
+        self._plot_widget.viewport().installEventFilter(self._wheel_forwarder)
+
+        # hover 时显示滚动条，离开时隐藏
+        self._scrollbar_hover = _ScrollBarHover(self._scroll_area, self)
+        self._scroll_area.viewport().installEventFilter(self._scrollbar_hover)
     
     def apply_theme(self, color_mode):
         if color_mode == "Light":
             self._plot_widget.setBackground("w")
+            self._scroll_area.setStyleSheet("background-color: white;")
         else:
             self._plot_widget.setBackground("k")
+            self._scroll_area.setStyleSheet("background-color: black;")
+
     
     def apply_channels(self, channels):
         """

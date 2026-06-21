@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = '/dev/cu.usbmodem112101'
+c.ConfigDevice.port = ''
 
 #------------------------------------------------------------------------------
 # ConfigFilter configuration
@@ -43,10 +43,10 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 120.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 65.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.nfft = 512
 c.ConfigFreqsDomain.overlap_ratio = 0.5
@@ -57,7 +57,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1070.0
+c.ConfigTimeDomain.amplitude = 1000.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
