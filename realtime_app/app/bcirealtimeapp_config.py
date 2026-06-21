@@ -1,4 +1,4 @@
-# Configuration file for BCIRealtimeApp.
+# Configuration file for EEG脑机接口信号实时采集分析软件系统.
 
 c = get_config()  # noqa
 
@@ -10,7 +10,7 @@ c.BCIRealtimeApp.log_datefmt = '%Y-%m-%d %H:%M:%S'
 c.BCIRealtimeApp.log_format = '[%(name)s]%(highlevel)s %(message)s'
 c.BCIRealtimeApp.log_level = 30
 c.BCIRealtimeApp.logging_config = {}
-c.BCIRealtimeApp.name = 'BCIRealtimeApp'
+c.BCIRealtimeApp.name = 'EEG脑机接口信号实时采集分析软件系统'
 c.BCIRealtimeApp.show_config = False
 c.BCIRealtimeApp.show_config_json = False
 c.BCIRealtimeApp.version = '0.1.0'
@@ -43,7 +43,7 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 730.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
@@ -57,7 +57,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 120.0
+c.ConfigTimeDomain.amplitude = 1000.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

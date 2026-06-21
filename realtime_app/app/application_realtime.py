@@ -20,7 +20,7 @@ CONFIG_DIR = Path(__file__).resolve().parent
 
 class BCIRealtimeApp(Application):
     """BCIRealtimeApp application."""
-    name = Unicode("BCIRealtimeApp", help="Name of the application.").tag(config=True)
+    name = Unicode("EEG脑机接口信号实时采集分析软件系统", help="Name of the application.").tag(config=True)
     description = Unicode("BCIRealtimeApp application for real-time brain-computer interface.").tag(config=True)    
     version = Unicode("0.1.0", help="Version of the application.").tag(config=True)
 
