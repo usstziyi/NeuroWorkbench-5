@@ -38,7 +38,9 @@ from view.dialog_device_info import DialogDeviceInfo
 from view.dialog_fft_settings import DialogFftSettings
 from view.widget_band_power import BandPowerWidget
 from view.widget_head_plot import HeadPlotWidget
-from view.dialog_data_chain_settings import DialogDataChainSettings
+from view.dialog_settings_data_chain import DialogSettingsDataChain
+
+
 
 from superqt import (
     QLabeledSlider, QRangeSlider, QEnumComboBox,
@@ -58,7 +60,7 @@ class MainWindow(QMainWindow):
                  device_manager=None,
                  binder_theme=None, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_freqs=None,binder_time=None, 
-                 binder_recorder=None):
+                 binder_recorder=None, binder_psd=None):
         super().__init__()
         app_info = app_info or {}
         self._app_name = app_info.get("name", "BCIRealtimeApp")
@@ -73,6 +75,7 @@ class MainWindow(QMainWindow):
         self._binder_freqs = binder_freqs
         self._binder_time = binder_time
         self._binder_recorder = binder_recorder
+        self._binder_psd = binder_psd
 
         self.config_theme = self._binder_theme.model if self._binder_theme else None
         self.config_device = self._binder_device.model if self._binder_device else None
@@ -81,6 +84,7 @@ class MainWindow(QMainWindow):
         self.config_freqs = self._binder_freqs.model if self._binder_freqs else None
         self.config_time = self._binder_time.model if self._binder_time else None
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
+        self.config_psd = self._binder_psd.model if self._binder_psd else None
 
         self.setWindowTitle(self._app_name)
 
@@ -175,7 +179,7 @@ class MainWindow(QMainWindow):
         about_menu.addAction(action)
 
     def _show_data_chain_settings_dialog(self):
-        dialog = DialogDataChainSettings(parent=self)
+        dialog = DialogSettingsDataChain(binder_psd=self._binder_psd, parent=self)  
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
 

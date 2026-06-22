@@ -44,10 +44,10 @@ c.ConfigDetrend.enable = True
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 1000.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 125.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
 c.ConfigFreqsDomain.nfft = 512
@@ -68,4 +68,13 @@ c.ConfigTimeDomain.seconds = 5
 #------------------------------------------------------------------------------
 c.ConfigRecorder.record_processed = False
 c.ConfigRecorder.record_raw = False
+
+#------------------------------------------------------------------------------
+# ConfigPSD configuration
+#------------------------------------------------------------------------------
+c.ConfigPSD.enable = False
+c.ConfigPSD.method = 'brainflow-get_psd'
+c.ConfigPSD.nperseg = 512
+c.ConfigPSD.overlap_ratio = 0.5
+c.ConfigPSD.window_type = 'Hann'
 
