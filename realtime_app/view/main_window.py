@@ -38,6 +38,7 @@ from view.dialog_device_info import DialogDeviceInfo
 from view.dialog_fft_settings import DialogFftSettings
 from view.widget_band_power import BandPowerWidget
 from view.widget_head_plot import HeadPlotWidget
+from view.dialog_data_chain_settings import DialogDataChainSettings
 
 from superqt import (
     QLabeledSlider, QRangeSlider, QEnumComboBox,
@@ -152,11 +153,11 @@ class MainWindow(QMainWindow):
 
         # 设置
         settings_menu = menubar.addMenu("设置(&S)")
+        action = QAction("数据链设置(&D)", self)
+        action.triggered.connect(self._show_data_chain_settings_dialog)
+        settings_menu.addAction(action)
         action = QAction("FFT设置(&F)", self)
         action.triggered.connect(self._show_fft_settings_dialog)
-        settings_menu.addAction(action)
-        action = QAction("DSP设置(&D)", self)
-        action.triggered.connect(self._show_dsp_settings_dialog)
         settings_menu.addAction(action)
         settings_menu.addSeparator()
         action = QAction("外观设置(&S)", self)
@@ -173,16 +174,16 @@ class MainWindow(QMainWindow):
         action.triggered.connect(self._show_about_dialog)
         about_menu.addAction(action)
 
+    def _show_data_chain_settings_dialog(self):
+        dialog = DialogDataChainSettings(parent=self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.exec()
+
+
     def _show_fft_settings_dialog(self):
         dialog = DialogFftSettings(binder=self._binder_freqs, parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
-
-    def _show_dsp_settings_dialog(self):
-        dialog = DialogDspSettings(binder=self._binder_freqs, parent=self)
-        dialog.setAttribute(Qt.WA_DeleteOnClose)
-        dialog.exec()
-    
     
     def _show_about_dialog(self):
         about_text = f"{self._app_name}\nDescription: {self._app_description}\nVersion: {self._app_version}"

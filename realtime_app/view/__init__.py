@@ -6,3 +6,4 @@ from .dialog_device_info import DialogDeviceInfo
 from .widget_spectrogram import SpectrogramWidget
 from .widget_band_power import BandPowerWidget
 from .widget_head_plot import HeadPlotWidget
+from .dialog_data_chain_settings import DialogDataChainSettings
