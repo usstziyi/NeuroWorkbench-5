@@ -28,7 +28,7 @@ class ConfigPSD(Configurable):
     ).tag(config=True)
 
     method = Unicode(
-        "brainflow-get_psd",
+        "psd_brainflow",
         help="PSD computation backend: "
-             "'brainflow-get_psd', 'brainflow-get_psd_welch', or 'scipy-welch'."
+             "'psd_brainflow', 'psd_welch_brainflow', or 'psd_welch_scipy'."
     ).tag(config=True)

@@ -1,40 +1,41 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QFormLayout,
+    QVBoxLayout, QFormLayout, QWidget,
 )
 
 from superqt import QLabeledDoubleSlider
-from enum import StrEnum
+from enum import StrEnum, IntEnum
 
-from utils.make_container import make_combo_switch, make_double_spinbox_switch
+from utils.make_container import make_combo_switch
 
 
 class FilterMethodEnum(StrEnum):
     """滤波算法枚举类."""
     filter_sosfilt_full_scipy = "filter_sosfilt_full_scipy"
     filter_sosfilt_incremental_scipy = "filter_sosfilt_incremental_scipy"
-    filter_brainflow = "filter_brainflow"
+    filter_brainflow = "filter_full_brainflow"
 
     def __str__(self):
         return self.value
 
 
-class NotchFilterEnum(StrEnum):
+class NotchFilterEnum(IntEnum):
     """陷波频率枚举类."""
-    Hz_50 = "50Hz"
-    Hz_60 = "60Hz"
+    Hz_50 = 50
+    Hz_60 = 60
 
     def __str__(self):
-        return self.value
+        return f"{self.value}Hz"
 
 
 class WidgetSettingsFilter(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, binder_filter=None, parent=None):
         super().__init__(parent)
+        self._binder_filter = binder_filter
+
         self._init_ui()
-        self._observe_config()
-        self.destroyed.connect(self.unobserve_configs)
+        self._binder_configs()
+        self.destroyed.connect(self.unbinder_configs)
 
     def _init_ui(self):
         main_layout = QVBoxLayout()
@@ -62,25 +63,61 @@ class WidgetSettingsFilter(QWidget):
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
-        # 按钮
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch(1)
-        btn_ok = QPushButton("确定")
-        btn_ok.clicked.connect(self.accept)
-        btn_cancel = QPushButton("取消")
-        btn_cancel.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_ok)
-        btn_layout.addWidget(btn_cancel)
-        main_layout.addLayout(btn_layout)
+    def _binder_configs(self):
+        if self._binder_filter is None:
+            return
+        b = self._binder_filter
 
-    def accept(self):
-        super().accept()
+        b.bind(
+            "enable",
+            self._switch_filter,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
+        b.bind(
+            "method",
+            self._combo_filter,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: FilterMethodEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+        b.bind(
+            "highpass",
+            self._slider_high_pass,
+            widget_property="value",
+            widget_signal="valueChanged",
+        )
+        b.bind(
+            "lowpass",
+            self._slider_low_pass,
+            widget_property="value",
+            widget_signal="valueChanged",
+        )
+        b.bind(
+            "noise_freqs",
+            self._combo_notch,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: NotchFilterEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+        b.bind(
+            "notch_enable",
+            self._switch_notch,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
 
-    def reject(self):
-        super().reject()
+        b.snapshot()
 
-    def _observe_config(self):
-        pass
-
-    def unobserve_configs(self):
-        pass
+    def unbinder_configs(self):
+        if self._binder_filter is None:
+            return
+        b = self._binder_filter
+        b.unbind("enable")
+        b.unbind("method")
+        b.unbind("highpass")
+        b.unbind("lowpass")
+        b.unbind("noise_freqs")
+        b.unbind("notch_enable")

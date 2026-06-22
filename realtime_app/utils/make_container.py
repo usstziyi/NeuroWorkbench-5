@@ -1,4 +1,3 @@
-from PySide6.QtCore import Qt, QEvent
 from PySide6.QtWidgets import (
     QHBoxLayout, QWidget,  QSizePolicy, QDoubleSpinBox
 )

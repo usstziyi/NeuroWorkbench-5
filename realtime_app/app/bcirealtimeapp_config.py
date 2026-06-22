@@ -31,15 +31,26 @@ c.ConfigDevice.port = ''
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
-c.ConfigFilter.highpass = 5.0
+c.ConfigFilter.highpass = 4.982758620689655
 c.ConfigFilter.lowpass = 45.0
-c.ConfigFilter.method = 'scipy-sosfilt-full'
+c.ConfigFilter.method = 'filter_sosfilt_full_scipy'
 c.ConfigFilter.noise_freqs = 50
+c.ConfigFilter.notch_enable = False
 
 #------------------------------------------------------------------------------
 # ConfigDetrend configuration
 #------------------------------------------------------------------------------
 c.ConfigDetrend.enable = True
+c.ConfigDetrend.method = 'detrend_scipy'
+
+#------------------------------------------------------------------------------
+# ConfigFFT configuration
+#------------------------------------------------------------------------------
+c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
+c.ConfigFFT.enable = True
+c.ConfigFFT.method = 'fft_brainflow'
+c.ConfigFFT.nfft = 512
+c.ConfigFFT.smooth_factor = 0.92
 
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
@@ -72,9 +83,15 @@ c.ConfigRecorder.record_raw = False
 #------------------------------------------------------------------------------
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
-c.ConfigPSD.enable = False
-c.ConfigPSD.method = 'brainflow-get_psd'
+c.ConfigPSD.enable = True
+c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
+
+#------------------------------------------------------------------------------
+# ConfigSpectrogram configuration
+#------------------------------------------------------------------------------
+c.ConfigSpectrogram.enable = True
+c.ConfigSpectrogram.method = 'spectrogram_brainflow'
 

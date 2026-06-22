@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QFormLayout,
+    QVBoxLayout, QFormLayout, QWidget,
 )
 
 from enum import StrEnum
@@ -18,11 +17,13 @@ class SpectrogramMethodEnum(StrEnum):
 
 
 class WidgetSettingsSpectrogram(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, binder_spectrogram=None, parent=None):
         super().__init__(parent)
+        self._binder_spectrogram = binder_spectrogram
+
         self._init_ui()
-        self._observe_config()
-        self.destroyed.connect(self.unobserve_configs)
+        self._binder_configs()
+        self.destroyed.connect(self.unbinder_configs)
 
     def _init_ui(self):
         main_layout = QVBoxLayout()
@@ -34,25 +35,30 @@ class WidgetSettingsSpectrogram(QWidget):
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
-        # 按钮
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch(1)
-        btn_ok = QPushButton("确定")
-        btn_ok.clicked.connect(self.accept)
-        btn_cancel = QPushButton("取消")
-        btn_cancel.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_ok)
-        btn_layout.addWidget(btn_cancel)
-        main_layout.addLayout(btn_layout)
+    def _binder_configs(self):
+        if self._binder_spectrogram is None:
+            return
+        b = self._binder_spectrogram
 
-    def accept(self):
-        super().accept()
+        b.bind(
+            "enable",
+            self._switch_spectrogram,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
+        b.bind(
+            "method",
+            self._combo_spectrogram,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: SpectrogramMethodEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
 
-    def reject(self):
-        super().reject()
+        b.snapshot()
 
-    def _observe_config(self):
-        pass
-
-    def unobserve_configs(self):
-        pass
+    def unbinder_configs(self):
+        if self._binder_spectrogram is None:
+            return
+        self._binder_spectrogram.unbind("enable")
+        self._binder_spectrogram.unbind("method")

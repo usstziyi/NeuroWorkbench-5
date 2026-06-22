@@ -1,6 +1,5 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QFormLayout,
+    QVBoxLayout, QFormLayout, QWidget,
 )
 
 from superqt import QEnumComboBox
@@ -48,11 +47,13 @@ class PSDWindowEnum(StrEnum):
 
 
 class WidgetSettingsPSD(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, binder_psd=None, parent=None):
         super().__init__(parent)
+        self._binder_psd = binder_psd
+
         self._init_ui()
-        self._observe_config()
-        self.destroyed.connect(self.unobserve_configs)
+        self._binder_configs()
+        self.destroyed.connect(self.unbinder_configs)
 
     def _init_ui(self):
         main_layout = QVBoxLayout()
@@ -74,25 +75,58 @@ class WidgetSettingsPSD(QWidget):
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
-        # 按钮
-        btn_layout = QHBoxLayout()
-        btn_layout.addStretch(1)
-        btn_ok = QPushButton("确定")
-        btn_ok.clicked.connect(self.accept)
-        btn_cancel = QPushButton("取消")
-        btn_cancel.clicked.connect(self.reject)
-        btn_layout.addWidget(btn_ok)
-        btn_layout.addWidget(btn_cancel)
-        main_layout.addLayout(btn_layout)
+    def _binder_configs(self):
+        if self._binder_psd is None:
+            return
+        b = self._binder_psd
 
-    def accept(self):
-        super().accept()
+        b.bind(
+            "enable",
+            self._switch_psd,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
+        b.bind(
+            "method",
+            self._combo_psd,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: PSDMethodEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+        b.bind(
+            "nperseg",
+            self._combo_nperseg,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: NpersegEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+        b.bind(
+            "overlap_ratio",
+            self._combo_overlap_ratio,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: OverlapRatioEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+        b.bind(
+            "window_type",
+            self._combo_psd_window,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: PSDWindowEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
 
-    def reject(self):
-        super().reject()
+        b.snapshot()
 
-    def _observe_config(self):
-        pass
-
-    def unobserve_configs(self):
-        pass
+    def unbinder_configs(self):
+        if self._binder_psd is None:
+            return
+        b = self._binder_psd
+        b.unbind("enable")
+        b.unbind("method")
+        b.unbind("nperseg")
+        b.unbind("overlap_ratio")
+        b.unbind("window_type")

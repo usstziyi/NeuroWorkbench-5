@@ -32,6 +32,6 @@ class ConfigFFT(Configurable):
     ).tag(config=True)
     
     method = Unicode(
-        "brainflow-perform_fft", 
-        help="FFT computation backend: 'brainflow-perform_fft' or 'scipy-fft-rfft'."
+        "fft_brainflow", 
+        help="FFT computation backend: 'fft_brainflow' or 'fft_rfft_scipy'."
     ).tag(config=True)
