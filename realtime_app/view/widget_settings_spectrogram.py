@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 
 from enum import StrEnum
 
-from utils.make_combo_swtich import make_combo_switch
+from utils.make_container import make_combo_switch
 
 
 class SpectrogramMethodEnum(StrEnum):

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 from superqt import QLabeledDoubleSlider
 from enum import StrEnum
 
-from utils.make_combo_swtich import make_combo_switch
+from utils.make_container import make_combo_switch, make_double_spinbox_switch
 
 
 class FilterMethodEnum(StrEnum):

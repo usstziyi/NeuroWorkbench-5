@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 from superqt import QEnumComboBox
 from enum import Enum, StrEnum, IntEnum
 
-from utils.make_combo_swtich import make_combo_switch
+from utils.make_container import make_combo_switch
 
 
 class PSDMethodEnum(StrEnum):

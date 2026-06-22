@@ -1,11 +1,13 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QFormLayout,
+    QPushButton, QFormLayout, QDoubleSpinBox
 )
 
-from enum import StrEnum
+from superqt import QEnumComboBox
+from enum import StrEnum, IntEnum
 
-from utils.make_combo_swtich import make_combo_switch
+
+from utils.make_container import make_combo_switch, make_double_spinbox_switch
 
 
 class FFTMethodEnum(StrEnum):
@@ -15,6 +17,24 @@ class FFTMethodEnum(StrEnum):
 
     def __str__(self):
         return self.value
+
+class NfftEnum(IntEnum):
+    N_256 = 256
+    N_512 = 512
+    N_1024 = 1024
+
+    def __str__(self):
+        return str(self.value)
+
+class FFTWindowEnum(StrEnum):
+    """FFT窗口枚举类."""
+    Hann = "Hann"
+    Hamming = "Hamming"
+    Blackman = "Blackman"
+    Rectangular = "Rectangular"
+
+    def __str__(self):
+        return str(self.value)
 
 
 class WidgetSettingsFFT(QWidget):
@@ -31,7 +51,18 @@ class WidgetSettingsFFT(QWidget):
         form_layout = QFormLayout()
         w, self._combo_fft, self._switch_fft = make_combo_switch(FFTMethodEnum)
         form_layout.addRow("FFT计算算法:", w)
+        self._combo_nfft = QEnumComboBox(enum_class=NfftEnum)
+        form_layout.addRow("FFT点数:", self._combo_nfft)
         main_layout.addLayout(form_layout)
+        self._combo_fft_window = QEnumComboBox(enum_class=FFTWindowEnum)
+        form_layout.addRow("FFT窗口:", self._combo_fft_window)
+        w, self._spin_smooth_factor, self._switch_smooth = make_double_spinbox_switch()
+        self._spin_smooth_factor.setRange(0.01, 0.9999) # 真实区间
+        self._spin_smooth_factor.setSingleStep(0.01)
+
+        form_layout.addRow("平滑系数:", w)
+        
+        # 空行
         main_layout.addStretch(1)
 
         # 按钮

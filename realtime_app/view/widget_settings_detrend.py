@@ -11,7 +11,7 @@ from superqt import (
     QLabeledDoubleSlider
     )
 from enum import Enum, StrEnum, IntEnum
-from utils.make_combo_swtich import make_combo_switch
+from utils.make_container import make_combo_switch
 
 
 
