@@ -1,5 +1,6 @@
 from .config_detrend import ConfigDetrend
 from .config_device import ConfigDevice
+from .config_fetcher import ConfigFetcher
 from .config_filter import ConfigFilter
 from .config_fft import ConfigFFT
 from .config_freqs_domain import ConfigFreqsDomain

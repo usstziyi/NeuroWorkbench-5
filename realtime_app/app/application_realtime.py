@@ -11,6 +11,7 @@ from configs.config_freqs_domain import ConfigFreqsDomain
 from configs.config_time_domain import ConfigTimeDomain
 from configs.config_detrend import ConfigDetrend
 from configs.config_fft import ConfigFFT
+from configs.config_fetcher import ConfigFetcher
 from configs.config_spectrogram import ConfigSpectrogram
 from configs.config_theme import ConfigTheme
 from configs.config_recorder import ConfigRecorder
@@ -30,6 +31,7 @@ class BCIRealtimeApp(Application):
     classes = [
         ConfigTheme,
         ConfigDevice,
+        ConfigFetcher,
         ConfigFilter,
         ConfigDetrend,
         ConfigFFT,
@@ -55,6 +57,7 @@ class BCIRealtimeApp(Application):
         self.config_time_domain = ConfigTimeDomain(config=self.config)
         self.config_recorder = ConfigRecorder(config=self.config)
         self.config_psd = ConfigPSD(config=self.config)
+        self.config_fetcher = ConfigFetcher(config=self.config)
         self.config_fft = ConfigFFT(config=self.config)
         self.config_spectrogram = ConfigSpectrogram(config=self.config)
 
@@ -67,6 +70,7 @@ class BCIRealtimeApp(Application):
         binder_time = ConfigBinder(self.config_time_domain)
         binder_recorder = ConfigBinder(self.config_recorder)
         binder_psd = ConfigBinder(self.config_psd)
+        binder_fetcher = ConfigBinder(self.config_fetcher)
         binder_fft = ConfigBinder(self.config_fft)
         binder_spectrogram = ConfigBinder(self.config_spectrogram)
 
@@ -100,6 +104,7 @@ class BCIRealtimeApp(Application):
             binder_psd=binder_psd,
             binder_fft=binder_fft,
             binder_spectrogram=binder_spectrogram,
+            binder_fetcher=binder_fetcher,
         )
         self.main_window.show()
 
@@ -109,6 +114,7 @@ class BCIRealtimeApp(Application):
             self,
             self.config_theme,
             self.config_device,
+            self.config_fetcher,
             self.config_filter,
             self.config_detrend,
             self.config_fft,

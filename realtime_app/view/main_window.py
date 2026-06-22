@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
                  binder_theme=None, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_freqs=None,binder_time=None, 
                  binder_recorder=None, binder_psd=None, binder_fft=None,
-                 binder_spectrogram=None):
+                 binder_spectrogram=None, binder_fetcher=None):
         super().__init__()
         app_info = app_info or {}
         self._app_name = app_info.get("name", "BCIRealtimeApp")
@@ -79,6 +79,7 @@ class MainWindow(QMainWindow):
         self._binder_psd = binder_psd
         self._binder_fft = binder_fft
         self._binder_spectrogram = binder_spectrogram
+        self._binder_fetcher = binder_fetcher
 
         self.config_theme = self._binder_theme.model if self._binder_theme else None
         self.config_device = self._binder_device.model if self._binder_device else None
@@ -182,7 +183,8 @@ class MainWindow(QMainWindow):
         about_menu.addAction(action)
 
     def _show_data_chain_settings_dialog(self):
-        dialog = DialogSettingsDataChain(binder_detrend=self._binder_detrend,
+        dialog = DialogSettingsDataChain(binder_fetcher=self._binder_fetcher,
+                                          binder_detrend=self._binder_detrend,
                                           binder_filter=self._binder_filter,
                                           binder_fft=self._binder_fft,
                                           binder_psd=self._binder_psd,

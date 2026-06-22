@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem, QPushButton,
 )
 
+from .widget_settings_fetcher import WidgetSettingsFetcher
 from .widget_settings_detrend import WidgetSettingsDetrend
 from .widget_settings_filter import WidgetSettingsFilter
 from .widget_settings_fft import WidgetSettingsFFT
@@ -14,10 +15,11 @@ from .widget_settings_spectrogram import WidgetSettingsSpectrogram
 
 class DialogSettingsDataChain(QDialog):
     """Data chain settings dialog."""
-    def __init__(self, binder_detrend=None, binder_filter=None,
+    def __init__(self, binder_fetcher=None, binder_detrend=None, binder_filter=None,
                  binder_fft=None, binder_psd=None, binder_spectrogram=None,
                  parent=None):
         super().__init__(parent)
+        self._binder_fetcher = binder_fetcher
         self._binder_detrend = binder_detrend
         self._binder_filter = binder_filter
         self._binder_fft = binder_fft
@@ -35,6 +37,7 @@ class DialogSettingsDataChain(QDialog):
         body_layout = QHBoxLayout()
 
         nav_items = [
+            ("取数据模式",     partial(WidgetSettingsFetcher, binder_fetcher=self._binder_fetcher)),
             ("去趋势参数", partial(WidgetSettingsDetrend, binder_detrend=self._binder_detrend)),
             ("滤波器参数",   partial(WidgetSettingsFilter, binder_filter=self._binder_filter)),
             ("傅里叶变换",   partial(WidgetSettingsFFT, binder_fft=self._binder_fft)),
@@ -74,7 +77,7 @@ class DialogSettingsDataChain(QDialog):
         super().accept()
 
     def reject(self):
-        for binder in (self._binder_detrend, self._binder_filter,
+        for binder in (self._binder_fetcher, self._binder_detrend, self._binder_filter,
                         self._binder_fft, self._binder_psd,
                         self._binder_spectrogram):
             if binder is not None:
