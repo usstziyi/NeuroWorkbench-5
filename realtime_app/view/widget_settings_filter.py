@@ -93,6 +93,18 @@ class WidgetSettingsFilter(QWidget):
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
+        # 算法切换联动：scipy 不支持 filter_type，brainflow 不支持 notch_order
+        self._combo_filter.currentEnumChanged.connect(self._on_method_changed)
+        self._on_method_changed(self._combo_filter.currentEnum())
+
+    def _on_method_changed(self, method: FilterMethodEnum) -> None:
+        self._combo_filter_type.setEnabled(
+            method == FilterMethodEnum.filter_brainflow
+        )
+        self._slider_notch_order.setEnabled(
+            method == FilterMethodEnum.filter_sosfilt_full_scipy
+        )
+
     def _binder_configs(self):
         if self._binder_filter is None:
             return

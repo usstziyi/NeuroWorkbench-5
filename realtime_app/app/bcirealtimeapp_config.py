@@ -40,7 +40,7 @@ c.ConfigFilter.filter_order = 4
 c.ConfigFilter.filter_type = 'butterworth'
 c.ConfigFilter.highpass = 5.0
 c.ConfigFilter.lowpass = 45.0
-c.ConfigFilter.method = 'filter_sosfilt_scipy'
+c.ConfigFilter.method = 'filter_brainflow'
 c.ConfigFilter.noise_freqs = 50
 c.ConfigFilter.notch_order = 2
 
@@ -92,7 +92,7 @@ c.ConfigRecorder.record_raw = False
 #------------------------------------------------------------------------------
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
-c.ConfigPSD.enable = False
+c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
