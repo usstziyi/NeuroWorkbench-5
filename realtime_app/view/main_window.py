@@ -248,8 +248,8 @@ class MainWindow(QMainWindow):
             parent=self,
             time_config=self.config_time,
             filter_config=self.config_filter,
-            detrend_config=self.config_detrend,
-            device_config=self.config_device,
+            config_detrend=self.config_detrend,
+            config_device=self.config_device,
             config_fft=self.config_fft,
             config_psd=self.config_psd,
         )

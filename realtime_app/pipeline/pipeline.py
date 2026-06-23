@@ -19,8 +19,8 @@ class Pipeline(QObject):
     def __init__(self, device_manager, parent=None,
                  time_config=None,
                  filter_config=None,
-                 detrend_config=None,
-                 device_config=None,
+                 config_detrend=None,
+                 config_device=None,
                  config_fft=None,
                  config_psd=None):
         super().__init__(parent)
@@ -28,8 +28,8 @@ class Pipeline(QObject):
         self._device_manager = device_manager
         self._time_config = time_config
         self._filter_config = filter_config
-        self._detrend_config = detrend_config
-        self._device_config = device_config
+        self._config_detrend = config_detrend
+        self._config_device = config_device
         self._config_fft = config_fft
         self._config_psd = config_psd
 
@@ -40,13 +40,13 @@ class Pipeline(QObject):
         self._fetch_thread = None
         self._chain_thread = None
 
-        # 监听 device_config 变化
+        # 监听 config_device 变化
         self.observe_configs()
 
     def observe_configs(self):
         # 监听 streaming 状态自动启停
-        if self._device_config is not None:
-            self._device_config.observe(
+        if self._config_device is not None:
+            self._config_device.observe(
                 self._on_streaming_changed,
                 names=["is_streaming"],
             )
@@ -67,7 +67,7 @@ class Pipeline(QObject):
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)
         self._chain = DataChain(
-            self._detrend_config, 
+            self._config_detrend,
             self._filter_config,
             self._config_fft,
             self._config_psd
@@ -117,14 +117,14 @@ class Pipeline(QObject):
         return self._fetch_thread is not None and self._fetch_thread.isRunning()
     
     def unobserve_configs(self):
-        if self._device_config is not None:
+        if self._config_device is not None:
             try:
-                self._device_config.unobserve(
+                self._config_device.unobserve(
                     self._on_streaming_changed, names=["is_streaming"]
                 )
             except RuntimeError:
                 pass  # C++ 对象已销毁
-            self._device_config = None
+            self._config_device = None
 
     def close_pipeline(self):
         """关闭管线：停止线程、取消 config observe 注册。

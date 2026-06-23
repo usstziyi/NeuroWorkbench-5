@@ -79,7 +79,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 c.ConfigTimeDomain.amplitude = 90.0
 c.ConfigTimeDomain.interval = 50.0
-c.ConfigTimeDomain.seconds = 5
+c.ConfigTimeDomain.seconds = 19
 
 #------------------------------------------------------------------------------
 # ConfigRecorder configuration
