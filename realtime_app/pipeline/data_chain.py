@@ -50,6 +50,7 @@ class DataChain(QObject):
 
         # PSD参数
         self._psd_enable = False
+        self._cut_seconds = 3
         self._nperseg = 512
         self._overlap_ratio = 0.5
         self._psd_window_type = "Hann"
@@ -112,6 +113,7 @@ class DataChain(QObject):
         if self._psd_enable:
             psd_2d, freqs = compute_psd(
                 data=raw_data,
+                cut_seconds=self._cut_seconds,
                 nperseg=self._nperseg,
                 overlap_ratio=self._overlap_ratio,
                 sampling_rate=int(self._sampling_rate),
@@ -182,19 +184,22 @@ class DataChain(QObject):
         
         if self._config_psd is not None:
             self._psd_enable = self._config_psd.enable
+            self._cut_seconds = self._config_psd.cut_seconds
             self._nperseg = self._config_psd.nperseg
             self._overlap_rate = self._config_psd.overlap_ratio
             self._psd_window_type = str(self._config_psd.window_type)
             set_strategy_psd(self._config_psd.method)
             self._config_psd.observe(
                 self._on_psd_changed,
-                names=["enable", "nperseg", "overlap_ratio", "window_type", "method"],
+                names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "method"],
             )
 
     def _on_psd_changed(self, change):
         name = change["name"]
         if name == "enable":
             self._psd_enable = change["new"]
+        elif name == "cut_seconds":
+            self._cut_seconds = change["new"]
         elif name == "nperseg":
             self._nperseg = change["new"]
         elif name == "overlap_ratio":
@@ -277,7 +282,7 @@ class DataChain(QObject):
             try:
                 self._config_psd.unobserve(
                     self._on_psd_changed,
-                    names=["enable", "nperseg", "overlap_ratio", "window_type", "method"],
+                    names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "method"],
                 )
             except RuntimeError:
                 pass

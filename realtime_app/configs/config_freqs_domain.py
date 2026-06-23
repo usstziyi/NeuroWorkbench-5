@@ -19,7 +19,7 @@ class ConfigFreqsDomain(Configurable):
     """Frequency domain configuration."""
     fft_enable = Bool(True, help="Enable FFT.").tag(config=True)
     smooth_factor = Float(0.92, help="Smoothing factor (0~1) for spectrum amplitude.").tag(config=True)
-    ampls_range = List(Float(), default_value=[0.01, 200.0], help="Amplitude range to display (μV).").tag(config=True)
+    ampls_range = List(Float(), default_value=[0.001, 200.0], help="Amplitude range to display (μV).").tag(config=True)
     freqs_range = List(Float(), default_value=[0.0, 60.0], help="Frequency range to display (Hz).").tag(config=True)
     log_y = Unicode("Log", help="Y axis scale: Linear or Log.").tag(config=True)
     nfft = Int(512, help="FFT points (256/512/1024).").tag(config=True)

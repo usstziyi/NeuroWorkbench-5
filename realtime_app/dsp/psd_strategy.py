@@ -54,6 +54,7 @@ def compute_psd(
     overlap_ratio: float,
     sampling_rate: int,
     window: str = "Hann",
+    cut_seconds: int = 3,
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """按当前策略计算 PSD。
 
@@ -63,10 +64,13 @@ def compute_psd(
         overlap_ratio: 相邻窗口重叠的样本数（psd_brainflow 策略忽略此参数）。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数，默认 "Hann"。
+        cut_seconds: 截取时间窗口，默认 3 秒。
 
     Returns:
         (psd, freqs)，数据不足时返回 (None, None)。
     """
+    # 截取最近 cut_seconds 秒数据
+    data = data[:,-int(cut_seconds*sampling_rate):]
     if nperseg is not None and data.shape[-1] < nperseg:
         return None, None
 

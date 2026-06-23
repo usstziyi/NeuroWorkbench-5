@@ -50,4 +50,7 @@ def compute_psd(
         axis=-1,
     )
 
+    # DC 及近 DC bin 对 EEG 无意义，置零抑制泄漏
+    psd[:, :2] = 0.0
+
     return psd, freqs

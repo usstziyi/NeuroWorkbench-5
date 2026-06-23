@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QVBoxLayout, QFormLayout, QWidget,
+    QVBoxLayout, QFormLayout, QWidget, QSpinBox,
 )
 
 from superqt import QEnumComboBox
@@ -63,6 +63,11 @@ class WidgetSettingsPSD(QWidget):
         w, self._combo_psd, self._switch_psd = make_combo_switch(PSDMethodEnum)
         form_layout.addRow("PSD处理算法:", w)
 
+        self._combo_cut_seconds = QSpinBox()
+        self._combo_cut_seconds.setRange(1, 10)
+        self._combo_cut_seconds.setSingleStep(1)
+        form_layout.addRow("cut_seconds:", self._combo_cut_seconds)
+
         self._combo_nperseg = QEnumComboBox(enum_class=NpersegEnum)
         form_layout.addRow("nperseg:", self._combo_nperseg)
 
@@ -104,6 +109,12 @@ class WidgetSettingsPSD(QWidget):
             from_widget_func=lambda v: v.value,
         )
         b.bind(
+            "cut_seconds",
+            self._combo_cut_seconds,
+            widget_property="value",
+            widget_signal="valueChanged",
+        )
+        b.bind(
             "nperseg",
             self._combo_nperseg,
             widget_property="currentEnum",
@@ -136,6 +147,7 @@ class WidgetSettingsPSD(QWidget):
         b = self._binder_psd
         b.unbind("enable")
         b.unbind("method")
+        b.unbind("cut_seconds")
         b.unbind("nperseg")
         b.unbind("overlap_ratio")
         b.unbind("window_type")

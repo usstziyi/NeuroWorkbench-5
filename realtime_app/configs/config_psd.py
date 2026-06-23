@@ -32,3 +32,9 @@ class ConfigPSD(Configurable):
         help="PSD computation backend: "
              "'psd_brainflow', 'psd_welch_brainflow', or 'psd_welch_scipy'."
     ).tag(config=True)
+
+    cut_seconds = Int(
+        3,
+        help="Time window for PSD computation (seconds). "
+             "Typical values: 3 (default), 5, 10."
+    ).tag(config=True)

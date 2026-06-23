@@ -211,7 +211,7 @@ class ControlPanelWidget(QWidget):
         
         self.ampls_up = QDoubleSpinBox()
         self.ampls_up.setSuffix(" μV")
-        self.ampls_up.setRange(10, 1000.0) # 区间右值
+        self.ampls_up.setRange(10, 10000.0) # 区间右值
         self.ampls_up.setSingleStep(10)
         freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
 
