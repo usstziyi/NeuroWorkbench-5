@@ -273,6 +273,15 @@ class DataChain(QObject):
             except RuntimeError:
                 pass
             self._config_fft = None
+        if self._config_psd is not None:
+            try:
+                self._config_psd.unobserve(
+                    self._on_psd_changed,
+                    names=["enable", "nperseg", "overlap_ratio", "window_type", "method"],
+                )
+            except RuntimeError:
+                pass
+            self._config_psd = None
 
     def dismiss(self):
         self.unobserve_configs()
