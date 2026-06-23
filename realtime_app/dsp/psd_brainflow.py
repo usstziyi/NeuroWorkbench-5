@@ -27,6 +27,8 @@ def compute_psd(
         freqs: (n_freqs,) 频率轴（所有通道相同）。
     """
     n_channels = data.shape[0]
+    # 单次 FFT，窗口 = 整个 data 长度 ，无法指定 nfft，
+    # 所以这里人为截断 data 为 nperseg
     data = data[:, -nperseg:]
 
     n_freqs = nperseg // 2 + 1

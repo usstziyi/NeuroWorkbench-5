@@ -90,7 +90,7 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.enable = True
-c.ConfigPSD.method = 'psd_welch_brainflow'
+c.ConfigPSD.method = 'psd_welch_scipy'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
