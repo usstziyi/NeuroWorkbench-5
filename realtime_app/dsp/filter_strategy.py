@@ -101,5 +101,5 @@ def compute_filter(
             lowpass=lowpass,
             order=order,
             noise_freqs=int(noise_freqs),
-            filter_type="butterworth",
+            filter_type=filter_type,
         )

@@ -1,7 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 from dsp import compute_detrend, set_strategy_detrend
-from dsp import apply_filters, reset_state
-
+from dsp import compute_filter, set_strategy_filter
 from dsp import compute_fft,set_strategy_fft
 from dsp import compute_psd,set_strategy_psd
 
@@ -23,10 +22,10 @@ class DataChain(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
-    def __init__(self, config_detrend=None, filter_config=None, config_fft=None, config_psd=None):
+    def __init__(self, config_detrend=None, config_filter=None, config_fft=None, config_psd=None):
         super().__init__()
         self._config_detrend = config_detrend
-        self._filter_config = filter_config
+        self._config_filter = config_filter
         self._config_fft = config_fft
         self._config_psd = config_psd
         
@@ -36,10 +35,13 @@ class DataChain(QObject):
 
         # 滤波参数
         self._filter_enabled = True
-        self._highpass = 0.5
+        self._highpass = 5.0
         self._lowpass = 45.0
         self._sampling_rate = 250
         self._noise_freqs = 50
+        self._filter_order = 4
+        self._notch_order = 2
+        self._filter_type = "butterworth"
 
         # FFT参数
         self._fft_enable = False    
@@ -73,14 +75,17 @@ class DataChain(QObject):
             )
 
 
-        # 2. 滤波（带通 → 环境噪声）
+        # 2. 滤波
         if self._filter_enabled:
-            raw_data = apply_filters(
+            raw_data = compute_filter(
                 data=raw_data,
                 sampling_rate=float(self._sampling_rate),
                 highpass=self._highpass,
                 lowpass=self._lowpass,
                 noise_freqs=self._noise_freqs,
+                order=self._filter_order,
+                notch_order=self._notch_order,
+                filter_type=self._filter_type,
             )
 
         result = {name: (raw_dict[name][0], raw_data[i])
@@ -140,20 +145,6 @@ class DataChain(QObject):
 
 
 
-            # # ampls_2d的n_freqs是nfft//2+1,可变化
-            # freqs, ampls_2d = compute_spectrum_amplitude_fft(
-            #     data=raw_data,
-            #     sampling_rate=int(self._sampling_rate),
-            #     nfft=self._nfft,
-            #     window=self._window_type,
-            # )
-            # # 平滑频轴
-            # # ampls_2d = smooth_spectrum_freq(ampls_2d, kernel_size=5)
-            # # 平滑频幅谱
-            # ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
-
-
-
 
 
 
@@ -166,14 +157,17 @@ class DataChain(QObject):
                 names=["enable", "detrend_type", "method"],
             )
 
-        if self._filter_config is not None:
-            self._filter_enabled = self._filter_config.enable
-            self._highpass = self._filter_config.highpass
-            self._lowpass = self._filter_config.lowpass
-            self._noise_freqs = self._filter_config.noise_freqs
-            self._filter_config.observe(
+        if self._config_filter is not None:
+            self._filter_enabled = self._config_filter.enable
+            self._highpass = self._config_filter.highpass
+            self._lowpass = self._config_filter.lowpass
+            self._noise_freqs = self._config_filter.noise_freqs
+            self._filter_order = self._config_filter.filter_order
+            self._notch_order = self._config_filter.notch_order
+            self._filter_type = self._config_filter.filter_type
+            self._config_filter.observe(
                 self._on_filter_changed,
-                names=[ "enable", "highpass", "lowpass", "noise_freqs"],
+                names=[ "enable", "highpass", "lowpass", "noise_freqs", "filter_order", "notch_order", "filter_type", "method"],
             )
 
         if self._config_fft is not None:
@@ -232,14 +226,24 @@ class DataChain(QObject):
 
     def _on_filter_changed(self, change):
         name = change["name"]
-        if name == "highpass":
+        if name == "enable":
+            self._filter_enabled = change["new"]
+        elif name == "highpass":
             self._highpass = change["new"]
         elif name == "lowpass":
             self._lowpass = change["new"]
-        elif name == "enable":
-            self._filter_enabled = change["new"]
         elif name == "noise_freqs":
             self._noise_freqs = change["new"]
+        elif name == "filter_order":
+            self._filter_order = change["new"]
+        elif name == "notch_order":
+            self._notch_order = change["new"]
+        elif name == "filter_type":
+            self._filter_type = change["new"]
+        elif name == "method":
+            set_strategy_filter(change["new"])
+
+
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
@@ -251,15 +255,15 @@ class DataChain(QObject):
             except RuntimeError:
                 pass
             self._config_detrend = None
-        if self._filter_config is not None:
+        if self._config_filter is not None:
             try:
-                self._filter_config.unobserve(
+                self._config_filter.unobserve(
                     self._on_filter_changed,
-                    names=["highpass", "lowpass", "noise_freqs", "enable"],
+                    names=["enable", "highpass", "lowpass", "noise_freqs", "filter_order", "notch_order", "filter_type", "method"],
                 )
             except RuntimeError:
                 pass
-            self._filter_config = None
+            self._config_filter = None
         if self._config_fft is not None:
             try:
                 self._config_fft.unobserve(

@@ -18,7 +18,7 @@ class Pipeline(QObject):
 
     def __init__(self, device_manager, parent=None,
                  time_config=None,
-                 filter_config=None,
+                 config_filter=None,
                  config_detrend=None,
                  config_device=None,
                  config_fft=None,
@@ -27,7 +27,7 @@ class Pipeline(QObject):
 
         self._device_manager = device_manager
         self._time_config = time_config
-        self._filter_config = filter_config
+        self._config_filter = config_filter
         self._config_detrend = config_detrend
         self._config_device = config_device
         self._config_fft = config_fft
@@ -68,7 +68,7 @@ class Pipeline(QObject):
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)
         self._chain = DataChain(
             self._config_detrend,
-            self._filter_config,
+            self._config_filter,
             self._config_fft,
             self._config_psd
         )

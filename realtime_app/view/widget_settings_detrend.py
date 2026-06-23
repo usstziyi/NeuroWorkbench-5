@@ -40,7 +40,6 @@ class WidgetSettingsDetrend(QWidget):
         form_layout = QFormLayout()
         w, self._combo_detrend, self._switch_detrend = make_combo_switch(DetrendMethodEnum)
         form_layout.addRow("去趋势算法", w)
-        main_layout.addLayout(form_layout)
         self._combo_detrend_type = QEnumComboBox(enum_class=DetrendTypeEnum)
         form_layout.addRow("去趋势类型", self._combo_detrend_type)
         main_layout.addLayout(form_layout)

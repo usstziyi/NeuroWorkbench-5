@@ -37,8 +37,8 @@ class DialogSettingsDataChain(QDialog):
         body_layout = QHBoxLayout()
 
         nav_items = [
-            ("取数据模式",     partial(WidgetSettingsFetcher, binder_fetcher=self._binder_fetcher)),
-            ("去趋势参数", partial(WidgetSettingsDetrend, binder_detrend=self._binder_detrend)),
+            ("取数据模式",   partial(WidgetSettingsFetcher, binder_fetcher=self._binder_fetcher)),
+            ("去趋势参数",   partial(WidgetSettingsDetrend, binder_detrend=self._binder_detrend)),
             ("滤波器参数",   partial(WidgetSettingsFilter, binder_filter=self._binder_filter)),
             ("傅里叶变换",   partial(WidgetSettingsFFT, binder_fft=self._binder_fft)),
             ("功率谱密度",   partial(WidgetSettingsPSD, binder_psd=self._binder_psd)),

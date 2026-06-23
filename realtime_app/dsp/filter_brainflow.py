@@ -24,6 +24,9 @@ _FilterTypes_TO_BF = {
     "butterworth": FilterTypes.BUTTERWORTH,
     "cheby": FilterTypes.CHEBYSHEV_TYPE_1,
     "bessel": FilterTypes.BESSEL,
+    "butterworth_zero_phase": FilterTypes.BUTTERWORTH_ZERO_PHASE,
+    "cheby_zero_phase": FilterTypes.CHEBYSHEV_TYPE_1_ZERO_PHASE,
+    "bessel_zero_phase": FilterTypes.BESSEL_ZERO_PHASE,
 }
 
 def compute_filter(

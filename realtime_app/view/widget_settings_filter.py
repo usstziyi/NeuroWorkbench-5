@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QVBoxLayout, QFormLayout, QWidget, QDoubleSpinBox,
+    QVBoxLayout, QFormLayout, QWidget, QDoubleSpinBox, QSpinBox
 )
 from enum import StrEnum, IntEnum
 from superqt import QEnumComboBox
@@ -20,10 +20,21 @@ class NotchFilterEnum(IntEnum):
     """陷波频率枚举类."""
     Hz_50 = 50
     Hz_60 = 60
-    None = 0
+    Hz_0 = 0
 
     def __str__(self):
         return f"{self.value}Hz"
+
+class FilterTypeEnum(StrEnum):
+    butterworth = "butterworth"
+    cheby = "cheby"
+    bessel = "bessel"
+    butterworth_zero_phase = "butterworth_zero_phase"
+    cheby_zero_phase = "cheby_zero_phase"
+    bessel_zero_phase = "bessel_zero_phase"
+
+    def __str__(self):
+        return self.value
 
 
 class WidgetSettingsFilter(QWidget):
@@ -61,6 +72,23 @@ class WidgetSettingsFilter(QWidget):
 
         self._combo_notch = QEnumComboBox(enum_class=NotchFilterEnum)
         form_layout.addRow("陷波频率:", self._combo_notch)
+
+        self._slider_filter_order = QSpinBox()
+        self._slider_filter_order.setRange(1, 10)
+        self._slider_filter_order.setSingleStep(1)
+        self._slider_filter_order.setValue(4)
+        self._slider_filter_order.setSuffix("阶")
+        form_layout.addRow("滤波阶数:", self._slider_filter_order)
+
+        self._slider_notch_order = QSpinBox()
+        self._slider_notch_order.setRange(1, 10)
+        self._slider_notch_order.setSingleStep(1)
+        self._slider_notch_order.setValue(2)
+        self._slider_notch_order.setSuffix("阶")
+        form_layout.addRow("陷波阶数:", self._slider_notch_order)
+
+        self._combo_filter_type = QEnumComboBox(enum_class=FilterTypeEnum)
+        form_layout.addRow("滤波器类型:", self._combo_filter_type)
 
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
@@ -104,6 +132,28 @@ class WidgetSettingsFilter(QWidget):
             to_widget_func=lambda v: NotchFilterEnum(v),
             from_widget_func=lambda v: v.value,
         )
+        b.bind(
+            "filter_order",
+            self._slider_filter_order,
+            widget_property="value",
+            widget_signal="valueChanged",
+        )
+        b.bind(
+            "notch_order",
+            self._slider_notch_order,
+            widget_property="value",
+            widget_signal="valueChanged",
+        )
+        b.bind(
+            "filter_type",
+            self._combo_filter_type,
+            widget_property="currentEnum",
+            widget_signal="currentEnumChanged",
+            to_widget_func=lambda v: FilterTypeEnum(v),
+            from_widget_func=lambda v: v.value,
+        )
+
+
 
         b.snapshot()
 
@@ -116,3 +166,6 @@ class WidgetSettingsFilter(QWidget):
         b.unbind("highpass")
         b.unbind("lowpass")
         b.unbind("noise_freqs")
+        b.unbind("filter_order")
+        b.unbind("notch_order")
+        b.unbind("filter_type")

@@ -2,7 +2,7 @@
 from .detrend_strategy import compute_detrend, set_strategy_detrend
     
 # 滤波策略统一入口（推荐）
-from .filter_strategy import compute_filter, apply_filters, reset_state, FilterMethodEnum, set_strategy_filter, get_strategy_filter
+from .filter_strategy import compute_filter, set_strategy_filter
 
 # FFT 策略统一入口（推荐）
 from .fft_strategy import compute_fft, set_strategy_fft

@@ -240,6 +240,7 @@ def compute_filter(
     # seconds 只影响流式缓冲区截断，不影响滤波器指纹
     _stream_state["seconds"] = seconds
 
+    # 无状态模式
     if not streaming:
         return _filter_static(data, zero_phase=zero_phase)
 

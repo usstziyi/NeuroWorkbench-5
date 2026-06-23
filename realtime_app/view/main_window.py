@@ -247,7 +247,7 @@ class MainWindow(QMainWindow):
             self._device_manager,
             parent=self,
             time_config=self.config_time,
-            filter_config=self.config_filter,
+            config_filter=self.config_filter,
             config_detrend=self.config_detrend,
             config_device=self.config_device,
             config_fft=self.config_fft,
