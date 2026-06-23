@@ -58,7 +58,6 @@ def compute_detrend(data: np.ndarray, type: str = "constant") -> np.ndarray:
     Returns:
         去趋势后的数组，形状与输入相同。
     """
-    print(f"compute_detrend: {_current.value}, type: {type}")
 
     if _current == DetrendMethodEnum.detrend_numpy:
         return _detrend_numpy(data)
