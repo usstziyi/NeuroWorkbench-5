@@ -108,7 +108,7 @@ class DataChain(QObject):
         #     ampls_result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
         #     self.ampls_ready.emit(ampls_result)
 
-        
+        # 4. 计算 Welch PSD
         if self._psd_enable:
             psd_2d, freqs = compute_psd(
                 data=raw_data,

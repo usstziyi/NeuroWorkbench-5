@@ -24,8 +24,8 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = ''
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 
 #------------------------------------------------------------------------------
 # ConfigFetcher configuration
@@ -38,7 +38,7 @@ c.ConfigFetcher.mode = 'full'
 c.ConfigFilter.enable = True
 c.ConfigFilter.filter_order = 4
 c.ConfigFilter.filter_type = 'butterworth'
-c.ConfigFilter.highpass = 12.5
+c.ConfigFilter.highpass = 5.0
 c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.method = 'filter_sosfilt_scipy'
 c.ConfigFilter.noise_freqs = 50
@@ -55,19 +55,19 @@ c.ConfigDetrend.method = 'detrend_scipy'
 # ConfigFFT configuration
 #------------------------------------------------------------------------------
 c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
-c.ConfigFFT.enable = False
+c.ConfigFFT.enable = True
 c.ConfigFFT.method = 'fft_brainflow'
-c.ConfigFFT.nfft = 512
+c.ConfigFFT.nfft = 256
 c.ConfigFFT.smooth_factor = 0.92
 c.ConfigFFT.window_type = 'Hamming'
 
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 690.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 100.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 80.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
 c.ConfigFreqsDomain.nfft = 512
@@ -79,7 +79,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 1690.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
@@ -93,8 +93,8 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.enable = True
-c.ConfigPSD.method = 'psd_welch_scipy'
-c.ConfigPSD.nperseg = 256
+c.ConfigPSD.method = 'psd_welch_brainflow'
+c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 
