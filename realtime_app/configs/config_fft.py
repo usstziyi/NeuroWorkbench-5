@@ -24,6 +24,11 @@ class ConfigFFT(Configurable):
         help="Number of points for the FFT. Determines frequency bin width (df = fs / nfft). "
              "Recommended: power of 2 (e.g., 256, 512, 1024) for optimal performance."
     ).tag(config=True)
+
+    window_type = Unicode(
+        "Hamming", 
+        help="Window function for FFT. Options: 'Hamming', 'Hann', 'Blackman', 'Rectangular'."
+    ).tag(config=True)
     
     smooth_factor = Float(
         0.92, 

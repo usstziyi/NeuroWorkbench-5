@@ -89,6 +89,7 @@ class MainWindow(QMainWindow):
         self.config_time = self._binder_time.model if self._binder_time else None
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
         self.config_psd = self._binder_psd.model if self._binder_psd else None
+        self.config_fft = self._binder_fft.model if self._binder_fft else None
 
         self.setWindowTitle(self._app_name)
 
@@ -250,6 +251,7 @@ class MainWindow(QMainWindow):
             detrend_config=self.config_detrend,
             freqs_config=self.config_freqs,
             device_config=self.config_device,
+            config_fft=self.config_fft,
         )
         self._pipeline.data_ready.connect(self.center_widget.set_all_data)
         self._pipeline.ampls_ready.connect(self.bottom_widget.set_all_data)

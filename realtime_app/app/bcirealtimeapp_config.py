@@ -53,9 +53,10 @@ c.ConfigDetrend.method = 'detrend_scipy'
 #------------------------------------------------------------------------------
 c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
 c.ConfigFFT.enable = True
-c.ConfigFFT.method = 'fft_brainflow'
-c.ConfigFFT.nfft = 512
+c.ConfigFFT.method = 'fft_rfft_scipy'
+c.ConfigFFT.nfft = 256
 c.ConfigFFT.smooth_factor = 0.92
+c.ConfigFFT.window_type = 'Hamming'
 
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration

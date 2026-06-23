@@ -21,7 +21,8 @@ class Pipeline(QObject):
                  filter_config=None,
                  detrend_config=None,
                  freqs_config=None,
-                 device_config=None):
+                 device_config=None,
+                 config_fft=None):
         super().__init__(parent)
 
         self._device_manager = device_manager
@@ -30,6 +31,9 @@ class Pipeline(QObject):
         self._detrend_config = detrend_config
         self._freqs_config = freqs_config
         self._device_config = device_config
+        self._config_fft = config_fft
+
+
 
         self._fetcher = None
         self._chain = None
@@ -62,7 +66,7 @@ class Pipeline(QObject):
 
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
         self._fetcher = BoardFetcher(self._device_manager, self._time_config)
-        self._chain = DataChain(self._detrend_config, self._filter_config, self._freqs_config)
+        self._chain = DataChain(self._detrend_config, self._filter_config, self._config_fft)
 
         # fetcher → chain (引用)
         self._fetcher.raw_data_ready.connect(self._chain.process)

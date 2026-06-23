@@ -16,18 +16,11 @@ _WINDOW_FN = {
 }
 
 
-def _nearest_power_of_two(n: int) -> int:
-    """返回不大于 n 的最大 2 的幂。"""
-    if n < 2:
-        return 1
-    return 1 << (n.bit_length() - 1)
-
-
 def compute_fft(
     data: np.ndarray,
     sampling_rate: int,
     nfft: int | None = None,
-    window: str = "Hamming",
+    window: str = "Hann",
 ) -> tuple[np.ndarray, np.ndarray]:
     """直接 FFT，返回单边幅度谱。与 fft_brainflow.compute_fft 接口对齐。
 
@@ -35,18 +28,13 @@ def compute_fft(
         data: 二维时域信号，形状 (n_channels, n_samples)。
         sampling_rate: 采样率 (Hz)。
         nfft: FFT 点数（2 的幂），默认自动取 nearest_power_of_two(n_samples)。
-        window: 窗函数，默认 "Hamming"。
+        window: 窗函数，默认 "Hann"。
 
     Returns:
         (freqs, ampls)。
         freqs: 一维 (nfft//2+1,)。
         ampls: 二维 (n_channels, nfft//2+1)。
     """
-    n_samples = data.shape[-1]
-    if nfft is None or nfft > n_samples:
-        nfft = _nearest_power_of_two(n_samples)
-        while nfft > n_samples:
-            nfft = max(nfft // 2, 2)
 
     data = data[:, -nfft:]  # 只取末尾 nfft 个样本
 

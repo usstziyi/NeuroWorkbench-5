@@ -1,10 +1,8 @@
 from PySide6.QtCore import QObject, Signal
 from dsp import detrend
 from dsp import apply_filters, reset_state
-from dsp import compute_spectrum_amplitude_fft
-from dsp import SpectrumSmoother, smooth_spectrum_freq
-from dsp import make_spectrogram
-from dsp import get_psd_welch_multichannel
+
+from dsp import compute_fft,set_strategy_fft
 
 
 
@@ -24,11 +22,11 @@ class DataChain(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
-    def __init__(self, detrend_config=None, filter_config=None, freqs_config=None):
+    def __init__(self, detrend_config=None, filter_config=None, config_fft=None):
         super().__init__()
         self._detrend_config = detrend_config
         self._filter_config = filter_config
-        self._freqs_config = freqs_config
+        self._config_fft = config_fft
         
         # 去趋势参数
         self._detrend_enabled = True
@@ -39,15 +37,13 @@ class DataChain(QObject):
         self._sampling_rate = 250
         self._noise_freqs = 50
 
-        # 频谱参数
+        # FFT参数
         self._fft_enable = False    
-        self._dsp_enable = False
         self._window_type: str = "Hamming"
-        self._smooth_factor = 0.92
         self._nfft = 256
-        self._channels = {}
-        self._smoother = SpectrumSmoother()
-        self._add_frame, _ = make_spectrogram(n_frames=100)
+
+        # PSD参数
+        self._psd_enable = False
 
         self.observe_configs()
 
@@ -82,17 +78,35 @@ class DataChain(QObject):
         # 3. 计算频幅谱
         if self._fft_enable:
 
+            freqs, ampls_2d = compute_fft(
+                data=raw_data,
+                sampling_rate=int(self._sampling_rate),
+                nfft=self._nfft,
+                window=self._window_type,
+            )
 
-            # 3.1 计算 Welch PSD
+            if freqs is None:
+                return
 
-            if raw_data.shape[1] >= 512:
-                ampls_2d, freqs = get_psd_welch_multichannel(
-                    data=raw_data,
-                    n_fft=512,
-                    overlap=256,
-                    sampling_rate=int(self._sampling_rate),
-                    window=1,
-                )
+            ampls_result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
+            self.ampls_ready.emit(ampls_result)
+
+            # # 4. 时频图
+            # if ampls_2d.shape[1] == self._nfft//2+1:
+            #     spectrogram_2d = self._add_frame(ampls_2d)
+            #     self.spectrogram_ready.emit({"image": spectrogram_2d, "freqs": freqs})
+
+
+            # # 3.1 计算 Welch PSD
+
+            # if raw_data.shape[1] >= 512:
+            #     ampls_2d, freqs = get_psd_welch_multichannel(
+            #         data=raw_data,
+            #         n_fft=512,
+            #         overlap=256,
+            #         sampling_rate=int(self._sampling_rate),
+            #         window=1,
+            #     )
 
 
 
@@ -109,14 +123,8 @@ class DataChain(QObject):
             # ampls_2d = self._smoother.update(ampls_2d, self._smooth_factor)
 
 
-                ampls_result = {name: (freqs, ampls_2d[i])
-                            for i, name in enumerate(names)}
-                self.ampls_ready.emit(ampls_result)
 
-                # 4. 时频图
-                if ampls_2d.shape[1] == self._nfft//2+1:
-                    spectrogram_2d = self._add_frame(ampls_2d)
-                    self.spectrogram_ready.emit({"image": spectrogram_2d, "freqs": freqs})
+
 
 
     def observe_configs(self):
@@ -137,16 +145,28 @@ class DataChain(QObject):
                 names=[ "enable", "highpass", "lowpass", "noise_freqs"],
             )
 
-        if self._freqs_config is not None:
-            self._window_type = str(self._freqs_config.window_type)
-            self._fft_enable = self._freqs_config.fft_enable
-            self._dsp_enable = self._freqs_config.dsp_enable
-            self._nfft = self._freqs_config.nfft
-            self._channels = self._freqs_config.channels
-            self._freqs_config.observe(
-                self._on_freq_changed,
-                names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft", "channels"],
+        if self._config_fft is not None:
+            self._fft_enable = self._config_fft.enable
+            self._nfft = self._config_fft.nfft
+            self._window_type = str(self._config_fft.window_type)
+            set_strategy_fft(self._config_fft.method)
+            self._config_fft.observe(
+                self._on_fft_changed,
+                names=["enable", "nfft", "window_type", "method"],
             )
+
+
+
+    def _on_fft_changed(self, change):
+        name = change["name"]
+        if name == "enable":
+            self._fft_enable = change["new"]
+        elif name == "nfft":
+            self._nfft = change["new"]
+        elif name == "window_type":
+            self._window_type = str(change["new"])
+        elif name == "method":
+            set_strategy_fft(change["new"])
 
     def _on_detrend_changed(self, change):
         self._detrend_enabled = change["new"]
@@ -161,22 +181,6 @@ class DataChain(QObject):
             self._filter_enabled = change["new"]
         elif name == "noise_freqs":
             self._noise_freqs = change["new"]
-
-    def _on_freq_changed(self, change):
-        name = change["name"]
-        if name == "fft_enable":
-            self._fft_enable = change["new"]
-        elif name == "dsp_enable":
-            self._dsp_enable = change["new"]
-        elif name == "window_type":
-            self._window_type = str(change["new"])
-        elif name == "smooth_factor":
-            self._smooth_factor = change["new"]
-        elif name == "nfft":
-            self._nfft = change["new"]
-        elif name == "channels":
-            self._channels = change["new"]
-
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
@@ -197,15 +201,15 @@ class DataChain(QObject):
             except RuntimeError:
                 pass
             self._filter_config = None
-        if self._freqs_config is not None:
+        if self._config_fft is not None:
             try:
-                self._freqs_config.unobserve(
-                    self._on_freq_changed,
-                    names=["fft_enable", "dsp_enable", "window_type", "smooth_factor", "nfft", "channels"],
+                self._config_fft.unobserve(
+                    self._on_fft_changed,
+                    names=["enable", "nfft", "window_type", "method"],
                 )
             except RuntimeError:
                 pass
-            self._freqs_config = None
+            self._config_fft = None
 
     def dismiss(self):
         self.unobserve_configs()
