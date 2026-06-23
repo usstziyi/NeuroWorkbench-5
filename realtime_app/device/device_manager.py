@@ -271,8 +271,7 @@ class DeviceManager:
             freq = base_freq * (i + 1)
             data[i+1, :] = (10 * np.sin(2 * np.pi * freq * t)
                               + 30 * np.sin(2 * np.pi * 2 * freq * t)
-                              + 15 * np.sin(2 * np.pi * 3 * freq * t)
-                              + 5 * np.random.randn(n_samples))
+                              + 15 * np.sin(2 * np.pi * 3 * freq * t))
             # data[i+1, :] = 100 * np.sin(2 * np.pi * freq * t) + np.random.randn(n_samples)
         return data
 
