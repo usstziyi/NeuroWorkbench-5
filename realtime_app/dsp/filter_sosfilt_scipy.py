@@ -1,4 +1,4 @@
-"""流式 IIR 滤波器模块（全量版）—— 基于 scipy.signal SOS 实现。
+"""IIR 滤波器模块 —— 基于 scipy.signal SOS，支持无状态/有状态双模。
 
 (SOS) Second-Order Sections 二阶滤波器设计
 (IIR) Infinite Impulse Response 无限脉冲响应
@@ -6,32 +6,54 @@ SOS 是 IIR 滤波器的一种实现形式，不是并列关系。
 高阶 IIR 滤波器直接用多项式系数 (b, a) 实现时，对数值误差极其敏感；
 SOS 将高阶 IIR 拆成多个二阶节级联，每个节仅含 2 极点 2 零点，数值稳定得多。
 
-与 filters_stream_iir.py 的核心区别：
-    - 每次调用 apply_filters() 对整个窗口做全量滤波
-    - 缓存滤波器系数，参数不变时不重复设计
-    - 无内部状态维护，适合不需要增量处理的场景
+双模切换:
+    streaming=False — 无状态滤波：每帧用零 zi 独立滤波，无帧间记忆。
+    streaming=True  — 有状态滤波：首帧全量初始捕获 zi，后续只滤新增样本，
+                      跨帧连续，无左端振铃。
 
-⚠️ 注意：本模块使用模块级全局缓存，非线程安全。
-   若在多线程环境中使用，请为每个线程创建独立实例或加锁。
+管线顺序: BandPass → Notch
 
-对外接口 apply_filters() 签名与 filters_brainflow.py 完全兼容。
+用法:
+    from dsp.filter_sosfilt_scipy import compute_filter, reset_state
+
+    # 有状态
+    filtered = compute_filter(data, streaming=True)
+
+    # 无状态
+    filtered = compute_filter(data, streaming=False)
+
+⚠️ 模块级全局缓存，非线程安全。
 """
 
 import numpy as np
 from scipy.signal import butter, sosfilt, sosfiltfilt
-from typing import Literal
 
 
 # ---------------------------------------------------------------------------
-# 模块级缓存 —— 仅缓存滤波器系数，无运行时状态
+# 滤波器系数缓存（仅存影响滤波器设计本身的参数）
 # ---------------------------------------------------------------------------
-_cache: dict = {
+_coeff_cache: dict = {
     "params_tuple": None,
     "sos_bp": None,
     "sos_notch": None,
 }
 
 
+# ---------------------------------------------------------------------------
+# 有状态模式运行时状态（仅 streaming=True 时使用）
+# ---------------------------------------------------------------------------
+_stream_state: dict = {
+    "saved_output": None,    # (n_channels, n_samples) 上帧完整滤波结果
+    "zi_bp": None,           # (n_sections_bp, n_channels, 2) 带通 zi
+    "zi_notch": None,        # (n_sections_notch, n_channels, 2) 陷波 zi
+    "seconds": 5,            # 窗口保留秒数
+}
+
+
+# ---------------------------------------------------------------------------
+# 参数打包 & 滤波器设计
+# ---------------------------------------------------------------------------
+# 打包滤波器指纹
 def _params_tuple(
     sampling_rate: float,
     highpass: float,
@@ -40,18 +62,12 @@ def _params_tuple(
     noise_freqs: float,
     notch_order: int,
 ) -> tuple:
-    """将滤波参数打包为元组，用于检测参数变化。"""
     return (sampling_rate, highpass, lowpass, order, noise_freqs, notch_order)
 
-
-# ---------------------------------------------------------------------------
-# 内部滤波器设计函数
-# ---------------------------------------------------------------------------
 
 def _design_bandpass_sos(
     sampling_rate: float, highpass: float, lowpass: float, order: int
 ) -> np.ndarray | None:
-    """设计 Butterworth 带通滤波器（SOS 格式）。"""
     nyq = sampling_rate / 2.0
     if highpass > 0 and lowpass < nyq and highpass < lowpass:
         return butter(
@@ -67,15 +83,9 @@ def _design_bandpass_sos(
 def _design_notch_sos(
     sampling_rate: float, noise_freqs: float, order: int = 2
 ) -> np.ndarray | None:
-    """设计工频陷波器（Butterworth 带阻，±2 Hz 带宽，SOS 格式）。
-
-    Args:
-        order: 陷波器阶数，默认 2（即 1 个二阶节），通常足够抑制工频。
-               过高阶数会在阻带边缘引入更陡的相位畸变。
-    """
     if noise_freqs <= 0:
         return None
-    bw = 4.0  # stopband 总宽度 4 Hz
+    bw = 4.0
     nyq = sampling_rate / 2.0
     low = max(0.5, noise_freqs - bw / 2.0)
     high = min(nyq - 0.5, noise_freqs + bw / 2.0)
@@ -90,37 +100,101 @@ def _design_notch_sos(
     )
 
 
+def _ensure_coeffs(
+    sampling_rate: float,
+    highpass: float,
+    lowpass: float,
+    order: int,
+    noise_freqs: float,
+    notch_order: int,
+) -> None:
+    """检查滤波器指纹是否匹配"""
+    # 生成滤波器指纹
+    pt = _params_tuple(sampling_rate, highpass, lowpass, order, noise_freqs, notch_order)
+    # 检查指纹是否匹配
+    if pt != _coeff_cache["params_tuple"]:
+        # 指纹变了，重建sos_bp/sos_notch
+        _coeff_cache["params_tuple"] = pt
+        _coeff_cache["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
+        _coeff_cache["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs, notch_order)
+        # 清空旧zi 和 上帧输出
+        _stream_state["saved_output"] = None
+        _stream_state["zi_bp"] = None
+        _stream_state["zi_notch"] = None
+
+
+
 # ---------------------------------------------------------------------------
-# 内部滤波实现
+# 无状态滤波（streaming=False）
 # ---------------------------------------------------------------------------
 
-def _full_filter(
-    data: np.ndarray, zero_phase: bool = False
-) -> np.ndarray:
-    """全量滤波 —— 对整个窗口做完整 IIR 滤波。
-
-    Args:
-        data: (n_channels, n_samples)
-        zero_phase: True 使用 sosfiltfilt（零相位，无瞬态但计算量翻倍），
-                    False 使用 sosfilt（因果滤波，左端有瞬态）。
-    """
-    sos_bp = _cache["sos_bp"]
-    sos_notch = _cache["sos_notch"]
+def _filter_static(data: np.ndarray, zero_phase: bool = False) -> np.ndarray:
+    """无状态滤波：2D 数组直接滤波，零 zi 启动，无帧间记忆。"""
+    sos_bp = _coeff_cache["sos_bp"]
+    sos_notch = _coeff_cache["sos_notch"]
     filt_fn = sosfiltfilt if zero_phase else sosfilt
 
-    result = np.empty_like(data)
+    x = data
+    if sos_bp is not None:
+        x = filt_fn(sos_bp, x, axis=-1)
+    if sos_notch is not None:
+        x = filt_fn(sos_notch, x, axis=-1)
+    return x
 
-    for ch in range(data.shape[0]):
-        x = data[ch].copy()  # 避免修改原始数据视图
 
-        if sos_bp is not None:
-            x = filt_fn(sos_bp, x)
+# ---------------------------------------------------------------------------
+# 有状态滤波（streaming=True）
+# ---------------------------------------------------------------------------
 
-        if sos_notch is not None:
-            x = filt_fn(sos_notch, x)
+def _filter_stream_init(data: np.ndarray) -> np.ndarray:
+    """冷启动：2D 全量滤波并捕获最终 zi 状态。"""
+    sos_bp = _coeff_cache["sos_bp"]
+    sos_notch = _coeff_cache["sos_notch"]
+    n_channels = data.shape[0]
+    x = data
 
-        result[ch] = x
+    if sos_bp is not None:
+        n_sections_bp = sos_bp.shape[0]
+        zi_bp = np.zeros((n_sections_bp, n_channels, 2))
+        x, zi_bp = sosfilt(sos_bp, x, axis=-1, zi=zi_bp)
+    else:
+        zi_bp = None
 
+    if sos_notch is not None:
+        n_sections_notch = sos_notch.shape[0]
+        zi_notch = np.zeros((n_sections_notch, n_channels, 2))
+        x, zi_notch = sosfilt(sos_notch, x, axis=-1, zi=zi_notch)
+    else:
+        zi_notch = None
+
+    _stream_state["zi_bp"] = zi_bp
+    _stream_state["zi_notch"] = zi_notch
+    _stream_state["saved_output"] = x
+    return x
+
+
+def _filter_stream_inc(new_data: np.ndarray) -> np.ndarray:
+    """增量滤波：仅处理新增样本，沿用上帧 zi。"""
+    sos_bp = _coeff_cache["sos_bp"]
+    sos_notch = _coeff_cache["sos_notch"]
+    sampling_rate = _coeff_cache["params_tuple"][0]
+    seconds = _stream_state["seconds"]
+    x = new_data
+
+    if sos_bp is not None:
+        x, zi_bp = sosfilt(sos_bp, x, axis=-1, zi=_stream_state["zi_bp"])
+        _stream_state["zi_bp"] = zi_bp
+
+    if sos_notch is not None:
+        x, zi_notch = sosfilt(sos_notch, x, axis=-1, zi=_stream_state["zi_notch"])
+        _stream_state["zi_notch"] = zi_notch
+
+    prev = _stream_state["saved_output"]
+    result = np.concatenate((prev, x), axis=1)
+    max_samples = int(seconds * sampling_rate)
+    if result.shape[1] > max_samples:
+        result = result[:, -max_samples:]
+    _stream_state["saved_output"] = result
     return result
 
 
@@ -128,47 +202,51 @@ def _full_filter(
 # 对外接口
 # ---------------------------------------------------------------------------
 
-def apply_filters(
+def compute_filter(
     data: np.ndarray,
     sampling_rate: float = 250.0,
     highpass: float = 0.5,
     lowpass: float = 45.0,
     order: int = 4,
-    filter_type: int = 0,
     noise_freqs: float = 50.0,
     notch_order: int = 2,
     zero_phase: bool = False,
+    streaming: bool = False,
+    seconds: int = 5,
 ) -> np.ndarray:
-    """对多通道信号执行全量滤波管线（逐通道）。
-
-    参数不变时复用缓存的滤波器系数。
+    """对多通道信号执行 IIR 滤波管线。
 
     Args:
-        data: 形状 (n_channels, n_samples) 的完整滑动窗口。
+        data: 形状 (n_channels, n_samples) 的信号数组。
         sampling_rate: 采样率 (Hz)。
         highpass: 高通截止频率 (Hz)，≤0 则跳过带通。
         lowpass: 低通截止频率 (Hz)，≥nyq 则跳过带通。
         order: 带通 Butterworth 阶数。
-        filter_type: 保留字段（兼容原接口）。当前仅支持 0 (Butterworth)，
-                     传入其他值将抛出 ValueError。
         noise_freqs: 工频噪声频率 (Hz)，≤0 表示不滤除。
         notch_order: 陷波器阶数，默认 2。
-        zero_phase: True → sosfiltfilt（零相位，消除左端瞬态）；
-                    False → sosfilt（因果滤波，计算更快）。
-                    实时显示推荐 False，离线分析推荐 True。
+        zero_phase: True → sosfiltfilt（零相位）；False → sosfilt。
+                    仅 streaming=False 时生效。
+        streaming: False → 无状态滤波，每帧独立；
+                   True  → 有状态滤波，跨帧连续。
+        seconds: 有状态模式下，保留的最近样本数（秒）。
 
     Returns:
         滤波后信号数组，形状与输入相同。
     """
-    if filter_type != 0:
-        raise ValueError(
-            f"filter_type={filter_type} 不支持，当前仅支持 0 (Butterworth)"
-        )
 
-    pt = _params_tuple(sampling_rate, highpass, lowpass, order, noise_freqs, notch_order)
-    if pt != _cache["params_tuple"]:
-        _cache["params_tuple"] = pt
-        _cache["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
-        _cache["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs, notch_order)
+    # 检查滤波器指纹
+    _ensure_coeffs(sampling_rate, highpass, lowpass, order, noise_freqs, notch_order)
 
-    return _full_filter(data, zero_phase=zero_phase)
+    # seconds 只影响流式缓冲区截断，不影响滤波器指纹
+    _stream_state["seconds"] = seconds
+
+    if not streaming:
+        return _filter_static(data, zero_phase=zero_phase)
+
+    # 有状态模式
+    if _stream_state["saved_output"] is None:
+        return _filter_stream_init(data)
+    else:
+        return _filter_stream_inc(data)
+
+

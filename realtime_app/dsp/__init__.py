@@ -1,8 +1,8 @@
 # 去趋势策略统一入口（推荐）
 from .detrend_strategy import compute_detrend, set_strategy_detrend
     
-# 策略统一入口（推荐）
-from .filter_strategy import apply_filters, reset_state, FilterStrategy, set_strategy, get_strategy
+# 滤波策略统一入口（推荐）
+from .filter_strategy import compute_filter, apply_filters, reset_state, FilterMethodEnum, set_strategy_filter, get_strategy_filter
 
 # FFT 策略统一入口（推荐）
 from .fft_strategy import compute_fft, set_strategy_fft

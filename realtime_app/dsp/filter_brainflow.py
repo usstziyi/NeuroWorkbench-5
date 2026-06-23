@@ -15,20 +15,24 @@ import numpy as np
 from brainflow.data_filter import DataFilter, FilterTypes, NoiseTypes
 
 
-def _noise_freqs_to_noise_type(noise_freqs: int) -> int | None:
-    """将工频频率值映射为 BrainFlow NoiseTypes 枚举值。"""
-    if noise_freqs <= 0:
-        return None
-    return NoiseTypes.FIFTY.value if noise_freqs <= 50 else NoiseTypes.SIXTY.value
 
+_NoiseTypes_TO_BF = {
+    "50": NoiseTypes.FIFTY,
+    "60": NoiseTypes.SIXTY,
+}
+_FilterTypes_TO_BF = {
+    "butterworth": FilterTypes.BUTTERWORTH,
+    "cheby": FilterTypes.CHEBYSHEV_TYPE_1,
+    "bessel": FilterTypes.BESSEL,
+}
 
-def apply_filters(
+def compute_filter(
     data: np.ndarray,
     sampling_rate: float = 250.0,
     highpass: float = 0.5,
     lowpass: float = 45.0,
     order: int = 4,
-    filter_type: int = FilterTypes.BUTTERWORTH.value,
+    filter_type: str = "butterworth",
     noise_freqs: int = 50,
 ) -> np.ndarray:
     """对多通道信号执行完整滤波管线（逐通道处理，in-place）。
@@ -49,27 +53,26 @@ def apply_filters(
     Returns:
         滤波后信号数组，形状与输入相同（与 data 同一对象）。
     """
+
+    filter_type_bf = _FilterTypes_TO_BF[filter_type]
+
     for ch in range(data.shape[0]):
-        # 1. BandPass（带通）—— 保留目标频段
         if highpass > 0 or lowpass < sampling_rate / 2:
-            # DataFilter.perform_bandpass 每次调用都会重新设计滤波器
             DataFilter.perform_bandpass(
                 data[ch],
                 int(sampling_rate),
                 highpass,
                 lowpass,
                 order,
-                filter_type,
+                filter_type_bf,
                 1.0,
             )
 
-        # 2. Environmental Noise —— 去除工频噪声
-        noise_type = _noise_freqs_to_noise_type(noise_freqs)
-        if noise_type is not None:
+        if str(noise_freqs) in _NoiseTypes_TO_BF:
             DataFilter.remove_environmental_noise(
                 data[ch],
                 int(sampling_rate),
-                noise_type,
+                _NoiseTypes_TO_BF[str(noise_freqs)],
             )
 
     return data
