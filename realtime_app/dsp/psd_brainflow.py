@@ -10,7 +10,7 @@ _WINDOW_TO_BF = {
 
 def compute_psd(
     data: np.ndarray,
-    len: int = 512,
+    nperseg: int = 512,
     sampling_rate: int = 250,
     window: str = "Hann",
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -18,6 +18,7 @@ def compute_psd(
 
     Args:
         data: (n_channels, n_samples) 二维信号数组。
+        nperseg: 窗口大小。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数类型，默认 "Hann"。
 
@@ -26,10 +27,10 @@ def compute_psd(
         freqs: (n_freqs,) 频率轴（所有通道相同）。
     """
     n_channels = data.shape[0]
+    data = data[:, -nperseg:]
 
-    data = data[:, -len:]
-    
-    psd = np.zeros((n_channels, len))
+    n_freqs = nperseg // 2 + 1
+    psd = np.zeros((n_channels, n_freqs))
     freqs = None
 
     window = _WINDOW_TO_BF[window]
@@ -43,7 +44,5 @@ def compute_psd(
         psd[ch] = amp
         if freqs is None:
             freqs = f  # 频率轴只需保存一次
-
-    print("psd_strategy computed")
 
     return psd, freqs

@@ -50,8 +50,8 @@ def get_strategy_psd() -> PSDMethodEnum:
 
 def compute_psd(
     data: np.ndarray,
-    nfft: int,
-    overlap: int,
+    nperseg: int,
+    overlap_ratio: float,
     sampling_rate: int,
     window: str = "Hann",
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
@@ -59,20 +59,22 @@ def compute_psd(
 
     Args:
         data: 二维时域信号，形状 (n_channels, n_samples)。
-        nfft: FFT 窗口大小。
-        overlap: 相邻窗口重叠的样本数（psd_brainflow 策略忽略此参数）。
+        nperseg: 窗口大小。
+        overlap_ratio: 相邻窗口重叠的样本数（psd_brainflow 策略忽略此参数）。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数，默认 "Hann"。
 
     Returns:
         (psd, freqs)，数据不足时返回 (None, None)。
     """
-    if nfft is not None and data.shape[-1] < nfft:
+    if nperseg is not None and data.shape[-1] < nperseg:
         return None, None
 
+    overlap = int(nperseg * overlap_ratio)
+
     if _current == PSDMethodEnum.psd_brainflow:
-        return _psd_brainflow(data, len=nfft, sampling_rate=sampling_rate, window=window)
+        return _psd_brainflow(data, nperseg, sampling_rate, window)
     elif _current == PSDMethodEnum.psd_welch_brainflow:
-        return _psd_welch_brainflow(data, nfft, overlap, sampling_rate, window)
-    else:
-        return _psd_welch_scipy(data, nfft, overlap, sampling_rate, window)
+        return _psd_welch_brainflow(data, nperseg, overlap, sampling_rate, window)
+    elif _current == PSDMethodEnum.psd_welch_scipy:
+        return _psd_welch_scipy(data, nperseg, overlap, sampling_rate, window)

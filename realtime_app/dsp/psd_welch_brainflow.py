@@ -10,7 +10,7 @@ _WINDOW_TO_BF = {
 
 def compute_psd(
     data: np.ndarray,
-    nfft: int,
+    nperseg: int,
     overlap: int,
     sampling_rate: int,
     window: str = "Hann",
@@ -19,7 +19,7 @@ def compute_psd(
 
     Args:
         data: (n_channels, n_samples) 二维信号数组。
-        nfft: FFT 窗口大小。
+        nperseg: 窗口大小。
         overlap: 相邻窗口重叠的样本数。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数类型，默认 "Hann"。
@@ -30,7 +30,7 @@ def compute_psd(
     """
     n_channels = data.shape[0]
 
-    n_freqs = nfft // 2 + 1
+    n_freqs = nperseg // 2 + 1
     psd = np.zeros((n_channels, n_freqs))
     freqs = None
 
@@ -38,11 +38,11 @@ def compute_psd(
 
     for ch in range(n_channels):
         amp, f = DataFilter.get_psd_welch(
-            data[ch], 
-            nfft, 
-            overlap, 
-            sampling_rate, 
-            window
+            data = data[ch], 
+            nfft = nperseg, # 窗口大小
+            overlap = overlap, 
+            fs = sampling_rate, 
+            window = window
         )
         psd[ch] = amp
         if freqs is None:

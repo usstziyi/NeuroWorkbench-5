@@ -249,9 +249,9 @@ class MainWindow(QMainWindow):
             time_config=self.config_time,
             filter_config=self.config_filter,
             detrend_config=self.config_detrend,
-            freqs_config=self.config_freqs,
             device_config=self.config_device,
             config_fft=self.config_fft,
+            config_psd=self.config_psd,
         )
         self._pipeline.data_ready.connect(self.center_widget.set_all_data)
         self._pipeline.ampls_ready.connect(self.bottom_widget.set_all_data)

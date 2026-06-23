@@ -1,8 +1,11 @@
+from this import d
+
 from PySide6.QtCore import QObject, Signal
 from dsp import detrend
 from dsp import apply_filters, reset_state
 
 from dsp import compute_fft,set_strategy_fft
+from dsp import compute_psd,set_strategy_psd
 
 
 
@@ -22,11 +25,12 @@ class DataChain(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
-    def __init__(self, detrend_config=None, filter_config=None, config_fft=None):
+    def __init__(self, detrend_config=None, filter_config=None, config_fft=None, config_psd=None):
         super().__init__()
         self._detrend_config = detrend_config
         self._filter_config = filter_config
         self._config_fft = config_fft
+        self._config_psd = config_psd
         
         # 去趋势参数
         self._detrend_enabled = True
@@ -44,6 +48,10 @@ class DataChain(QObject):
 
         # PSD参数
         self._psd_enable = False
+        self._nperseg = 512
+        self._overlap_ratio = 0.5
+        self._psd_window_type = "Hann"
+
 
         self.observe_configs()
 
@@ -75,21 +83,39 @@ class DataChain(QObject):
                   for i, name in enumerate(names)}
         self.data_ready.emit(result)
 
-        # 3. 计算频幅谱
-        if self._fft_enable:
+        # # 3. 计算频幅谱
+        # if self._fft_enable:
 
-            freqs, ampls_2d = compute_fft(
+        #     freqs, ampls_2d = compute_fft(
+        #         data=raw_data,
+        #         sampling_rate=int(self._sampling_rate),
+        #         nfft=self._nfft,
+        #         window=self._window_type,
+        #     )
+
+        #     if freqs is None:
+        #         return
+
+        #     ampls_result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
+        #     self.ampls_ready.emit(ampls_result)
+
+        
+        if self._psd_enable:
+            psd_2d, freqs = compute_psd(
                 data=raw_data,
+                nperseg=self._nperseg,
+                overlap_ratio=self._overlap_ratio,
                 sampling_rate=int(self._sampling_rate),
-                nfft=self._nfft,
-                window=self._window_type,
+                window=self._psd_window_type,
             )
 
-            if freqs is None:
+            if psd_2d is None:
                 return
 
-            ampls_result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
-            self.ampls_ready.emit(ampls_result)
+            psd_result = {name: (freqs, psd_2d[i]) for i, name in enumerate(names)}
+            self.ampls_ready.emit(psd_result)
+
+
 
             # # 4. 时频图
             # if ampls_2d.shape[1] == self._nfft//2+1:
@@ -154,8 +180,30 @@ class DataChain(QObject):
                 self._on_fft_changed,
                 names=["enable", "nfft", "window_type", "method"],
             )
+        
+        if self._config_psd is not None:
+            self._psd_enable = self._config_psd.enable
+            self._nperseg = self._config_psd.nperseg
+            self._overlap_rate = self._config_psd.overlap_ratio
+            self._psd_window_type = str(self._config_psd.window_type)
+            set_strategy_psd(self._config_psd.method)
+            self._config_psd.observe(
+                self._on_psd_changed,
+                names=["enable", "nperseg", "overlap_ratio", "window_type", "method"],
+            )
 
-
+    def _on_psd_changed(self, change):
+        name = change["name"]
+        if name == "enable":
+            self._psd_enable = change["new"]
+        elif name == "nperseg":
+            self._nperseg = change["new"]
+        elif name == "overlap_ratio":
+            self._overlap_rate = change["new"]
+        elif name == "window_type":
+            self._psd_window_type = str(change["new"])
+        elif name == "method":
+            set_strategy_psd(change["new"])
 
     def _on_fft_changed(self, change):
         name = change["name"]

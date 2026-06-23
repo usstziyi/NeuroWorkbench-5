@@ -18,7 +18,7 @@ _WINDOW_FN = {
 
 def compute_psd(
     data: np.ndarray,
-    nfft: int,
+    nperseg: int,
     overlap: int,
     sampling_rate: int,
     window: str = "Hann",
@@ -27,7 +27,7 @@ def compute_psd(
 
     Args:
         data: (n_channels, n_samples) 二维信号数组。
-        nfft: FFT 窗口大小。
+        nperseg: FFT 窗口大小。
         overlap: 相邻窗口重叠的样本数。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数类型，默认 "Hann"。
@@ -37,15 +37,14 @@ def compute_psd(
         freqs: (n_freqs,) 频率轴（所有通道相同）。
     """
 
-    win = _WINDOW_FN[window](nfft, sym=False)  # sym=False = periodic, 适合 FFT
+    win = _WINDOW_FN[window](nperseg, sym=False)  # sym=False = periodic, 适合 FFT
 
     freqs, psd = welch(
         data,
         fs=sampling_rate,
         window=win,
-        nperseg=nfft,
+        nperseg=nperseg,
         noverlap=overlap,
-        nfft=nfft,
         axis=-1,
     )
 
