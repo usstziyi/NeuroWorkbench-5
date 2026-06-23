@@ -38,9 +38,9 @@ c.ConfigFetcher.mode = 'full'
 c.ConfigFilter.enable = True
 c.ConfigFilter.filter_order = 4
 c.ConfigFilter.filter_type = 'butterworth'
-c.ConfigFilter.highpass = 5.0
+c.ConfigFilter.highpass = 12.5
 c.ConfigFilter.lowpass = 45.0
-c.ConfigFilter.method = 'filter_brainflow'
+c.ConfigFilter.method = 'filter_sosfilt_scipy'
 c.ConfigFilter.noise_freqs = 50
 c.ConfigFilter.notch_order = 2
 
@@ -49,7 +49,7 @@ c.ConfigFilter.notch_order = 2
 #------------------------------------------------------------------------------
 c.ConfigDetrend.detrend_type = 'constant'
 c.ConfigDetrend.enable = True
-c.ConfigDetrend.method = 'detrend_numpy'
+c.ConfigDetrend.method = 'detrend_scipy'
 
 #------------------------------------------------------------------------------
 # ConfigFFT configuration
@@ -64,7 +64,7 @@ c.ConfigFFT.window_type = 'Hamming'
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.01, 200.0]
+c.ConfigFreqsDomain.ampls_range = [0.01, 690.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
@@ -93,8 +93,8 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.enable = True
-c.ConfigPSD.method = 'psd_brainflow'
-c.ConfigPSD.nperseg = 512
+c.ConfigPSD.method = 'psd_welch_scipy'
+c.ConfigPSD.nperseg = 256
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 

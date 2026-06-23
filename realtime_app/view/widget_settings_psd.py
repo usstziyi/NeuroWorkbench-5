@@ -75,6 +75,15 @@ class WidgetSettingsPSD(QWidget):
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
+        # psd_brainflow 不使用 overlap
+        self._combo_psd.currentEnumChanged.connect(self._on_method_changed)
+        self._on_method_changed(self._combo_psd.currentEnum())
+
+    def _on_method_changed(self, method: PSDMethodEnum) -> None:
+        self._combo_overlap_ratio.setEnabled(
+            method != PSDMethodEnum.psd_brainflow
+        )
+
     def _binder_configs(self):
         if self._binder_psd is None:
             return

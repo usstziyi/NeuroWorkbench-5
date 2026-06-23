@@ -48,6 +48,9 @@ class DialogSettingsDataChain(QDialog):
         self._nav_list = QListWidget()
         self._nav_list.setFixedWidth(120)
         self._nav_list.setSpacing(2)
+        font = self._nav_list.font()
+        font.setPointSize(font.pointSize() + 2)
+        self._nav_list.setFont(font)
         self._stack = QStackedWidget()
         for label, factory in nav_items:
             item = QListWidgetItem(label)
