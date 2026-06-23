@@ -178,12 +178,14 @@ class ControlPanelWidget(QWidget):
         self.bp_high_spin = QDoubleSpinBox()
         self.bp_high_spin.setRange(0.1, 20.0) # 真实区间
         self.bp_high_spin.setSingleStep(0.1)
+        self.bp_high_spin.setDecimals(1)
         self.bp_high_spin.setSuffix(" Hz")
         filter_layout.addRow("高通滤波:", self.bp_high_spin)
         # BandPass low
         self.bp_low_spin = QDoubleSpinBox()
         self.bp_low_spin.setRange(20.0, 100.0) # 真实区间
         self.bp_low_spin.setSingleStep(0.1)
+        self.bp_low_spin.setDecimals(1) 
         self.bp_low_spin.setSuffix(" Hz")
         filter_layout.addRow("低通滤波:", self.bp_low_spin)
         # powerline

@@ -1,9 +1,6 @@
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QVBoxLayout, QFormLayout, QWidget,
+    QVBoxLayout, QFormLayout, QWidget, QDoubleSpinBox,
 )
-
-from superqt import QLabeledDoubleSlider
 from enum import StrEnum, IntEnum
 
 from utils.make_container import make_combo_switch
@@ -45,16 +42,20 @@ class WidgetSettingsFilter(QWidget):
         w, self._combo_filter, self._switch_filter = make_combo_switch(FilterMethodEnum)
         form_layout.addRow("滤波算法:", w)
 
-        self._slider_high_pass = QLabeledDoubleSlider(Qt.Orientation.Horizontal)
+        self._slider_high_pass = QDoubleSpinBox()
         self._slider_high_pass.setRange(0.5, 20)
         self._slider_high_pass.setSingleStep(0.1)
+        self._slider_high_pass.setDecimals(1)
         self._slider_high_pass.setValue(5)
+        self._slider_high_pass.setSuffix(" Hz")
         form_layout.addRow("高通频率:", self._slider_high_pass)
 
-        self._slider_low_pass = QLabeledDoubleSlider(Qt.Orientation.Horizontal)
+        self._slider_low_pass = QDoubleSpinBox()
         self._slider_low_pass.setRange(20, 100)
         self._slider_low_pass.setSingleStep(0.1)
+        self._slider_low_pass.setDecimals(1)
         self._slider_low_pass.setValue(45)
+        self._slider_low_pass.setSuffix(" Hz")
         form_layout.addRow("低通频率:", self._slider_low_pass)
 
         w, self._combo_notch, self._switch_notch = make_combo_switch(NotchFilterEnum)

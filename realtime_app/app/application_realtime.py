@@ -131,6 +131,8 @@ class BCIRealtimeApp(Application):
             lines.append("#" + "-" * 78)
             for name, trait in sorted(obj.class_traits(config=True).items()):
                 value = getattr(obj, name)
+                if isinstance(value, float):
+                    value = round(value, 2)
                 lines.append("c.%s.%s = %s" % (cls_name, name, repr(value)))
             lines.append("")
 

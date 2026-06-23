@@ -36,11 +36,11 @@ c.ConfigFetcher.mode = 'incremental'
 # ConfigFilter configuration
 #------------------------------------------------------------------------------
 c.ConfigFilter.enable = True
-c.ConfigFilter.highpass = 4.982758620689655
+c.ConfigFilter.highpass = 5.0
 c.ConfigFilter.lowpass = 45.0
 c.ConfigFilter.method = 'filter_sosfilt_full_scipy'
 c.ConfigFilter.noise_freqs = 50
-c.ConfigFilter.notch_enable = False
+c.ConfigFilter.notch_enable = True
 
 #------------------------------------------------------------------------------
 # ConfigDetrend configuration
