@@ -39,6 +39,8 @@ def compute_psd(
 
     win = _WINDOW_FN[window](nperseg, sym=False)  # sym=False = periodic, 适合 FFT
 
+    # 每次新进的点要滞后2s后，才能滑动到data中间位置
+    # 所以跨帧psd，有滞后性
     freqs, psd = welch(
         data,
         fs=sampling_rate,

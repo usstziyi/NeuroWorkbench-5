@@ -35,7 +35,9 @@ def compute_psd(
     freqs = None
 
     window = _WINDOW_TO_BF[window]
-    
+
+    # 每次新进的点要滞后2s后，才能滑动到data中间位置
+    # 所以跨帧psd，有滞后性
     for ch in range(n_channels):
         amp, f = DataFilter.get_psd_welch(
             data = data[ch], 
