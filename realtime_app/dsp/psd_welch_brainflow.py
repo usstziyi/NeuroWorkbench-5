@@ -35,19 +35,17 @@ def compute_psd(
     freqs = None
 
     window = _WINDOW_TO_BF[window]
-
+    
     for ch in range(n_channels):
         amp, f = DataFilter.get_psd_welch(
             data = data[ch], 
             nfft = nperseg, # 窗口大小
             overlap = overlap, 
-            fs = sampling_rate, 
+            sampling_rate = sampling_rate, 
             window = window
         )
         psd[ch] = amp
         if freqs is None:
             freqs = f  # 频率轴只需保存一次
-
-    print("psd_welch_brainflow computed")
 
     return psd, freqs

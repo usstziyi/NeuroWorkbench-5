@@ -1,5 +1,3 @@
-from this import d
-
 from PySide6.QtCore import QObject, Signal
 from dsp import detrend
 from dsp import apply_filters, reset_state

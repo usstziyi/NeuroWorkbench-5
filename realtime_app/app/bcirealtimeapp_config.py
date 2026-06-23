@@ -64,7 +64,7 @@ c.ConfigFFT.window_type = 'Hamming'
 c.ConfigFreqsDomain.ampls_range = [0.01, 1000.0]
 c.ConfigFreqsDomain.dsp_enable = False
 c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.freqs_range = [0.0, 90.0]
 c.ConfigFreqsDomain.log_y = 'Log'
 c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
 c.ConfigFreqsDomain.nfft = 512
@@ -76,7 +76,7 @@ c.ConfigFreqsDomain.window_type = 'Hann'
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 90.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
@@ -90,8 +90,8 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.enable = True
-c.ConfigPSD.method = 'psd_welch_scipy'
-c.ConfigPSD.nperseg = 256
+c.ConfigPSD.method = 'psd_welch_brainflow'
+c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 
