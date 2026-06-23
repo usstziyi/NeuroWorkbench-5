@@ -42,7 +42,7 @@ class DataChain(QObject):
         # 频谱参数
         self._fft_enable = False    
         self._dsp_enable = False
-        self._window_type = None
+        self._window_type: str = "Hamming"
         self._smooth_factor = 0.92
         self._nfft = 256
         self._channels = {}
@@ -138,7 +138,7 @@ class DataChain(QObject):
             )
 
         if self._freqs_config is not None:
-            self._window_type = self._freqs_config.window_type
+            self._window_type = str(self._freqs_config.window_type)
             self._fft_enable = self._freqs_config.fft_enable
             self._dsp_enable = self._freqs_config.dsp_enable
             self._nfft = self._freqs_config.nfft
@@ -169,7 +169,7 @@ class DataChain(QObject):
         elif name == "dsp_enable":
             self._dsp_enable = change["new"]
         elif name == "window_type":
-            self._window_type = change["new"]
+            self._window_type = str(change["new"])
         elif name == "smooth_factor":
             self._smooth_factor = change["new"]
         elif name == "nfft":

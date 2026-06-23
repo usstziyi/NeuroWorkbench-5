@@ -7,7 +7,6 @@ from .filter_strategy import apply_filters, reset_state, FilterStrategy, set_str
 
 # 频谱分析（基于 BrainFlow DataFilter）
 from .spectrum_brainflow import (
-    WindowType,
     compute_spectrum_amplitude_fft,
     smooth_spectrum_freq,
     SpectrumSmoother,
