@@ -45,6 +45,7 @@ c.ConfigFilter.notch_enable = True
 #------------------------------------------------------------------------------
 # ConfigDetrend configuration
 #------------------------------------------------------------------------------
+c.ConfigDetrend.detrend_type = 'constant'
 c.ConfigDetrend.enable = True
 c.ConfigDetrend.method = 'detrend_scipy'
 
@@ -90,7 +91,7 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.enable = True
-c.ConfigPSD.method = 'psd_welch_scipy'
+c.ConfigPSD.method = 'psd_welch_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'

@@ -24,4 +24,5 @@ def detrend(data: np.ndarray, type: str = 'linear') -> np.ndarray:
     if type not in ["constant", "linear"]:
         raise ValueError(f"不支持的去趋势类型 '{type}'，可选: ['constant', 'linear']")
         
-    return scipy_detrend(data, axis=-1, type=type)
+    result = scipy_detrend(data, axis=-1, type=type)
+    return np.ascontiguousarray(result)

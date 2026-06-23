@@ -6,7 +6,7 @@ _DETREND_TYPE_MAP = {
     "linear": DetrendOperations.LINEAR.value,
 }
 
-def detrend_brainflow(data: np.ndarray, type: str = 'linear') -> np.ndarray:
+def detrend(data: np.ndarray, type: str = 'linear') -> np.ndarray:
     """去除直流漂移：逐通道调用 BrainFlow DataFilter.detrend（CONSTANT 模式）。
 
     Args:

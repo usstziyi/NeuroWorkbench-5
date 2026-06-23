@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from dsp import detrend
+from dsp import compute_detrend, set_strategy_detrend
 from dsp import apply_filters, reset_state
 
 from dsp import compute_fft,set_strategy_fft
@@ -23,15 +23,17 @@ class DataChain(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
-    def __init__(self, detrend_config=None, filter_config=None, config_fft=None, config_psd=None):
+    def __init__(self, config_detrend=None, filter_config=None, config_fft=None, config_psd=None):
         super().__init__()
-        self._detrend_config = detrend_config
+        self._config_detrend = config_detrend
         self._filter_config = filter_config
         self._config_fft = config_fft
         self._config_psd = config_psd
         
         # 去趋势参数
         self._detrend_enabled = True
+        self._detrend_type = 'constant'
+
         # 滤波参数
         self._filter_enabled = True
         self._highpass = 0.5
@@ -65,7 +67,11 @@ class DataChain(QObject):
 
         # 1. 去趋势
         if self._detrend_enabled:
-            raw_data = detrend(raw_data)
+            raw_data = compute_detrend(
+                data = raw_data, 
+                type = self._detrend_type
+            )
+
 
         # 2. 滤波（带通 → 环境噪声）
         if self._filter_enabled:
@@ -152,11 +158,12 @@ class DataChain(QObject):
 
 
     def observe_configs(self):
-        if self._detrend_config is not None:
-            self._detrend_enabled = self._detrend_config.enable
-            self._detrend_config.observe(
+        if self._config_detrend is not None:
+            self._detrend_enabled = self._config_detrend.enable
+            self._detrend_type = self._config_detrend.detrend_type
+            self._config_detrend.observe(
                 self._on_detrend_changed,
-                names=["enable"],
+                names=["enable", "detrend_type", "method"],
             )
 
         if self._filter_config is not None:
@@ -215,7 +222,13 @@ class DataChain(QObject):
             set_strategy_fft(change["new"])
 
     def _on_detrend_changed(self, change):
-        self._detrend_enabled = change["new"]
+        name = change["name"]
+        if name == "enable":
+            self._detrend_enabled = change["new"]
+        elif name == "detrend_type":
+            self._detrend_type = change["new"]
+        elif name == "method":
+            set_strategy_detrend(change["new"])
 
     def _on_filter_changed(self, change):
         name = change["name"]
@@ -230,14 +243,14 @@ class DataChain(QObject):
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
-        if self._detrend_config is not None:
+        if self._config_detrend is not None:
             try:
-                self._detrend_config.unobserve(
-                    self._on_detrend_changed, names=["enable"]
+                self._config_detrend.unobserve(
+                    self._on_detrend_changed, names=["enable", "detrend_type", "method"]
                 )
             except RuntimeError:
                 pass
-            self._detrend_config = None
+            self._config_detrend = None
         if self._filter_config is not None:
             try:
                 self._filter_config.unobserve(
