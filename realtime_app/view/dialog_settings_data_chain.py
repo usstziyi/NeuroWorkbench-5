@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem, QPushButton,
 )
 
+from binder import ConfigBinder
 from .widget_settings_fetcher import WidgetSettingsFetcher
 from .widget_settings_detrend import WidgetSettingsDetrend
 from .widget_settings_filter import WidgetSettingsFilter
@@ -13,18 +14,25 @@ from .widget_settings_psd import WidgetSettingsPSD
 from .widget_settings_spectrogram import WidgetSettingsSpectrogram
 
 
+def _make_independent_binder(source_binder):
+    """为同一个 model 创建独立的 ConfigBinder，避免绑定抢占。"""
+    return ConfigBinder(source_binder.model) if source_binder else None
+
+
 class DialogSettingsDataChain(QDialog):
     """Data chain settings dialog."""
     def __init__(self, binder_fetcher=None, binder_detrend=None, binder_filter=None,
                  binder_fft=None, binder_psd=None, binder_spectrogram=None,
                  parent=None):
         super().__init__(parent)
-        self._binder_fetcher = binder_fetcher
-        self._binder_detrend = binder_detrend
-        self._binder_filter = binder_filter
-        self._binder_fft = binder_fft
-        self._binder_psd = binder_psd
-        self._binder_spectrogram = binder_spectrogram
+        # 创建独立的 binder 实例，避免与 ControlPanelWidget 等共享 binder
+        # 造成 bind() 抢占（同一个 ConfigBinder 上同名 trait 只能绑定一个控件）
+        self._binder_fetcher = _make_independent_binder(binder_fetcher)
+        self._binder_detrend = _make_independent_binder(binder_detrend)
+        self._binder_filter = _make_independent_binder(binder_filter)
+        self._binder_fft = _make_independent_binder(binder_fft)
+        self._binder_psd = _make_independent_binder(binder_psd)
+        self._binder_spectrogram = _make_independent_binder(binder_spectrogram)
 
         self.setWindowTitle("数据链设置")
         self.setMinimumSize(640, 500)

@@ -1,5 +1,6 @@
 import sys
 from typing import Any
+import shiboken6
 from traitlets import HasTraits, Int, Unicode, Float, Bool, Enum, default, observe
 
 
@@ -145,6 +146,9 @@ class ConfigBinder:
     """
     @staticmethod
     def _set_widget_value(widget, prop_name, value):
+        # 控件 C++ 对象已销毁，跳过更新
+        if not shiboken6.isValid(widget):
+            return
         # 动态构造 Qt setter 方法名，如 setText, setValue, setChecked 等
         setter_name = f"set{prop_name[0].upper()}{prop_name[1:]}"
         # 在控件上查找这个 setter 方法，如果存在则调用，否则直接设置属性

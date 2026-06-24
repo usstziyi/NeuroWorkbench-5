@@ -118,6 +118,8 @@ class MainWindow(QMainWindow):
                                           binder_view_freqs=self._binder_view_freqs,
                                           binder_view_time=self._binder_view_time,
                                           binder_recorder=self._binder_recorder,
+                                          binder_psd=self._binder_psd,
+                                          binder_fft=self._binder_fft,
                                           device_manager=self._device_manager)
         self.left_dock.setWidget(left_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.left_dock)

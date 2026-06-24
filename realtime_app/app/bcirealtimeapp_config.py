@@ -66,8 +66,8 @@ c.ConfigFFT.window_type = 'Hamming'
 #------------------------------------------------------------------------------
 c.ConfigViewFreqs.freqs_range = [0.0, 60.0]
 c.ConfigViewFreqs.type = 'PSD'
-c.ConfigViewFreqs.y_max = 100.0
-c.ConfigViewFreqs.y_min = -100.0
+c.ConfigViewFreqs.y_max = 40.0
+c.ConfigViewFreqs.y_min = -66.0
 
 #------------------------------------------------------------------------------
 # ConfigViewTime configuration

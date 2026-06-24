@@ -80,6 +80,7 @@ class ControlPanelWidget(QWidget):
     def __init__(self, binder_device=None, binder_filter=None,
                  binder_detrend=None, binder_view_freqs=None,
                  binder_view_time=None, binder_recorder=None,
+                 binder_fft=None, binder_psd=None,
                  device_manager=None, parent=None):
         super().__init__(parent)
         # Python 的鸭子类型特性
@@ -89,7 +90,14 @@ class ControlPanelWidget(QWidget):
         self._binder_view_freqs = binder_view_freqs
         self._binder_view_time = binder_view_time
         self._binder_recorder = binder_recorder
+        self._binder_fft = binder_fft
+        self._binder_psd = binder_psd
         self._device_manager = device_manager
+
+        self._config_psd = self._binder_psd.model if self._binder_psd else None
+        self._config_fft = self._binder_fft.model if self._binder_fft else None
+
+
 
         self.init_ui()
         self.bind_configs()
@@ -209,7 +217,8 @@ class ControlPanelWidget(QWidget):
         self.type_combo = QEnumComboBox(enum_class=FreqsDomainType)
         freqs_domain_layout.addRow("频域类型:",self.type_combo)
 
-        
+
+
 
         self.y_max = QDoubleSpinBox()
         self.y_max.setRange(0.0, 10000.0)
@@ -221,22 +230,28 @@ class ControlPanelWidget(QWidget):
         self.y_min.setSingleStep(1)
         freqs_domain_layout.addRow("Y轴下界:",self.y_min)
 
-        self.type_combo.currentEnumChanged.connect(self._update_y_suffixes)
-        self._update_y_suffixes(self.type_combo.currentEnum())
-
-
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
         self.freqs_right.setRange(5, 125.0) # 区间右值
         self.freqs_right.setSingleStep(5)
         freqs_domain_layout.addRow("频率范围:",self.freqs_right)
 
-        return freqs_domain_group
+        self.type_combo.currentEnumChanged.connect(self._switch_freqs_type)
+        self._switch_freqs_type(self.type_combo.currentEnum())
 
-    def _update_y_suffixes(self, dtype):
+        return freqs_domain_group
+ 
+
+    def _switch_freqs_type(self, dtype):
         suffix = " μV²/Hz" if dtype == FreqsDomainType.psd else " μV"
         self.y_min.setSuffix(suffix)
         self.y_max.setSuffix(suffix)
+        if dtype == FreqsDomainType.psd:
+            self._config_psd.enable = True
+            self._config_fft.enable = False
+        else:
+            self._config_psd.enable = False
+            self._config_fft.enable = True
 
     def build_recorder_group(self):
         recorder_group = QGroupBox("信号录制")
@@ -431,7 +446,15 @@ class ControlPanelWidget(QWidget):
 
     
     def unobserve_configs(self):
-        """取消 config observe 注册。"""
+        """取消 config observe 注册及所有 binder 绑定。"""
+        # 解绑所有 ConfigBinder（断开信号 + 取消 model.observe）
+        for binder in (self._binder_device, self._binder_detrend,
+                        self._binder_filter, self._binder_view_freqs,
+                        self._binder_view_time, self._binder_recorder):
+            if binder is not None:
+                binder.unbind_all()
+
+        # 额外的直接 observe 也清理
         if self._binder_device is not None and hasattr(self, "_device_model"):
             try:
                 self._device_model.unobserve(

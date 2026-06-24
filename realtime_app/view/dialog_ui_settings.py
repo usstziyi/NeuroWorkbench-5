@@ -32,7 +32,8 @@ class DialogUiSettings(QDialog):
 
     def __init__(self, binder: ConfigBinder = None, parent=None):
         super().__init__(parent)
-        self._binder = binder
+        # 创建独立的 binder 实例，避免绑定抢占
+        self._binder = ConfigBinder(binder.model) if binder else None
         self.setWindowTitle("外观设置")
         self.resize(400, 300)
 
