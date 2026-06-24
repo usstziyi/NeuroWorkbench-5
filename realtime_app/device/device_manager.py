@@ -20,10 +20,10 @@ class DeviceManager:
     This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
-    def __init__(self, config_device=None, config_time_domain=None, config_freqs_domain=None):
+    def __init__(self, config_device=None, config_view_time=None, config_view_freqs=None):
         self._config_device = config_device
-        self._config_time_domain = config_time_domain
-        self._config_freqs_domain = config_freqs_domain
+        self._config_view_time = config_view_time
+        self._config_view_freqs = config_view_freqs
         self._board_id = -1
         self._board: BoardShim | None = None
         self._streaming = False
@@ -78,10 +78,10 @@ class DeviceManager:
         self._config_device.error_message = ""
         
 
-        if self._config_time_domain is not None:
-            self._config_time_domain.channels = {name: True for name in self.eeg_names}
-        if self._config_freqs_domain is not None:
-            self._config_freqs_domain.channels = {name: True for name in self.eeg_names}
+        if self._config_view_time is not None:
+            self._config_view_time.channels = {name: True for name in self.eeg_names}
+        if self._config_view_freqs is not None:
+            self._config_view_freqs.channels = {name: True for name in self.eeg_names}
         
         print(f"[dm]Connected to {name} with port {port}")
 

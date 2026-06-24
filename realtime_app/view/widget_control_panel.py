@@ -209,6 +209,8 @@ class ControlPanelWidget(QWidget):
         self.type_combo = QEnumComboBox(enum_class=FreqsDomainType)
         freqs_domain_layout.addRow("频域类型:",self.type_combo)
 
+        
+
         self.y_max = QDoubleSpinBox()
         self.y_max.setRange(0.0, 10000.0)
         self.y_max.setSingleStep(10)

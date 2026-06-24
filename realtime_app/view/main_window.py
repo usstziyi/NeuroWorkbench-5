@@ -210,12 +210,12 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(view_time_config=self.config_view_time, view_freqs_config=self.config_view_freqs, parent=self)
+        dialog = DialogChannelChoose(config_view_time=self.config_view_time, config_view_freqs=self.config_view_freqs, parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     def _show_device_info_dialog(self):
-        dialog = DialogDeviceInfo(device_config=self.config_device, parent=self)
+        dialog = DialogDeviceInfo(config_device=self.config_device, parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
@@ -230,9 +230,14 @@ class MainWindow(QMainWindow):
                 self.config_device,
                 self.config_filter,
                 self.config_detrend,
-                self.config_freqs,
-                self.config_time,
+                self.config_view_freqs,
+                self.config_view_time,
                 self.config_recorder,
+                self.config_psd,
+                self.config_spectrogram,
+                self.config_fft,
+                self.config_fetcher,
+                self.config_theme,
             ]
             for model in configs:
                 if model is None:

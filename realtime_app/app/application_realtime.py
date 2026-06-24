@@ -91,8 +91,8 @@ class BCIRealtimeApp(Application):
             save_config_callback=self._save_config,
             device_manager=DeviceManager(
                 config_device=self.config_device, 
-                config_time_domain=self.config_view_time,
-                config_freqs_domain=self.config_view_freqs
+                config_view_time=self.config_view_time,
+                config_view_freqs=self.config_view_freqs
             ),
             binder_theme=binder_theme,
             binder_device=binder_device,

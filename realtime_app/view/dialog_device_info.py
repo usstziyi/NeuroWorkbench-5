@@ -8,9 +8,9 @@ from superqt import QToggleSwitch
 
 class DialogDeviceInfo(QDialog):
     """Device info dialog."""
-    def __init__(self, device_config=None, parent=None):
+    def __init__(self, config_device=None, parent=None):
         super().__init__(parent)
-        self._device_config = device_config
+        self._config_device = config_device
         self.setWindowTitle("设备信息")
         self.resize(500, 400)
 
@@ -22,7 +22,7 @@ class DialogDeviceInfo(QDialog):
         self._device_info_text = QTextEdit()
         self._device_info_text.setReadOnly(True)
         self._device_info_text.setPlainText(
-            "\n".join(f"{k}: {v}" for k, v in self._device_config.device_info.items())
+            "\n".join(f"{k}: {v}" for k, v in self._config_device.device_info.items())
         )
         main_layout.addWidget(self._device_info_text)
 
