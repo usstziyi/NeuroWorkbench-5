@@ -24,7 +24,7 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.name = 'synthetic'
 c.ConfigDevice.port = '/dev/cu.usbmodem12101'
 
 #------------------------------------------------------------------------------
@@ -65,10 +65,9 @@ c.ConfigFFT.window_type = 'Hamming'
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
-c.ConfigFreqsDomain.log_y = '10Log10'
 c.ConfigFreqsDomain.type = 'FFT'
 c.ConfigFreqsDomain.y_max = 50.0
-c.ConfigFreqsDomain.y_min = -18.0
+c.ConfigFreqsDomain.y_min = -52.0
 
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration

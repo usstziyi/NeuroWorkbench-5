@@ -18,5 +18,4 @@ class ConfigFreqsDomain(Configurable):
     y_max = Float(default_value=100.0, help="Y max value to display (dB).").tag(config=True)
     y_min = Float(default_value=-100.0, help="Y min value to display (dB).").tag(config=True)
     freqs_range = List(Float(), default_value=[0.0, 60.0], help="Frequency range to display (Hz).").tag(config=True)
-    log_y = Unicode("10Log10", help="Y axis scale: Linear or 10Log10.").tag(config=True)
 

@@ -47,6 +47,7 @@ class DataChain(QObject):
         self._fft_enable = False    
         self._window_type: str = "Hamming"
         self._nfft = 256
+        self._nfft_db = False
 
         # PSD参数
         self._psd_enable = False
@@ -108,7 +109,7 @@ class DataChain(QObject):
                 return
 
             result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
-            result["__type__"]="fft"
+            result["__type__"]="fft_db" if self._nfft_db else "fft"
             self.psd_ready.emit(result)
 
         # 4. 计算 PSD
@@ -127,7 +128,7 @@ class DataChain(QObject):
                 return
 
             result = {name: (freqs, psd_2d[i]) for i, name in enumerate(names)}
-            result["__type__"]="psd"
+            result["__type__"]="psd_db" if self._psd_db else "psd"
             self.psd_ready.emit(result)
 
 

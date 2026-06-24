@@ -163,15 +163,19 @@ class FreqsDomainWidget(QWidget):
 
         Args:
             data: dict mapping channel name -> (freq, amp) tuple.
-                  May contain __type__ ("fft"|"psd") for axis label.
+                  May contain __type__ ("fft_db"|"psd_db"|"fft"|"psd") for axis label.
         """
         dtype = data.get("__type__")
         if dtype is not None and dtype != self._last_dtype:
             self._last_dtype = dtype
             if dtype == "psd":
                 self._plot.setLabel("left", "PSD-Density", units="μV²/Hz")
+            elif dtype == "psd_db":
+                self._plot.setLabel("left", "PSD-Density", units="dB(μV²/Hz)")
             elif dtype == "fft":
                 self._plot.setLabel("left", "FFT-Amplitude", units="μV")
+            elif dtype == "fft_db":
+                self._plot.setLabel("left", "FFT-Amplitude", units="dB(μV)")
 
         for channel, value in data.items():
             if not isinstance(value, tuple) or len(value) != 2:

@@ -209,9 +209,6 @@ class ControlPanelWidget(QWidget):
         self.type_combo = QEnumComboBox(enum_class=FreqsDomainType)
         freqs_domain_layout.addRow("频域类型:",self.type_combo)
 
-        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
-        freqs_domain_layout.addRow("Y轴模式:",self.log_y_combo)
-
         self.y_max = QDoubleSpinBox()
         self.y_max.setRange(0.0, 10000.0)
         self.y_max.setSingleStep(10)
@@ -222,23 +219,9 @@ class ControlPanelWidget(QWidget):
         self.y_min.setSingleStep(1)
         freqs_domain_layout.addRow("Y轴下界:",self.y_min)
 
+        self.type_combo.currentEnumChanged.connect(self._update_y_suffixes)
+        self._update_y_suffixes(self.type_combo.currentEnum())
 
-
-        # type 切换时更新 psd_up 单位
-        self.type_combo.currentEnumChanged.connect(
-            lambda dtype: self.y_min.setSuffix(" μV²/Hz" if dtype == FreqsDomainType.psd else " μV")
-            and self.y_max.setSuffix(" μV²/Hz" if dtype == FreqsDomainType.psd else " μV")
-        )
-        self.y_min.setSuffix(" μV²/Hz" if self.type_combo.currentEnum() == FreqsDomainType.psd else " μV")
-        self.y_max.setSuffix(" μV²/Hz" if self.type_combo.currentEnum() == FreqsDomainType.psd else " μV")
-
-
-
-
-
-
-
-        
 
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
@@ -248,7 +231,10 @@ class ControlPanelWidget(QWidget):
 
         return freqs_domain_group
 
-
+    def _update_y_suffixes(self, dtype):
+        suffix = " μV²/Hz" if dtype == FreqsDomainType.psd else " μV"
+        self.y_min.setSuffix(suffix)
+        self.y_max.setSuffix(suffix)
 
     def build_recorder_group(self):
         recorder_group = QGroupBox("信号录制")
@@ -356,14 +342,6 @@ class ControlPanelWidget(QWidget):
                 widget_property="currentEnum",
                 widget_signal="currentEnumChanged",
                 to_widget_func=lambda v: FreqsDomainType(v),
-                from_widget_func=lambda v: v.value,
-            )
-            self._binder_freqs.bind(
-                "log_y",
-                self.log_y_combo,
-                widget_property="currentEnum",
-                widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: YScaleEnum(v),
                 from_widget_func=lambda v: v.value,
             )
             # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
