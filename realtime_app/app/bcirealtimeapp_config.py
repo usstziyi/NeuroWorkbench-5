@@ -56,7 +56,7 @@ c.ConfigDetrend.method = 'detrend_numpy'
 #------------------------------------------------------------------------------
 c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
 c.ConfigFFT.enable = False
-c.ConfigFFT.method = 'fft_brainflow'
+c.ConfigFFT.method = 'fft_rfft_scipy'
 c.ConfigFFT.nfft = 512
 c.ConfigFFT.smooth_factor = 0.92
 c.ConfigFFT.window_type = 'Hamming'
@@ -66,14 +66,14 @@ c.ConfigFFT.window_type = 'Hamming'
 #------------------------------------------------------------------------------
 c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
 c.ConfigFreqsDomain.log_y = '10Log10'
-c.ConfigFreqsDomain.type = 'PSD'
+c.ConfigFreqsDomain.type = 'FFT'
 c.ConfigFreqsDomain.y_max = 50.0
-c.ConfigFreqsDomain.y_min = -25.0
+c.ConfigFreqsDomain.y_min = -18.0
 
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1000.0
+c.ConfigTimeDomain.amplitude = 1300.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 

@@ -192,6 +192,7 @@ class DataChain(QObject):
             self._psd_nperseg = self._config_psd.nperseg
             self._psd_overlap_ratio = self._config_psd.overlap_ratio
             self._psd_window_type = str(self._config_psd.window_type)
+            self._psd_db = self._config_psd.db
             set_strategy_psd(self._config_psd.method)
             self._config_psd.observe(
                 self._on_psd_changed,
