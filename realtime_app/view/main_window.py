@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
                  save_config_callback=None,
                  device_manager=None,
                  binder_theme=None, binder_device=None, binder_filter=None,
-                 binder_detrend=None, binder_freqs=None,binder_time=None, 
+                 binder_detrend=None, binder_view_freqs=None,binder_view_time=None, 
                  binder_recorder=None, binder_psd=None, binder_fft=None,
                  binder_spectrogram=None, binder_fetcher=None):
         super().__init__()
@@ -73,8 +73,8 @@ class MainWindow(QMainWindow):
         self._binder_device = binder_device
         self._binder_filter = binder_filter
         self._binder_detrend = binder_detrend
-        self._binder_freqs = binder_freqs
-        self._binder_time = binder_time
+        self._binder_view_freqs = binder_view_freqs
+        self._binder_view_time = binder_view_time
         self._binder_recorder = binder_recorder
         self._binder_psd = binder_psd
         self._binder_fft = binder_fft
@@ -85,8 +85,8 @@ class MainWindow(QMainWindow):
         self.config_device = self._binder_device.model if self._binder_device else None
         self.config_filter = self._binder_filter.model if self._binder_filter else None
         self.config_detrend = self._binder_detrend.model if self._binder_detrend else None
-        self.config_freqs = self._binder_freqs.model if self._binder_freqs else None
-        self.config_time = self._binder_time.model if self._binder_time else None
+        self.config_view_freqs = self._binder_view_freqs.model if self._binder_view_freqs else None
+        self.config_view_time = self._binder_view_time.model if self._binder_view_time else None
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
         self.config_psd = self._binder_psd.model if self._binder_psd else None
         self.config_fft = self._binder_fft.model if self._binder_fft else None
@@ -105,8 +105,8 @@ class MainWindow(QMainWindow):
         # 用 QProxyStyle 只改分隔条，不使用 setStyleSheet 避免触发子控件 CSS 渲染
         self.setStyle(SeparatorStyle(QCommonStyle()))
 
-        self.center_widget = TimeDomainWidget(theme_config=self.config_theme,
-                                          time_config=self.config_time)
+        self.center_widget = TimeDomainWidget(config_theme=self.config_theme,
+                                          config_view_time=self.config_view_time)
         self.setCentralWidget(self.center_widget)
 
         self.left_dock = QDockWidget("控制面板")
@@ -115,8 +115,8 @@ class MainWindow(QMainWindow):
         left_widget = ControlPanelWidget(binder_device=self._binder_device,
                                           binder_filter=self._binder_filter,
                                           binder_detrend=self._binder_detrend,
-                                          binder_freqs=self._binder_freqs,
-                                          binder_time=self._binder_time,
+                                          binder_view_freqs=self._binder_view_freqs,
+                                          binder_view_time=self._binder_view_time,
                                           binder_recorder=self._binder_recorder,
                                           device_manager=self._device_manager)
         self.left_dock.setWidget(left_widget)
@@ -126,8 +126,8 @@ class MainWindow(QMainWindow):
         self.right_dock.setObjectName("right_dock")
         self.right_dock.setTitleBarWidget(QWidget())
         self.right_widget = PropertiesWidget(
-            theme_config=self.config_theme,
-            freqs_config=self.config_freqs,
+            config_theme=self.config_theme,
+            config_view_freqs=self.config_view_freqs,
         )
         self.right_dock.setWidget(self.right_widget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
@@ -135,8 +135,8 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        self.bottom_widget = FreqsDomainWidget(theme_config=self.config_theme,
-                                            freqs_config=self.config_freqs)
+        self.bottom_widget = FreqsDomainWidget(config_theme=self.config_theme,
+                                            config_view_freqs=self.config_view_freqs)
         self.bottom_dock.setWidget(self.bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
@@ -196,7 +196,7 @@ class MainWindow(QMainWindow):
 
 
     def _show_fft_settings_dialog(self):
-        dialog = DialogFftSettings(binder=self._binder_freqs, parent=self)
+        dialog = DialogFftSettings(binder=self._binder_view_freqs, parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
@@ -210,7 +210,7 @@ class MainWindow(QMainWindow):
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(time_config=self.config_time, freqs_config=self.config_freqs, parent=self)
+        dialog = DialogChannelChoose(view_time_config=self.config_view_time, view_freqs_config=self.config_view_freqs, parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
@@ -246,7 +246,8 @@ class MainWindow(QMainWindow):
         self._pipeline = Pipeline(
             self._device_manager,
             parent=self,
-            time_config=self.config_time,
+            config_view_time=self.config_view_time,
+            config_view_freqs=self.config_view_freqs,
             config_filter=self.config_filter,
             config_detrend=self.config_detrend,
             config_device=self.config_device,

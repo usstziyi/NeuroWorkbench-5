@@ -3,8 +3,8 @@ from .config_device import ConfigDevice
 from .config_fetcher import ConfigFetcher
 from .config_filter import ConfigFilter
 from .config_fft import ConfigFFT
-from .config_freqs_domain import ConfigFreqsDomain
-from .config_time_domain import ConfigTimeDomain
+from .config_view_freqs import ConfigViewFreqs
+from .config_view_time import ConfigViewTime
 from .config_theme import ConfigTheme
 from .config_recorder import ConfigRecorder
 from .config_psd import ConfigPSD

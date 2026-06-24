@@ -71,10 +71,10 @@ class _ScrollBarHover(QObject):
 
 class TimeDomainWidget(QWidget):
     """Time domain widget with scrollable fixed-height plots."""
-    def __init__(self, theme_config=None, time_config=None, parent=None):
+    def __init__(self, config_theme=None, config_view_time=None, parent=None):
         super().__init__(parent)
-        self._theme_config = theme_config
-        self._time_config = time_config
+        self._config_theme = config_theme
+        self._config_view_time = config_view_time
         self.setObjectName("time_domain_widget")
 
         self._plots = {}
@@ -155,8 +155,8 @@ class TimeDomainWidget(QWidget):
         # ✅ 确保 ScrollArea 允许内容撑开
         self._scroll_area.setWidgetResizable(True)
 
-        if self._time_config is not None:
-            self.set_range(self._time_config.seconds, self._time_config.amplitude)
+        if self._config_view_time is not None:
+            self.set_range(self._config_view_time.seconds, self._config_view_time.amplitude)
 
 
     def set_range(self, seconds, amplitude):
@@ -197,46 +197,46 @@ class TimeDomainWidget(QWidget):
         """设置 config observe，初始值同步 + 变化监听。幂等。"""
         if hasattr(self, "_on_theme_changed"):  # 已注册，跳过
             return
-        if self._theme_config is not None:
-            self.apply_theme(self._theme_config.color_mode)
+        if self._config_theme is not None:
+            self.apply_theme(self._config_theme.color_mode)
             self._on_theme_changed = lambda change: self.apply_theme(
-                self._theme_config.color_mode
+                self._config_theme.color_mode
             )
-            self._theme_config.observe(
+            self._config_theme.observe(
                 self._on_theme_changed, names=["color_mode"]
             )
 
-        if self._time_config is not None:
-            self.apply_channels(self._time_config.channels)
+        if self._config_view_time is not None:
+            self.apply_channels(self._config_view_time.channels)
             self._on_channels_changed = lambda change: self.apply_channels(
-                self._time_config.channels
+                self._config_view_time.channels
             )
-            self._time_config.observe(
+            self._config_view_time.observe(
                 self._on_channels_changed, names=["channels"]
             )
 
-            self.set_range(self._time_config.seconds, self._time_config.amplitude)
+            self.set_range(self._config_view_time.seconds, self._config_view_time.amplitude)
             self._on_range_changed = lambda change: self.set_range(
-                self._time_config.seconds, self._time_config.amplitude
+                self._config_view_time.seconds, self._config_view_time.amplitude
             )
-            self._time_config.observe(
+            self._config_view_time.observe(
                 self._on_range_changed, names=["seconds", "amplitude"]
             )
 
     def unobserve_configs(self):
         """取消 config observe 注册。幂等。"""
-        if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
+        if self._config_theme is not None and hasattr(self, "_on_theme_changed"):
             try:
-                self._theme_config.unobserve(
+                self._config_theme.unobserve(
                     self._on_theme_changed, names=["color_mode"]
                 )
             except RuntimeError:
                 pass
             del self._on_theme_changed
-        if self._time_config is not None:
+        if self._config_view_time is not None:
             if hasattr(self, "_on_channels_changed"):
                 try:
-                    self._time_config.unobserve(
+                    self._config_view_time.unobserve(
                         self._on_channels_changed, names=["channels"]
                     )
                 except RuntimeError:
@@ -244,7 +244,7 @@ class TimeDomainWidget(QWidget):
                 del self._on_channels_changed
             if hasattr(self, "_on_range_changed"):
                 try:
-                    self._time_config.unobserve(
+                    self._config_view_time.unobserve(
                         self._on_range_changed, names=["seconds", "amplitude"]
                     )
                 except RuntimeError:

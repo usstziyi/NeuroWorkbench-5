@@ -17,7 +17,8 @@ class Pipeline(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
     def __init__(self, device_manager, parent=None,
-                 time_config=None,
+                 config_view_time=None,
+                 config_view_freqs=None,
                  config_filter=None,
                  config_detrend=None,
                  config_device=None,
@@ -26,7 +27,8 @@ class Pipeline(QObject):
         super().__init__(parent)
 
         self._device_manager = device_manager
-        self._time_config = time_config
+        self._config_view_time = config_view_time
+        self._config_view_freqs = config_view_freqs
         self._config_filter = config_filter
         self._config_detrend = config_detrend
         self._config_device = config_device
@@ -50,7 +52,7 @@ class Pipeline(QObject):
                 self._on_streaming_changed,
                 names=["is_streaming"],
             )
-
+    
     def _on_streaming_changed(self, change):
         streaming = change["new"]
         print(f"[pp]Streaming config changed to {streaming}")
@@ -65,12 +67,17 @@ class Pipeline(QObject):
     def start_workers(self):
 
         # 每次 start 重新创建 worker，避免 moveToThread 的线程亲和性问题
-        self._fetcher = BoardFetcher(self._device_manager, self._time_config)
+        self._fetcher = BoardFetcher(
+            self._device_manager, 
+            self._config_view_time
+        )
+
         self._chain = DataChain(
             self._config_detrend,
             self._config_filter,
             self._config_fft,
-            self._config_psd
+            self._config_psd,
+            self._config_view_freqs
         )
 
         # fetcher → chain (引用)

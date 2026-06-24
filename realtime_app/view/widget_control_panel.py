@@ -78,16 +78,16 @@ class ControlPanelWidget(QWidget):
     """Control panel for the BCIRealtimeApp application."""
 
     def __init__(self, binder_device=None, binder_filter=None,
-                 binder_detrend=None, binder_freqs=None,
-                 binder_time=None, binder_recorder=None,
+                 binder_detrend=None, binder_view_freqs=None,
+                 binder_view_time=None, binder_recorder=None,
                  device_manager=None, parent=None):
         super().__init__(parent)
         # Python 的鸭子类型特性
         self._binder_device = binder_device
         self._binder_filter = binder_filter
         self._binder_detrend = binder_detrend
-        self._binder_freqs = binder_freqs
-        self._binder_time = binder_time
+        self._binder_view_freqs = binder_view_freqs
+        self._binder_view_time = binder_view_time
         self._binder_recorder = binder_recorder
         self._device_manager = device_manager
 
@@ -335,8 +335,8 @@ class ControlPanelWidget(QWidget):
             )
 
         # --- Freqs Domain ---
-        if self._binder_freqs:
-            self._binder_freqs.bind(
+        if self._binder_view_freqs:
+            self._binder_view_freqs.bind(
                 "type",
                 self.type_combo,
                 widget_property="currentEnum",
@@ -345,26 +345,26 @@ class ControlPanelWidget(QWidget):
                 from_widget_func=lambda v: v.value,
             )
             # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
-            self._binder_freqs.bind(
+            self._binder_view_freqs.bind(
                 "freqs_range",
                 self.freqs_right,
                 widget_property="value",
                 widget_signal="valueChanged",
                 to_widget_func=lambda v: v[1],
                 from_widget_func=lambda v: [
-                    self._binder_freqs.get("freqs_range")[0],
+                    self._binder_view_freqs.get("freqs_range")[0],
                     v,
                 ],
             )
             # y_min
-            self._binder_freqs.bind(
+            self._binder_view_freqs.bind(
                 "y_min",
                 self.y_min,
                 widget_property="value",
                 widget_signal="valueChanged",
             )
             # y_max
-            self._binder_freqs.bind(
+            self._binder_view_freqs.bind(
                 "y_max",
                 self.y_max,
                 widget_property="value",
@@ -373,21 +373,21 @@ class ControlPanelWidget(QWidget):
 
 
         # --- Time Domain ---
-        if self._binder_time:
-            self._binder_time.bind(
+        if self._binder_view_time:
+            self._binder_view_time.bind(
                 "seconds",
                 self.window_time_spin,
                 widget_property="value",
                 widget_signal="valueChanged",
             )
-            self._binder_time.bind(
+            self._binder_view_time.bind(
                 "amplitude",
                 self.amplitude_spin,
                 widget_property="value",
                 widget_signal="valueChanged",
                 to_widget_func=lambda v: int(v),
             )
-            self._binder_time.bind(
+            self._binder_view_time.bind(
                 "interval",
                 self.refresh_spin,
                 widget_property="value",

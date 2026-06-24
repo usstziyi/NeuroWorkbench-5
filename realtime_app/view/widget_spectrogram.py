@@ -26,13 +26,13 @@ class SpectrogramWidget(QWidget):
 
     def __init__(
         self,
-        theme_config=None,
-        freqs_config=None,
+        config_theme=None,
+        config_view_freqs=None,
         parent=None,
     ):
         super().__init__(parent)
-        self._theme_config = theme_config
-        self._freqs_config = freqs_config
+        self._config_theme = config_theme
+        self._config_view_freqs = config_view_freqs
         self.setObjectName("spectrogram_widget")
 
         self._image_item: pg.ImageItem | None = None
@@ -104,17 +104,17 @@ class SpectrogramWidget(QWidget):
     # ------------------------------------------------------------------
 
     def observe_configs(self):
-        if self._theme_config is not None:
-            self.apply_theme(self._theme_config.color_mode)
+        if self._config_theme is not None:
+            self.apply_theme(self._config_theme.color_mode)
             self._on_theme_changed = lambda _: self.apply_theme(
-                self._theme_config.color_mode
+                self._config_theme.color_mode
             )
-            self._theme_config.observe(self._on_theme_changed, names=["color_mode"])
+            self._config_theme.observe(self._on_theme_changed, names=["color_mode"])
 
     def unobserve_configs(self):
-        if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
+        if self._config_theme is not None and hasattr(self, "_on_theme_changed"):
             try:
-                self._theme_config.unobserve(self._on_theme_changed, names=["color_mode"])
+                self._config_theme.unobserve(self._on_theme_changed, names=["color_mode"])
             except RuntimeError:
                 pass
             del self._on_theme_changed

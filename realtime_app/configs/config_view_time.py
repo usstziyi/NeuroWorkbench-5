@@ -1,7 +1,7 @@
 from traitlets.config import Configurable
 from traitlets import Int, Float, Dict, Unicode, Bool
 
-class ConfigTimeDomain(Configurable):
+class ConfigViewTime(Configurable):
     """Time domain configuration."""
     seconds = Int(5, help="Number of seconds to display (s).").tag(config=True, unit="s")
     amplitude = Float(1000.0, help="Amplitude of the signal (μV).").tag(config=True, unit="μV")

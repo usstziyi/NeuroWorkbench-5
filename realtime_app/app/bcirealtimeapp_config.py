@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = '/dev/cu.usbmodem12101'
+c.ConfigDevice.port = ''
 
 #------------------------------------------------------------------------------
 # ConfigFetcher configuration
@@ -56,25 +56,25 @@ c.ConfigDetrend.method = 'detrend_numpy'
 #------------------------------------------------------------------------------
 c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
 c.ConfigFFT.enable = False
-c.ConfigFFT.method = 'fft_rfft_scipy'
+c.ConfigFFT.method = 'fft_brainflow'
 c.ConfigFFT.nfft = 512
 c.ConfigFFT.smooth_factor = 0.92
 c.ConfigFFT.window_type = 'Hamming'
 
 #------------------------------------------------------------------------------
-# ConfigFreqsDomain configuration
+# ConfigViewFreqs configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
-c.ConfigFreqsDomain.type = 'FFT'
-c.ConfigFreqsDomain.y_max = 50.0
-c.ConfigFreqsDomain.y_min = -52.0
+c.ConfigViewFreqs.freqs_range = [0.0, 60.0]
+c.ConfigViewFreqs.type = 'PSD'
+c.ConfigViewFreqs.y_max = 100.0
+c.ConfigViewFreqs.y_min = -100.0
 
 #------------------------------------------------------------------------------
-# ConfigTimeDomain configuration
+# ConfigViewTime configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 1300.0
-c.ConfigTimeDomain.interval = 50.0
-c.ConfigTimeDomain.seconds = 5
+c.ConfigViewTime.amplitude = 1000.0
+c.ConfigViewTime.interval = 50.0
+c.ConfigViewTime.seconds = 5
 
 #------------------------------------------------------------------------------
 # ConfigRecorder configuration
@@ -89,7 +89,7 @@ c.ConfigPSD.cut_seconds = 3
 c.ConfigPSD.db = True
 c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_welch_scipy'
-c.ConfigPSD.nperseg = 256
+c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 

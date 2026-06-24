@@ -7,8 +7,8 @@ from PySide6.QtWidgets import QApplication
 from binder import ConfigBinder
 from configs.config_filter import ConfigFilter
 from configs.config_device import ConfigDevice
-from configs.config_freqs_domain import ConfigFreqsDomain
-from configs.config_time_domain import ConfigTimeDomain
+from configs.config_view_freqs import ConfigViewFreqs
+from configs.config_view_time import ConfigViewTime
 from configs.config_detrend import ConfigDetrend
 from configs.config_fft import ConfigFFT
 from configs.config_fetcher import ConfigFetcher
@@ -35,8 +35,8 @@ class BCIRealtimeApp(Application):
         ConfigFilter,
         ConfigDetrend,
         ConfigFFT,
-        ConfigFreqsDomain,
-        ConfigTimeDomain,
+        ConfigViewFreqs,
+        ConfigViewTime,
         ConfigRecorder,
         ConfigPSD,
         ConfigSpectrogram,
@@ -53,8 +53,8 @@ class BCIRealtimeApp(Application):
         self.config_device = ConfigDevice(config=self.config)
         self.config_filter = ConfigFilter(config=self.config)
         self.config_detrend = ConfigDetrend(config=self.config)
-        self.config_freqs_domain = ConfigFreqsDomain(config=self.config)
-        self.config_time_domain = ConfigTimeDomain(config=self.config)
+        self.config_view_freqs = ConfigViewFreqs(config=self.config)
+        self.config_view_time = ConfigViewTime(config=self.config)
         self.config_recorder = ConfigRecorder(config=self.config)
         self.config_psd = ConfigPSD(config=self.config)
         self.config_fetcher = ConfigFetcher(config=self.config)
@@ -66,8 +66,8 @@ class BCIRealtimeApp(Application):
         binder_device = ConfigBinder(self.config_device)
         binder_filter = ConfigBinder(self.config_filter)
         binder_detrend = ConfigBinder(self.config_detrend)
-        binder_freqs = ConfigBinder(self.config_freqs_domain)
-        binder_time = ConfigBinder(self.config_time_domain)
+        binder_view_freqs = ConfigBinder(self.config_view_freqs)
+        binder_view_time = ConfigBinder(self.config_view_time)
         binder_recorder = ConfigBinder(self.config_recorder)
         binder_psd = ConfigBinder(self.config_psd)
         binder_fetcher = ConfigBinder(self.config_fetcher)
@@ -91,15 +91,15 @@ class BCIRealtimeApp(Application):
             save_config_callback=self._save_config,
             device_manager=DeviceManager(
                 config_device=self.config_device, 
-                config_time_domain=self.config_time_domain,
-                config_freqs_domain=self.config_freqs_domain
+                config_time_domain=self.config_view_time,
+                config_freqs_domain=self.config_view_freqs
             ),
             binder_theme=binder_theme,
             binder_device=binder_device,
             binder_filter=binder_filter,
             binder_detrend=binder_detrend,
-            binder_freqs=binder_freqs,
-            binder_time=binder_time,
+            binder_view_freqs=binder_view_freqs,
+            binder_view_time=binder_view_time,
             binder_recorder=binder_recorder,
             binder_psd=binder_psd,
             binder_fft=binder_fft,
@@ -118,8 +118,8 @@ class BCIRealtimeApp(Application):
             self.config_filter,
             self.config_detrend,
             self.config_fft,
-            self.config_freqs_domain,
-            self.config_time_domain,
+            self.config_view_freqs,
+            self.config_view_time,
             self.config_recorder,
             self.config_psd,
             self.config_spectrogram,

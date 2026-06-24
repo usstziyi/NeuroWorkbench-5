@@ -4,7 +4,7 @@ from traitlets import Float, Int, Unicode, List, Bool, Dict
 
 
 
-class ConfigFreqsDomain(Configurable): 
+class ConfigViewFreqs(Configurable): 
     channels = Dict(
         key_trait=Unicode(), value_trait=Bool(),
         default_value={

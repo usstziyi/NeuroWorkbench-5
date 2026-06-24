@@ -6,16 +6,16 @@ class BoardFetcher(QObject):
     """后台定时从 DeviceManager 拉取 BoardShim 缓存数据。
 
     放在 QThread 中使用，只负责取数据，不做任何处理。
-    注入 ConfigTimeDomain 后自行 observe，外部无需手动更新参数。
+    注入 ConfigViewTime 后自行 observe，外部无需手动更新参数。
     """
 
     raw_data_ready = Signal(dict)  # {channel_name: (t_array, y_array)}
     _interval_changed = Signal(int)  # 内部信号：跨线程安全修改 QTimer 间隔
 
-    def __init__(self, device_manager, time_config=None):
+    def __init__(self, device_manager, config_view_time=None):
         super().__init__()
         self._dm = device_manager
-        self._time_config = time_config
+        self._config_view_time = config_view_time
 
         self._seconds = 5
         self._interval_ms = 50
@@ -63,11 +63,11 @@ class BoardFetcher(QObject):
 
     def observe_configs(self):
         """同步初始值并注册 config observe。"""
-        if self._time_config is not None:
-            self._seconds = self._time_config.seconds
-            self._interval_ms = int(self._time_config.interval)
-            self._channels = dict(self._time_config.channels)
-            self._time_config.observe(
+        if self._config_view_time is not None:
+            self._seconds = self._config_view_time.seconds
+            self._interval_ms = int(self._config_view_time.interval)
+            self._channels = dict(self._config_view_time.channels)
+            self._config_view_time.observe(
                 self.on_config_changed,
                 names=["seconds", "interval", "channels"],
             )
@@ -91,15 +91,15 @@ class BoardFetcher(QObject):
 
     def unobserve_configs(self):
         """取消 config observe 注册。"""
-        if self._time_config is not None:
+        if self._config_view_time is not None:
             try:
-                self._time_config.unobserve(
+                self._config_view_time.unobserve(
                     self.on_config_changed,
                     names=["seconds", "interval", "channels"],
                 )
             except RuntimeError:
                 pass
-            self._time_config = None
+            self._config_view_time = None
 
     def dismiss(self):
         self.unobserve_configs()

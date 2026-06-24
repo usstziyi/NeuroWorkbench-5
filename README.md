@@ -35,8 +35,8 @@ NeuroWorkbench-5/
 │   │   ├── config_device.py     # 设备配置
 │   │   ├── config_filter.py     # 滤波配置
 │   │   ├── config_detrend.py    # 去漂移配置
-│   │   ├── config_freqs_domain.py # 频域配置
-│   │   ├── config_time_domain.py  # 时域配置
+│   │   ├── config_view_freqs.py # 频域配置
+│   │   ├── config_view_time.py   # 时域配置
 │   │   ├── config_theme.py      # 主题配置
 │   │   └── config_recorder.py   # 录制配置
 │   ├── device/            # 设备抽象层（BrainFlow 封装，不依赖 UI）
@@ -79,8 +79,8 @@ NeuroWorkbench-5/
 
 ```
                           configs/  ←→  binder/  ←→  view/
-  device/                   ConfigTimeDomain   ConfigBinder    MainWindow
-  DeviceManager             ConfigFreqsDomain                 TimeDomainWidget
+  device/                   ConfigViewTime    ConfigBinder    MainWindow
+  DeviceManager             ConfigViewFreqs                  TimeDomainWidget
     (BrainFlow)             ConfigFilter                     FreqsDomainWidget
         │                       ↑
         ▼                       │
@@ -136,8 +136,8 @@ NeuroWorkbench-5/
 | `config_device.py` | `ConfigDevice` | name, port, sampling_rate(运行时), device_info(运行时), is_connected/is_streaming/error_message(运行时, `config=False`) |
 | `config_filter.py` | `ConfigFilter` | highpass(5.0), lowpass(45.0), noise_freqs(50), enable |
 | `config_detrend.py` | `ConfigDetrend` | enable |
-| `config_freqs_domain.py` | `ConfigFreqsDomain` | fft_enable, dsp_enable, window_type, smooth_factor(0.92), ampls_range, freqs_range, log_y, nfft(512), seconds, overlap_ratio, channels(运行时) |
-| `config_time_domain.py` | `ConfigTimeDomain` | seconds(5), amplitude(1000μV), interval(50ms), channels(运行时) |
+| `config_view_freqs.py` | `ConfigViewFreqs` | fft_enable, dsp_enable, window_type, smooth_factor(0.92), ampls_range, freqs_range, log_y, nfft(512), seconds, overlap_ratio, channels(运行时) |
+| `config_view_time.py` | `ConfigViewTime` | seconds(5), amplitude(1000μV), interval(50ms), channels(运行时) |
 | `config_theme.py` | `ConfigTheme` | theme(Fusion), color_mode(System) |
 | `config_recorder.py` | `ConfigRecorder` | record_raw, record_processed |
 

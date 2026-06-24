@@ -22,12 +22,19 @@ class DataChain(QObject):
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
-    def __init__(self, config_detrend=None, config_filter=None, config_fft=None, config_psd=None):
+    def __init__(
+        self, 
+        config_detrend=None, 
+        config_filter=None, 
+        config_fft=None, 
+        config_psd=None,
+        config_view_freqs=None):
         super().__init__()
         self._config_detrend = config_detrend
         self._config_filter = config_filter
         self._config_fft = config_fft
         self._config_psd = config_psd
+        self._config_view_freqs = config_view_freqs
         
         # 去趋势参数
         self._detrend_enabled = True

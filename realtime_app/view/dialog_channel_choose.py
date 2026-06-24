@@ -20,10 +20,10 @@ CET_R3 = [
 
 class DialogChannelChoose(QDialog):
     """Channel choose dialog."""
-    def __init__(self, time_config=None, freqs_config=None, parent=None):
+    def __init__(self, config_view_time=None, config_view_freqs=None, parent=None):
         super().__init__(parent)
-        self._time_config = time_config
-        self._freqs_config = freqs_config
+        self._config_view_time = config_view_time
+        self._config_view_freqs = config_view_freqs
         self._checkboxes_time: dict[str, QToggleSwitch] = {}
         self._checkboxes_freqs: dict[str, QToggleSwitch] = {}
         self.setWindowTitle("通道选择")
@@ -36,10 +36,10 @@ class DialogChannelChoose(QDialog):
         main_layout = QVBoxLayout(self)
 
         # 根据配置添加通道选择框，每排两个（使用网格布局精准定位）
-        time_channels = self._time_config.channels
-        freqs_channels = self._freqs_config.channels
-        time_names = list(time_channels.keys())
-        freqs_names = list(freqs_channels.keys())
+        view_time_channels = self._config_view_time.channels
+        view_freqs_channels = self._config_view_freqs.channels
+        time_names = list(view_time_channels.keys())
+        freqs_names = list(view_freqs_channels.keys())
 
         h_layout = QHBoxLayout()
 
@@ -48,7 +48,7 @@ class DialogChannelChoose(QDialog):
         time_layout.addWidget(time_header)
         for i, name in enumerate(time_names):
             switch = QToggleSwitch(name)
-            switch.setChecked(time_channels[name])
+            switch.setChecked(view_time_channels[name])
             self._checkboxes_time[name] = switch
             # 时间域开关同步对应名称的频率域开关
             # n=name 用于在 lambda 中捕获当前循环的 name 变量，避免闭包问题
@@ -65,7 +65,7 @@ class DialogChannelChoose(QDialog):
 
         for i, name in enumerate(freqs_names):
             switch = QToggleSwitch(name)
-            switch.setChecked(freqs_channels[name])
+            switch.setChecked(view_freqs_channels[name])
             self._checkboxes_freqs[name] = switch
             freqs_layout.addWidget(self._make_color_line(i))
             freqs_layout.addWidget(switch)
@@ -101,10 +101,10 @@ class DialogChannelChoose(QDialog):
             freq_switch.setChecked(checked)
 
     def accept(self):
-        self._time_config.channels = {
+        self._config_view_time.channels = {
             name: switch.isChecked() for name, switch in self._checkboxes_time.items()
         }
-        self._freqs_config.channels = {
+        self._config_view_freqs.channels = {    
             name: switch.isChecked() for name, switch in self._checkboxes_freqs.items()
         }
         super().accept()

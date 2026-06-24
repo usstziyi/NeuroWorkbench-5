@@ -34,10 +34,10 @@ CET_R3 = [
 
 class FreqsDomainWidget(QWidget):
     """Frequency domain widget."""
-    def __init__(self, theme_config=None, freqs_config=None, parent=None):
+    def __init__(self, config_theme=None, config_view_freqs=None, parent=None):
         super().__init__(parent)
-        self._theme_config = theme_config
-        self._freqs_config = freqs_config
+        self._config_theme = config_theme
+        self._config_view_freqs = config_view_freqs
         self.setObjectName("freqs_domain_widget")
 
         self._curves = {}
@@ -81,37 +81,37 @@ class FreqsDomainWidget(QWidget):
         """Observe config changes."""
         if hasattr(self, "_on_theme_changed"):  # 已注册，跳过
             return
-        if self._theme_config is not None:
-            self.apply_theme(self._theme_config.color_mode)
+        if self._config_theme is not None:
+            self.apply_theme(self._config_theme.color_mode)
             self._on_theme_changed = lambda change: self.apply_theme(
-                self._theme_config.color_mode
+                self._config_theme.color_mode
             )
-            self._theme_config.observe(
+            self._config_theme.observe( 
                 self._on_theme_changed, names=["color_mode"]
             )
-        if self._freqs_config is not None:
-            self.apply_channels(self._freqs_config.channels)
+        if self._config_view_freqs is not None:
+            self.apply_channels(self._config_view_freqs.channels)
             self._on_channels_changed = lambda change: self.apply_channels(
-                self._freqs_config.channels
+                self._config_view_freqs.channels
             )
-            self._freqs_config.observe(
+            self._config_view_freqs.observe(
                 self._on_channels_changed, names=["channels"]
             )
-        if self._freqs_config is not None:
+        if self._config_view_freqs is not None:
             # 频率范围
-            self.apply_freqs_range(self._freqs_config.freqs_range)
+            self.apply_freqs_range(self._config_view_freqs.freqs_range)
             self._on_freqs_range_change = lambda change: self.apply_freqs_range(
-                self._freqs_config.freqs_range
+                self._config_view_freqs.freqs_range
             )
-            self._freqs_config.observe(
+            self._config_view_freqs.observe(
                 self._on_freqs_range_change, names=["freqs_range"]
             )
             # y 轴范围
-            self.apply_y_range(self._freqs_config.y_min, self._freqs_config.y_max)
+            self.apply_y_range(self._config_view_freqs.y_min, self._config_view_freqs.y_max)
             self._on_y_range_changed = lambda change: self.apply_y_range(
-                self._freqs_config.y_min, self._freqs_config.y_max
+                self._config_view_freqs.y_min, self._config_view_freqs.y_max
             )
-            self._freqs_config.observe(
+            self._config_view_freqs.observe(
                 self._on_y_range_changed, names=["y_min", "y_max"]
             )
 
@@ -185,27 +185,27 @@ class FreqsDomainWidget(QWidget):
 
     def unobserve_configs(self):
         """取消 config observe 注册。幂等。"""
-        if self._theme_config is not None and hasattr(self, "_on_theme_changed"):
+        if self._config_theme is not None and hasattr(self, "_on_channels_changed"):
             try:
-                self._theme_config.unobserve(
-                    self._on_theme_changed, names=["color_mode"]
+                self._config_theme.unobserve(
+                    self._on_channels_changed, names=["channels"]
                 )
             except RuntimeError:
                 pass
-            del self._on_theme_changed
-        if self._freqs_config is not None:
+            del self._on_channels_changed
+        if self._config_view_freqs is not None:
             if hasattr(self, "_on_channels_changed"):
                 try:
-                    self._freqs_config.unobserve(
+                    self._config_view_freqs.unobserve(
                         self._on_channels_changed, names=["channels"]
                     )
                 except RuntimeError:
                     pass
                 del self._on_channels_changed
-        if self._freqs_config is not None:
+        if self._config_view_freqs is not None:
             if hasattr(self, "_on_freqs_range_change"):
                 try:
-                    self._freqs_config.unobserve(
+                    self._config_view_freqs.unobserve(
                         self._on_freqs_range_change, names=["freqs_range"]
                     )
                 except RuntimeError:
@@ -213,7 +213,7 @@ class FreqsDomainWidget(QWidget):
                 del self._on_freqs_range_change
             if hasattr(self, "_on_y_range_changed"):
                 try:
-                    self._freqs_config.unobserve(
+                    self._config_view_freqs.unobserve(
                         self._on_y_range_changed, names=["y_min", "y_max"]
                     )
                 except RuntimeError:
@@ -221,7 +221,7 @@ class FreqsDomainWidget(QWidget):
                 del self._on_y_range_changed
             if hasattr(self, "_on_log_y_changed"):
                 try:
-                    self._freqs_config.unobserve(
+                    self._config_view_freqs.unobserve(
                         self._on_log_y_changed, names=["log_y"]
                     )
                 except RuntimeError:

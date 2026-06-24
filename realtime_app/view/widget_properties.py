@@ -14,10 +14,10 @@ from view.widget_head_plot import HeadPlotWidget
 class PropertiesWidget(QWidget):
     """Properties widget with a splitter: placeholder on top, freqs on bottom."""
 
-    def __init__(self, theme_config=None, freqs_config=None, parent=None):
+    def __init__(self, config_theme=None, config_view_freqs=None, parent=None):
         super().__init__(parent)
-        self._theme_config = theme_config
-        self._freqs_config = freqs_config
+        self._config_theme = config_theme
+        self._config_view_freqs = config_view_freqs
         self.setObjectName("properties_widget")
         self.init_ui()
 
@@ -41,8 +41,8 @@ class PropertiesWidget(QWidget):
 
         # 下部：时频图
         self._spectrogram = SpectrogramWidget(
-            theme_config=self._theme_config,
-            freqs_config=self._freqs_config,
+            config_theme=self._config_theme,
+            config_view_freqs=self._config_view_freqs,
             parent=self,
         )
         splitter.addWidget(self._spectrogram)
