@@ -41,7 +41,6 @@ class FreqsDomainWidget(QWidget):
         self.setObjectName("freqs_domain_widget")
 
         self._curves = {}
-        self._last_dtype = None
 
         self.init_ui()
         self.observe_configs()
@@ -114,7 +113,25 @@ class FreqsDomainWidget(QWidget):
             self._config_view_freqs.observe(
                 self._on_y_range_changed, names=["y_min", "y_max"]
             )
+            # 频域类型
+            self._switch_freqs_type(self._config_view_freqs.type)
+            self._on_freqs_type_changed = lambda change: self._switch_freqs_type(
+                self._config_view_freqs.type
+            )
+            self._config_view_freqs.observe(
+                self._on_freqs_type_changed, names=["type"]
+            )
 
+    def _switch_freqs_type(self, dtype):
+        """Switch between PSD and FFT."""
+        if dtype == "PSD":
+            self._plot.setLabel("left", "PSD-Density", units="μV²/Hz")
+        elif dtype == "PSD_DB":
+            self._plot.setLabel("left", "PSD-Density", units="dB(μV²/Hz)")
+        elif dtype == "FFT":
+            self._plot.setLabel("left", "FFT-Amplitude", units="μV")
+        elif dtype == "FFT_DB":
+            self._plot.setLabel("left", "FFT-Amplitude", units="dB(μV)")
 
     def apply_theme(self, color_mode):
         if color_mode == "Light":
@@ -163,20 +180,7 @@ class FreqsDomainWidget(QWidget):
 
         Args:
             data: dict mapping channel name -> (freq, amp) tuple.
-                  May contain __type__ ("fft_db"|"psd_db"|"fft"|"psd") for axis label.
         """
-        dtype = data.get("__type__")
-        if dtype is not None and dtype != self._last_dtype:
-            self._last_dtype = dtype
-            if dtype == "psd":
-                self._plot.setLabel("left", "PSD-Density", units="μV²/Hz")
-            elif dtype == "psd_db":
-                self._plot.setLabel("left", "PSD-Density", units="dB(μV²/Hz)")
-            elif dtype == "fft":
-                self._plot.setLabel("left", "FFT-Amplitude", units="μV")
-            elif dtype == "fft_db":
-                self._plot.setLabel("left", "FFT-Amplitude", units="dB(μV)")
-
         for channel, value in data.items():
             if not isinstance(value, tuple) or len(value) != 2:
                 continue
@@ -227,4 +231,12 @@ class FreqsDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_log_y_changed
+            if hasattr(self, "_on_freqs_type_changed"):
+                try:
+                    self._config_view_freqs.unobserve(
+                        self._on_freqs_type_changed, names=["type"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_freqs_type_changed
         

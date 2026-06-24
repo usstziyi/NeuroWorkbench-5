@@ -70,6 +70,6 @@ def compute_psd(
 
     # 转换为 dB(μV²/Hz)
     if db:
-        psd = 10 * np.log10(psd)
+        psd = 10 * np.log10(np.maximum(psd, 1e-15))
 
     return psd, freqs

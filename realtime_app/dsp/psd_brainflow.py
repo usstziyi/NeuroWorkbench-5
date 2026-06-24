@@ -50,6 +50,6 @@ def compute_psd(
             freqs = f  # 频率轴只需保存一次
 
     if db:
-        psd = 10 * np.log10(psd)
+        psd = 10 * np.log10(np.maximum(psd, 1e-15))
 
     return psd, freqs

@@ -55,7 +55,8 @@ c.ConfigDetrend.method = 'detrend_numpy'
 # ConfigFFT configuration
 #------------------------------------------------------------------------------
 c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': True, 'P8': True, 'O1': True, 'O2': True}
-c.ConfigFFT.enable = False
+c.ConfigFFT.db = True
+c.ConfigFFT.enable = True
 c.ConfigFFT.method = 'fft_brainflow'
 c.ConfigFFT.nfft = 512
 c.ConfigFFT.smooth_factor = 0.92
@@ -65,7 +66,7 @@ c.ConfigFFT.window_type = 'Hamming'
 # ConfigViewFreqs configuration
 #------------------------------------------------------------------------------
 c.ConfigViewFreqs.freqs_range = [0.0, 60.0]
-c.ConfigViewFreqs.type = 'PSD'
+c.ConfigViewFreqs.type = 'FFT_DB'
 c.ConfigViewFreqs.y_max = 40.0
 c.ConfigViewFreqs.y_min = -66.0
 
@@ -86,8 +87,8 @@ c.ConfigRecorder.record_raw = False
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.cut_seconds = 3
-c.ConfigPSD.db = True
-c.ConfigPSD.enable = True
+c.ConfigPSD.db = False
+c.ConfigPSD.enable = False
 c.ConfigPSD.method = 'psd_welch_scipy'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5

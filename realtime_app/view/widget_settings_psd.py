@@ -80,6 +80,7 @@ class WidgetSettingsPSD(QWidget):
 
         self._switch_db = QToggleSwitch()
         form_layout.addRow("dB(μV²/Hz):", self._switch_db)
+        self._switch_db.setEnabled(False)
 
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)

@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
 
 from superqt import QEnumComboBox
 from enum import StrEnum, IntEnum
+from superqt import QToggleSwitch
 
 from utils.make_container import make_combo_switch, make_double_spinbox_switch
 
@@ -64,6 +65,10 @@ class WidgetSettingsFFT(QWidget):
         self._spin_smooth_factor.setSingleStep(0.01)
         form_layout.addRow("平滑系数:", w)
 
+        self._switch_db = QToggleSwitch()
+        form_layout.addRow("dB(μV²/Hz):", self._switch_db)
+        self._switch_db.setEnabled(False)
+
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
@@ -100,6 +105,12 @@ class WidgetSettingsFFT(QWidget):
             widget_property="value",
             widget_signal="valueChanged",
         )
+        b.bind(
+            "db",
+            self._switch_db,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
 
         b.snapshot()
 
@@ -111,3 +122,4 @@ class WidgetSettingsFFT(QWidget):
         b.unbind("method")
         b.unbind("nfft")
         b.unbind("smooth_factor")
+        b.unbind("db")

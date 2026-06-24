@@ -45,6 +45,7 @@ def compute_fft(
     sampling_rate: int,
     nfft: int | None = None,
     window: str = "Hamming",
+    db: bool = False,
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """按当前策略执行 FFT，返回单边幅度谱。
 
@@ -53,6 +54,7 @@ def compute_fft(
         sampling_rate: 采样率 (Hz)。
         nfft: FFT 点数（2 的幂），默认自动取 nearest_power_of_two(n_samples)。
         window: 窗函数，默认 "Hamming"。
+        db: 是否启用分贝转换，默认 False。
 
     Returns:
         (freqs, ampls)，数据不足时返回 (None, None)。
@@ -61,6 +63,6 @@ def compute_fft(
         return None, None
 
     if _current == FFTMethodEnum.fft_brainflow:
-        return _fft_brainflow(data, sampling_rate, nfft, window)
+        return _fft_brainflow(data, sampling_rate, nfft, window, db)
     elif _current == FFTMethodEnum.fft_rfft_scipy:
-        return _fft_rfft_scipy(data, sampling_rate, nfft, window)
+        return _fft_rfft_scipy(data, sampling_rate, nfft, window, db)

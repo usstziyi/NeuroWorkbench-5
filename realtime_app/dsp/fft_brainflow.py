@@ -28,6 +28,7 @@ def compute_fft(
     sampling_rate: int,
     nfft: int | None = None,
     window: str = "Hann",
+    db: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """直接 FFT，返回单边幅度谱。对齐 openbci-gui forward() 调用模式。
 
@@ -36,6 +37,7 @@ def compute_fft(
         sampling_rate: 采样率 (Hz)。
         nfft: FFT 点数（2 的幂），默认自动取 nearest_power_of_two(n_samples)。
         window: 窗函数，默认 "Hann"。
+        db: 是否启用分贝转换，默认 False。
 
     Returns:
         (freqs, ampls)。
@@ -56,6 +58,8 @@ def compute_fft(
 
     # 还原物理幅度: |X|/nfft, 非 DC/Nyquist 补全双边能量
     ampls_2d[:, 1:-1] *= 2.0
+    if db:
+        ampls_2d = 20 * np.log10(np.maximum(ampls_2d, 1e-15))
 
     freqs = np.fft.rfftfreq(nfft, d=1.0 / sampling_rate)
     return freqs, ampls_2d

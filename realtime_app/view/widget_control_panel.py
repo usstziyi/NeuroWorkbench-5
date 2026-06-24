@@ -34,7 +34,7 @@ class DeviceName(str, Enum):
 class NoiseTypeEnum(int, Enum):
     Hz_50 = 50
     Hz_60 = 60
-    none = 0
+    Hz_0 = 0
 
     def __str__(self):
         return f"{self.value} Hz" if self.value != 0 else "None"
@@ -62,16 +62,12 @@ class PortComboBox(QComboBox):
 class FreqsDomainType(str, Enum):
     psd = "PSD"
     fft = "FFT"
+    psd_db = "PSD_DB"
+    fft_db = "FFT_DB"
 
     def __str__(self):
         return self.value
 
-class YScaleEnum(str, Enum):
-    Linear = "Linear"
-    Log = "10Log10"
-
-    def __str__(self):
-        return self.value
 
 
 class ControlPanelWidget(QWidget):
@@ -93,10 +89,6 @@ class ControlPanelWidget(QWidget):
         self._binder_fft = binder_fft
         self._binder_psd = binder_psd
         self._device_manager = device_manager
-
-        self._config_psd = self._binder_psd.model if self._binder_psd else None
-        self._config_fft = self._binder_fft.model if self._binder_fft else None
-
 
 
         self.init_ui()
@@ -244,14 +236,17 @@ class ControlPanelWidget(QWidget):
 
     def _switch_freqs_type(self, dtype):
         suffix = " μV²/Hz" if dtype == FreqsDomainType.psd else " μV"
+        match dtype:
+            case FreqsDomainType.psd:
+                suffix = " μV²/Hz"
+            case FreqsDomainType.psd_db:
+                suffix = " dB(μV²/Hz)"
+            case FreqsDomainType.fft:
+                suffix = " μV"
+            case FreqsDomainType.fft_db:
+                suffix = " dB(μV)"
         self.y_min.setSuffix(suffix)
         self.y_max.setSuffix(suffix)
-        if dtype == FreqsDomainType.psd:
-            self._config_psd.enable = True
-            self._config_fft.enable = False
-        else:
-            self._config_psd.enable = False
-            self._config_fft.enable = True
 
     def build_recorder_group(self):
         recorder_group = QGroupBox("信号录制")

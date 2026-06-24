@@ -35,6 +35,11 @@ class ConfigFFT(Configurable):
         help="Exponential smoothing factor for spectrum amplitude over time. "
              "Range: [0.0, 1.0]. Higher values yield smoother but slower-reacting spectra."
     ).tag(config=True)
+
+    db = Bool(
+        False, 
+        help="Enable decibel transformation for FFT output."
+    ).tag(config=True)
     
     method = Unicode(
         "fft_brainflow", 

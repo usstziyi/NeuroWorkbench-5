@@ -54,7 +54,7 @@ class DataChain(QObject):
         self._fft_enable = False    
         self._window_type: str = "Hamming"
         self._nfft = 256
-        self._nfft_db = False
+        self._fft_db = False
 
         # PSD参数
         self._psd_enable = False
@@ -63,7 +63,6 @@ class DataChain(QObject):
         self._psd_overlap_ratio = 0.5
         self._psd_window_type = "Hann"
         self._psd_db = False
-
 
         self.observe_configs()
 
@@ -110,13 +109,13 @@ class DataChain(QObject):
                 sampling_rate=int(self._sampling_rate),
                 nfft=self._nfft,
                 window=self._window_type,
+                db=self._fft_db,
             )
 
             if freqs is None:
                 return
 
             result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
-            result["__type__"]="fft_db" if self._nfft_db else "fft"
             self.psd_ready.emit(result)
 
         # 4. 计算 PSD
@@ -135,7 +134,6 @@ class DataChain(QObject):
                 return
 
             result = {name: (freqs, psd_2d[i]) for i, name in enumerate(names)}
-            result["__type__"]="psd_db" if self._psd_db else "psd"
             self.psd_ready.emit(result)
 
 
@@ -188,10 +186,11 @@ class DataChain(QObject):
             self._fft_enable = self._config_fft.enable
             self._nfft = self._config_fft.nfft
             self._window_type = str(self._config_fft.window_type)
+            self._fft_db = self._config_fft.db
             set_strategy_fft(self._config_fft.method)
             self._config_fft.observe(
                 self._on_fft_changed,
-                names=["enable", "nfft", "window_type", "method"],
+                names=["enable", "nfft", "window_type", "db", "method"],
             )
         
         if self._config_psd is not None:
@@ -206,6 +205,47 @@ class DataChain(QObject):
                 self._on_psd_changed,
                 names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "db", "method"],
             )
+
+        if self._config_view_freqs is not None:
+            self._config_view_freqs.observe(
+                self._on_freqs_type_changed,
+                names=["type"],
+            )
+            # 初始化：根据当前 type 同步 PSD/FFT enable
+            self._on_freqs_type_changed({"new": self._config_view_freqs.type})
+
+    def _on_freqs_type_changed(self, change):
+        """切换频域类型时，自动同步 PSD/FFT 的 enable 状态。"""
+        dtype = change["new"]
+        match dtype:
+            case "PSD":
+                if self._config_psd is not None:
+                    self._config_psd.enable = True
+                    self._config_psd.db = False
+                if self._config_fft is not None:
+                    self._config_fft.enable = False
+                    self._config_fft.db = False
+            case "FFT":
+                if self._config_psd is not None:
+                    self._config_psd.enable = False
+                    self._config_psd.db = False
+                if self._config_fft is not None:
+                    self._config_fft.enable = True
+                    self._config_fft.db = False
+            case "PSD_DB":
+                if self._config_psd is not None:
+                    self._config_psd.enable = True
+                    self._config_psd.db = True
+                if self._config_fft is not None:
+                    self._config_fft.enable = False
+                    self._config_fft.db = False
+            case "FFT_DB":
+                if self._config_psd is not None:
+                    self._config_psd.enable = False
+                    self._config_psd.db = False
+                if self._config_fft is not None:
+                    self._config_fft.enable = True
+                    self._config_fft.db = True
 
     def _on_psd_changed(self, change):
         name = change["name"]
@@ -232,6 +272,8 @@ class DataChain(QObject):
             self._nfft = change["new"]
         elif name == "window_type":
             self._window_type = str(change["new"])
+        elif name == "db":
+            self._fft_db = change["new"]
         elif name == "method":
             set_strategy_fft(change["new"])
 
@@ -302,6 +344,14 @@ class DataChain(QObject):
             except RuntimeError:
                 pass
             self._config_psd = None
+        if self._config_view_freqs is not None:
+            try:
+                self._config_view_freqs.unobserve(
+                    self._on_freqs_type_changed, names=["type"],
+                )
+            except RuntimeError:
+                pass
+            self._config_view_freqs = None
 
     def dismiss(self):
         self.unobserve_configs()
