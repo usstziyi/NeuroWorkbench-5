@@ -25,7 +25,7 @@ c.ConfigTheme.theme = 'Fusion'
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
 c.ConfigDevice.name = 'cyton'
-c.ConfigDevice.port = '/dev/cu.usbmodem112101'
+c.ConfigDevice.port = '/dev/cu.usbmodem12101'
 
 #------------------------------------------------------------------------------
 # ConfigFetcher configuration
@@ -64,22 +64,16 @@ c.ConfigFFT.window_type = 'Hamming'
 #------------------------------------------------------------------------------
 # ConfigFreqsDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigFreqsDomain.ampls_range = [0.001, 200.0]
-c.ConfigFreqsDomain.dsp_enable = False
-c.ConfigFreqsDomain.fft_enable = True
-c.ConfigFreqsDomain.freqs_range = [0.0, 95.0]
-c.ConfigFreqsDomain.log_y = 'Linear'
-c.ConfigFreqsDomain.method = 'brainflow-perform_fft'
-c.ConfigFreqsDomain.nfft = 512
-c.ConfigFreqsDomain.overlap_ratio = 0.5
-c.ConfigFreqsDomain.seconds = 5
-c.ConfigFreqsDomain.smooth_factor = 0.92
-c.ConfigFreqsDomain.window_type = 'Hann'
+c.ConfigFreqsDomain.freqs_range = [0.0, 60.0]
+c.ConfigFreqsDomain.log_y = '10Log10'
+c.ConfigFreqsDomain.type = 'PSD'
+c.ConfigFreqsDomain.y_max = 50.0
+c.ConfigFreqsDomain.y_min = -25.0
 
 #------------------------------------------------------------------------------
 # ConfigTimeDomain configuration
 #------------------------------------------------------------------------------
-c.ConfigTimeDomain.amplitude = 100.0
+c.ConfigTimeDomain.amplitude = 1000.0
 c.ConfigTimeDomain.interval = 50.0
 c.ConfigTimeDomain.seconds = 5
 
@@ -92,10 +86,11 @@ c.ConfigRecorder.record_raw = False
 #------------------------------------------------------------------------------
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
-c.ConfigPSD.cut_seconds = 4
+c.ConfigPSD.cut_seconds = 3
+c.ConfigPSD.db = True
 c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_welch_scipy'
-c.ConfigPSD.nperseg = 512
+c.ConfigPSD.nperseg = 256
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 

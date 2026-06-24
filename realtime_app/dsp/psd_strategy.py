@@ -19,6 +19,7 @@ import numpy as np
 from .psd_brainflow import compute_psd as _psd_brainflow
 from .psd_welch_brainflow import compute_psd as _psd_welch_brainflow
 from .psd_welch_scipy import compute_psd as _psd_welch_scipy
+from .psd_shorttimefft_scipy import compute_psd as _psd_shorttimefft_scipy
 
 
 class PSDMethodEnum(StrEnum):
@@ -26,6 +27,7 @@ class PSDMethodEnum(StrEnum):
     psd_brainflow = "psd_brainflow"
     psd_welch_brainflow = "psd_welch_brainflow"
     psd_welch_scipy = "psd_welch_scipy"
+    psd_shorttimefft_scipy = "psd_shorttimefft_scipy"
 
     def __str__(self):
         return self.value
@@ -55,6 +57,7 @@ def compute_psd(
     sampling_rate: int,
     window: str = "Hann",
     cut_seconds: int = 3,
+    db: bool = False,
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     """按当前策略计算 PSD。
 
@@ -65,6 +68,7 @@ def compute_psd(
         sampling_rate: 采样率 (Hz)。
         window: 窗函数，默认 "Hann"。
         cut_seconds: 截取时间窗口，默认 3 秒。
+        db: 是否转换为 dB(μV²/Hz) 单位，默认 False。
 
     Returns:
         (psd, freqs)，数据不足时返回 (None, None)。
@@ -77,8 +81,10 @@ def compute_psd(
     overlap = int(nperseg * overlap_ratio)
 
     if _current == PSDMethodEnum.psd_brainflow:
-        return _psd_brainflow(data, nperseg, sampling_rate, window)
+        return _psd_brainflow(data, nperseg, sampling_rate, window, db)
     elif _current == PSDMethodEnum.psd_welch_brainflow:
-        return _psd_welch_brainflow(data, nperseg, overlap, sampling_rate, window)
+        return _psd_welch_brainflow(data, nperseg, overlap, sampling_rate, window, db)
     elif _current == PSDMethodEnum.psd_welch_scipy:
-        return _psd_welch_scipy(data, nperseg, overlap, sampling_rate, window)
+        return _psd_welch_scipy(data, nperseg, overlap, sampling_rate, window, db)
+    elif _current == PSDMethodEnum.psd_shorttimefft_scipy:
+        return _psd_shorttimefft_scipy(data, nperseg, overlap, sampling_rate, window, db)

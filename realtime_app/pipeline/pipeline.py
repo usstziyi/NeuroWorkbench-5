@@ -12,8 +12,8 @@ class Pipeline(QObject):
     MainWindow 只需创建 Pipeline 实例并 connect data_ready 即可。
     """
 
-    data_ready = Signal(dict)     # {channel_name: (t_array, y_processed)}
-    ampls_ready = Signal(dict)    # {channel_name: (freqs, ampls)}
+    data_ready = Signal(dict)  # {channel_name: (times_1d, data_1d)}
+    psd_ready = Signal(dict)  # {channel_name: (freqs_1d, psd_1d)}
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
     def __init__(self, device_manager, parent=None,
@@ -77,7 +77,7 @@ class Pipeline(QObject):
         self._fetcher.raw_data_ready.connect(self._chain.process)
         # chain → UI (引用)
         self._chain.data_ready.connect(self.data_ready.emit)
-        self._chain.ampls_ready.connect(self.ampls_ready.emit)
+        self._chain.psd_ready.connect(self.psd_ready.emit)
         self._chain.spectrogram_ready.connect(self.spectrogram_ready.emit)
 
         self._fetch_thread = QThread()

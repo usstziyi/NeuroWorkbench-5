@@ -254,7 +254,7 @@ class MainWindow(QMainWindow):
             config_psd=self.config_psd,
         )
         self._pipeline.data_ready.connect(self.center_widget.set_all_data)
-        self._pipeline.ampls_ready.connect(self.bottom_widget.set_all_data)
+        self._pipeline.psd_ready.connect(self.bottom_widget.set_all_data)
         self._pipeline.spectrogram_ready.connect(self.right_widget.spectrogram.set_data)
 
 

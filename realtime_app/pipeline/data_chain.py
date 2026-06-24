@@ -17,8 +17,8 @@ class DataChain(QObject):
     处理后发射给 UI。注入 config 后自行 observe，外部无需手动更新参数。
     """
 
-    data_ready = Signal(dict)  # {channel_name: (t_array, y_processed)}
-    ampls_ready = Signal(dict)  # {channel_name: (freqs_1d, ampls_1d)}
+    data_ready = Signal(dict)  # {channel_name: (times_1d, data_1d)}
+    psd_ready = Signal(dict)  # {channel_name: (freqs_1d, psd_1d)}
     spectrogram_ready = Signal(dict)  # {"image": (max_time, n_freqs), "freqs": 1d array}
 
 
@@ -50,10 +50,11 @@ class DataChain(QObject):
 
         # PSD参数
         self._psd_enable = False
-        self._cut_seconds = 3
-        self._nperseg = 512
-        self._overlap_ratio = 0.5
+        self._psd_cut_seconds = 3
+        self._psd_nperseg = 512
+        self._psd_overlap_ratio = 0.5
         self._psd_window_type = "Hann"
+        self._psd_db = False
 
 
         self.observe_configs()
@@ -93,38 +94,41 @@ class DataChain(QObject):
                   for i, name in enumerate(names)}
         self.data_ready.emit(result)
 
-        # # 3. 计算频幅谱
-        # if self._fft_enable:
+        # 3. 计算频幅谱
+        if self._fft_enable:
 
-        #     freqs, ampls_2d = compute_fft(
-        #         data=raw_data,
-        #         sampling_rate=int(self._sampling_rate),
-        #         nfft=self._nfft,
-        #         window=self._window_type,
-        #     )
+            freqs, ampls_2d = compute_fft(
+                data=raw_data,
+                sampling_rate=int(self._sampling_rate),
+                nfft=self._nfft,
+                window=self._window_type,
+            )
 
-        #     if freqs is None:
-        #         return
+            if freqs is None:
+                return
 
-        #     ampls_result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
-        #     self.ampls_ready.emit(ampls_result)
+            result = {name: (freqs, ampls_2d[i]) for i, name in enumerate(names)}
+            result["__type__"]="fft"
+            self.psd_ready.emit(result)
 
-        # 4. 计算 Welch PSD
+        # 4. 计算 PSD
         if self._psd_enable:
             psd_2d, freqs = compute_psd(
                 data=raw_data,
-                cut_seconds=self._cut_seconds,
-                nperseg=self._nperseg,
-                overlap_ratio=self._overlap_ratio,
+                cut_seconds=self._psd_cut_seconds,
+                nperseg=self._psd_nperseg,
+                overlap_ratio=self._psd_overlap_ratio,
                 sampling_rate=int(self._sampling_rate),
                 window=self._psd_window_type,
+                db=self._psd_db,
             )
 
             if psd_2d is None:
                 return
 
-            psd_result = {name: (freqs, psd_2d[i]) for i, name in enumerate(names)}
-            self.ampls_ready.emit(psd_result)
+            result = {name: (freqs, psd_2d[i]) for i, name in enumerate(names)}
+            result["__type__"]="psd"
+            self.psd_ready.emit(result)
 
 
 
@@ -184,14 +188,14 @@ class DataChain(QObject):
         
         if self._config_psd is not None:
             self._psd_enable = self._config_psd.enable
-            self._cut_seconds = self._config_psd.cut_seconds
-            self._nperseg = self._config_psd.nperseg
-            self._overlap_rate = self._config_psd.overlap_ratio
+            self._psd_cut_seconds = self._config_psd.cut_seconds
+            self._psd_nperseg = self._config_psd.nperseg
+            self._psd_overlap_ratio = self._config_psd.overlap_ratio
             self._psd_window_type = str(self._config_psd.window_type)
             set_strategy_psd(self._config_psd.method)
             self._config_psd.observe(
                 self._on_psd_changed,
-                names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "method"],
+                names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "db", "method"],
             )
 
     def _on_psd_changed(self, change):
@@ -199,13 +203,15 @@ class DataChain(QObject):
         if name == "enable":
             self._psd_enable = change["new"]
         elif name == "cut_seconds":
-            self._cut_seconds = change["new"]
+            self._psd_cut_seconds = change["new"]
         elif name == "nperseg":
-            self._nperseg = change["new"]
+            self._psd_nperseg = change["new"]
         elif name == "overlap_ratio":
-            self._overlap_rate = change["new"]
+            self._psd_overlap_ratio = change["new"]
         elif name == "window_type":
             self._psd_window_type = str(change["new"])
+        elif name == "db":
+            self._psd_db = change["new"]
         elif name == "method":
             set_strategy_psd(change["new"])
 
@@ -282,7 +288,7 @@ class DataChain(QObject):
             try:
                 self._config_psd.unobserve(
                     self._on_psd_changed,
-                    names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "method"],
+                    names=["enable", "cut_seconds", "nperseg", "overlap_ratio", "window_type", "db", "method"],
                 )
             except RuntimeError:
                 pass

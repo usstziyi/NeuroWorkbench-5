@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QFormLayout, QWidget, QSpinBox,
 )
 
-from superqt import QEnumComboBox
+from superqt import QEnumComboBox, QToggleSwitch
 from enum import Enum, StrEnum, IntEnum
 
 from utils.make_container import make_combo_switch
@@ -13,6 +13,7 @@ class PSDMethodEnum(StrEnum):
     psd_brainflow = "psd_brainflow"
     psd_welch_brainflow = "psd_welch_brainflow"
     psd_welch_scipy = "psd_welch_scipy"
+    psd_shorttimefft_scipy = "psd_shorttimefft_scipy"
 
     def __str__(self):
         return self.value
@@ -77,6 +78,9 @@ class WidgetSettingsPSD(QWidget):
         self._combo_psd_window = QEnumComboBox(enum_class=PSDWindowEnum)
         form_layout.addRow("PSD窗口类型:", self._combo_psd_window)
 
+        self._switch_db = QToggleSwitch()
+        form_layout.addRow("dB(μV²/Hz):", self._switch_db)
+
         main_layout.addLayout(form_layout)
         main_layout.addStretch(1)
 
@@ -138,6 +142,14 @@ class WidgetSettingsPSD(QWidget):
             to_widget_func=lambda v: PSDWindowEnum(v),
             from_widget_func=lambda v: v.value,
         )
+        b.bind(
+            "db",
+            self._switch_db,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
+
+
 
         b.snapshot()
 
@@ -151,3 +163,4 @@ class WidgetSettingsPSD(QWidget):
         b.unbind("nperseg")
         b.unbind("overlap_ratio")
         b.unbind("window_type")
+        b.unbind("db")

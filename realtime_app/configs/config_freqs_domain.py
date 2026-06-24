@@ -5,8 +5,6 @@ from traitlets import Float, Int, Unicode, List, Bool, Dict
 
 
 class ConfigFreqsDomain(Configurable): 
-    """common configuration."""
-    window_type = Unicode("Hann", help="Window type for the FFT.").tag(config=True)
     channels = Dict(
         key_trait=Unicode(), value_trait=Bool(),
         default_value={
@@ -16,17 +14,9 @@ class ConfigFreqsDomain(Configurable):
         help="Channel name → enabled state.",
     ).tag(config=False)
 
-    """Frequency domain configuration."""
-    fft_enable = Bool(True, help="Enable FFT.").tag(config=True)
-    smooth_factor = Float(0.92, help="Smoothing factor (0~1) for spectrum amplitude.").tag(config=True)
-    ampls_range = List(Float(), default_value=[0.001, 200.0], help="Amplitude range to display (μV).").tag(config=True)
+    type = Unicode("PSD", help="Type of the domain to display (psd/fft).").tag(config=True)
+    y_max = Float(default_value=100.0, help="Y max value to display (dB).").tag(config=True)
+    y_min = Float(default_value=-100.0, help="Y min value to display (dB).").tag(config=True)
     freqs_range = List(Float(), default_value=[0.0, 60.0], help="Frequency range to display (Hz).").tag(config=True)
-    log_y = Unicode("Log", help="Y axis scale: Linear or Log.").tag(config=True)
-    nfft = Int(512, help="FFT points (256/512/1024).").tag(config=True)
+    log_y = Unicode("10Log10", help="Y axis scale: Linear or 10Log10.").tag(config=True)
 
-    """DSP configuration."""
-    dsp_enable = Bool(False, help="Enable DSP.").tag(config=True)
-    seconds = Int(5, help="Number of seconds to display (s).").tag(config=True, unit="s")
-    overlap_ratio = Float(0.5, help="Overlap ratio for the FFT.").tag(config=True)
-
-    method = Unicode("brainflow-perform_fft", help="brainflow-perform_fft / scipy-fft-rfft").tag(config=True)

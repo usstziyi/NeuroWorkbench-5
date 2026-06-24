@@ -13,6 +13,7 @@ def compute_psd(
     nperseg: int = 512,
     sampling_rate: int = 250,
     window: str = "Hann",
+    db: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """批量计算多通道 Welch PSD。
 
@@ -21,6 +22,7 @@ def compute_psd(
         nperseg: 窗口大小。
         sampling_rate: 采样率 (Hz)。
         window: 窗函数类型，默认 "Hann"。
+        db: 是否将 PSD 转换为 dB(μV²/Hz) 单位，默认 False。
 
     Returns:
         psd: (n_channels, n_freqs) 功率谱密度幅值。
@@ -46,5 +48,8 @@ def compute_psd(
         psd[ch] = amp
         if freqs is None:
             freqs = f  # 频率轴只需保存一次
+
+    if db:
+        psd = 10 * np.log10(psd)
 
     return psd, freqs

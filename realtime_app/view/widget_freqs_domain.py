@@ -41,6 +41,7 @@ class FreqsDomainWidget(QWidget):
         self.setObjectName("freqs_domain_widget")
 
         self._curves = {}
+        self._last_dtype = None
 
         self.init_ui()
         self.observe_configs()
@@ -61,7 +62,7 @@ class FreqsDomainWidget(QWidget):
         font_bottom.setPointSize(12)
 
         self._plot = self._plot_widget.addPlot(0, 0)
-        self._plot.setLabel("left", "Amplitude", units="μV")
+        self._plot.setLabel("left", "PSD-Density", units="μV²/Hz")
         self._plot.getAxis("left").setWidth(60)
         self._plot.getAxis("left").autoSIPrefix = False
         self._plot.getAxis("left").setStyle(tickFont=font_left)
@@ -97,6 +98,7 @@ class FreqsDomainWidget(QWidget):
                 self._on_channels_changed, names=["channels"]
             )
         if self._freqs_config is not None:
+            # 频率范围
             self.apply_freqs_range(self._freqs_config.freqs_range)
             self._on_freqs_range_change = lambda change: self.apply_freqs_range(
                 self._freqs_config.freqs_range
@@ -104,21 +106,13 @@ class FreqsDomainWidget(QWidget):
             self._freqs_config.observe(
                 self._on_freqs_range_change, names=["freqs_range"]
             )
-
-            self.apply_ampls_range(self._freqs_config.ampls_range)
-            self._on_amp_range_changed = lambda change: self.apply_ampls_range(
-                self._freqs_config.ampls_range
+            # y 轴范围
+            self.apply_y_range(self._freqs_config.y_min, self._freqs_config.y_max)
+            self._on_y_range_changed = lambda change: self.apply_y_range(
+                self._freqs_config.y_min, self._freqs_config.y_max
             )
             self._freqs_config.observe(
-                self._on_amp_range_changed, names=["ampls_range"]
-            )
-
-            self.apply_log_y(self._freqs_config.log_y)
-            self._on_log_y_changed = lambda change: self.apply_log_y(
-                self._freqs_config.log_y
-            )
-            self._freqs_config.observe(
-                self._on_log_y_changed, names=["log_y"]
+                self._on_y_range_changed, names=["y_min", "y_max"]
             )
 
 
@@ -147,20 +141,9 @@ class FreqsDomainWidget(QWidget):
         left, right = freqs_range
         self._plot.setXRange(left, right)
         self._plot.enableAutoRange(x=False)
-
-    def apply_ampls_range(self, ampls_range):
-        if self._freqs_config.log_y == "Log":
-            ampls_range = np.log10(ampls_range)
-        bottom, top = ampls_range
-        self._plot.setYRange(bottom, top)
+    def apply_y_range(self, y_min, y_max):
+        self._plot.setYRange(y_min, y_max)
         self._plot.enableAutoRange(y=False)
-
-    def apply_log_y(self, scale: str):
-        self._plot.setLogMode(x=False, y=(scale == "Log"))
-        self.apply_ampls_range(self._freqs_config.ampls_range)
-        # setLogMode 触发 updateLogMode → enableAutoRange() 会重新打开 X 自动缩放
-        # 因此需要重新禁用 X 自动缩放并恢复频率范围
-        self.apply_freqs_range(self._freqs_config.freqs_range)
 
     def set_data(self, channel, freq, amp):
         """Update data for a specific channel.
@@ -180,8 +163,20 @@ class FreqsDomainWidget(QWidget):
 
         Args:
             data: dict mapping channel name -> (freq, amp) tuple.
+                  May contain __type__ ("fft"|"psd") for axis label.
         """
-        for channel, (freq, amp) in data.items():
+        dtype = data.get("__type__")
+        if dtype is not None and dtype != self._last_dtype:
+            self._last_dtype = dtype
+            if dtype == "psd":
+                self._plot.setLabel("left", "PSD-Density", units="μV²/Hz")
+            elif dtype == "fft":
+                self._plot.setLabel("left", "FFT-Amplitude", units="μV")
+
+        for channel, value in data.items():
+            if not isinstance(value, tuple) or len(value) != 2:
+                continue
+            freq, amp = value
             self.set_data(channel, freq, amp)
 
     def unobserve_configs(self):
@@ -212,14 +207,14 @@ class FreqsDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_freqs_range_change
-            if hasattr(self, "_on_amp_range_changed"):
+            if hasattr(self, "_on_y_range_changed"):
                 try:
                     self._freqs_config.unobserve(
-                        self._on_amp_range_changed, names=["ampls_range"]
+                        self._on_y_range_changed, names=["y_min", "y_max"]
                     )
                 except RuntimeError:
                     pass
-                del self._on_amp_range_changed
+                del self._on_y_range_changed
             if hasattr(self, "_on_log_y_changed"):
                 try:
                     self._freqs_config.unobserve(

@@ -31,6 +31,12 @@ class ConfigPSD(Configurable):
         "psd_brainflow",
         help="PSD computation backend: "
              "'psd_brainflow', 'psd_welch_brainflow', or 'psd_welch_scipy'."
+             "Default: 'psd_brainflow'."
+    ).tag(config=True)
+
+    db = Bool(
+        False,
+        help="Convert PSD to dB(μV²/Hz) unit. Default: False."
     ).tag(config=True)
 
     cut_seconds = Int(

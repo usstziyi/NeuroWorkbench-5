@@ -49,15 +49,6 @@ class WindowType(str, Enum):
     def __str__(self):
         return self.value
 
-
-class YScaleEnum(str, Enum):
-    Linear = "Linear"
-    Log = "Log"
-
-    def __str__(self):
-        return self.value
-
-
 class PortComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -67,7 +58,20 @@ class PortComboBox(QComboBox):
         self.clear()
         self.addItems(sorted(p.device for p in comports()))
         super().showPopup()
+    
+class FreqsDomainType(str, Enum):
+    psd = "PSD"
+    fft = "FFT"
 
+    def __str__(self):
+        return self.value
+
+class YScaleEnum(str, Enum):
+    Linear = "Linear"
+    Log = "10Log10"
+
+    def __str__(self):
+        return self.value
 
 
 class ControlPanelWidget(QWidget):
@@ -158,6 +162,7 @@ class ControlPanelWidget(QWidget):
         self.amplitude_spin = QSpinBox()
         self.amplitude_spin.setRange(10, 2000)
         self.amplitude_spin.setSingleStep(20)
+        self.amplitude_spin.setSuffix(" μV")
         time_domain_layout.addRow("信号强度:",self.amplitude_spin)
 
         self.refresh_spin = QSpinBox()
@@ -201,19 +206,39 @@ class ControlPanelWidget(QWidget):
         freqs_domain_group = QGroupBox("频域分析")
         freqs_domain_layout = QFormLayout(freqs_domain_group)
 
-        self.window_type = QEnumComboBox(enum_class=WindowType)
-        freqs_domain_layout.addRow("窗口类型:",self.window_type)
+        self.type_combo = QEnumComboBox(enum_class=FreqsDomainType)
+        freqs_domain_layout.addRow("频域类型:",self.type_combo)
 
-        self.smooth_factor_spin = QDoubleSpinBox()
-        self.smooth_factor_spin.setRange(0.01, 0.99) # 真实区间
-        self.smooth_factor_spin.setSingleStep(0.01)
-        freqs_domain_layout.addRow("平滑系数:",self.smooth_factor_spin)
+        self.log_y_combo = QEnumComboBox(enum_class=YScaleEnum)
+        freqs_domain_layout.addRow("Y轴模式:",self.log_y_combo)
+
+        self.y_max = QDoubleSpinBox()
+        self.y_max.setRange(0.0, 10000.0)
+        self.y_max.setSingleStep(10)
+        freqs_domain_layout.addRow("Y轴上界:",self.y_max)
+
+        self.y_min = QDoubleSpinBox()
+        self.y_min.setRange(-100.0, 0.0)
+        self.y_min.setSingleStep(1)
+        freqs_domain_layout.addRow("Y轴下界:",self.y_min)
+
+
+
+        # type 切换时更新 psd_up 单位
+        self.type_combo.currentEnumChanged.connect(
+            lambda dtype: self.y_min.setSuffix(" μV²/Hz" if dtype == FreqsDomainType.psd else " μV")
+            and self.y_max.setSuffix(" μV²/Hz" if dtype == FreqsDomainType.psd else " μV")
+        )
+        self.y_min.setSuffix(" μV²/Hz" if self.type_combo.currentEnum() == FreqsDomainType.psd else " μV")
+        self.y_max.setSuffix(" μV²/Hz" if self.type_combo.currentEnum() == FreqsDomainType.psd else " μV")
+
+
+
+
+
+
+
         
-        self.ampls_up = QDoubleSpinBox()
-        self.ampls_up.setSuffix(" μV")
-        self.ampls_up.setRange(10, 10000.0) # 区间右值
-        self.ampls_up.setSingleStep(10)
-        freqs_domain_layout.addRow("幅值范围:",self.ampls_up)
 
         self.freqs_right = QDoubleSpinBox()
         self.freqs_right.setSuffix(" Hz")
@@ -267,7 +292,6 @@ class ControlPanelWidget(QWidget):
             }}
         """
 
-    
     def bind_configs(self):
         # --- Device ---
         if self._binder_device:
@@ -327,18 +351,20 @@ class ControlPanelWidget(QWidget):
         # --- Freqs Domain ---
         if self._binder_freqs:
             self._binder_freqs.bind(
-                "window_type",
-                self.window_type,
+                "type",
+                self.type_combo,
                 widget_property="currentEnum",
                 widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: WindowType(v.capitalize()),
+                to_widget_func=lambda v: FreqsDomainType(v),
                 from_widget_func=lambda v: v.value,
             )
             self._binder_freqs.bind(
-                "smooth_factor",
-                self.smooth_factor_spin,
-                widget_property="value",
-                widget_signal="valueChanged",
+                "log_y",
+                self.log_y_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: YScaleEnum(v),
+                from_widget_func=lambda v: v.value,
             )
             # freqs_range 是 List[Float]，控件是单个 QDoubleSpinBox，绑到右界
             self._binder_freqs.bind(
@@ -352,18 +378,21 @@ class ControlPanelWidget(QWidget):
                     v,
                 ],
             )
-            # ampls_range 同理，绑到右界（上限）
+            # y_min
             self._binder_freqs.bind(
-                "ampls_range",
-                self.ampls_up,
+                "y_min",
+                self.y_min,
                 widget_property="value",
                 widget_signal="valueChanged",
-                to_widget_func=lambda v: v[1],
-                from_widget_func=lambda v: [
-                    self._binder_freqs.get("ampls_range")[0],
-                    v,
-                ],
             )
+            # y_max
+            self._binder_freqs.bind(
+                "y_max",
+                self.y_max,
+                widget_property="value",
+                widget_signal="valueChanged",
+            )
+
 
         # --- Time Domain ---
         if self._binder_time:
