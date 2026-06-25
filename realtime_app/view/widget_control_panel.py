@@ -166,7 +166,7 @@ class ControlPanelWidget(QWidget):
         time_domain_layout.addRow("信号强度:",self.amplitude_spin)
 
         self.refresh_spin = QSpinBox()
-        self.refresh_spin.setRange(20, 200)
+        self.refresh_spin.setRange(20, 5000)
         self.refresh_spin.setSuffix(" ms")
         time_domain_layout.addRow("刷新间隔:", self.refresh_spin)
         return time_domain_group

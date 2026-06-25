@@ -59,7 +59,6 @@ def compute_filter(
     notch_order: int = 2,
     zero_phase: bool = False,
     streaming: bool = False,
-    seconds: int = 5,
     filter_type: str = "butterworth",
 ) -> np.ndarray:
     """按当前策略执行滤波。
@@ -75,7 +74,6 @@ def compute_filter(
         zero_phase: True → sosfiltfilt 零相位（仅 scipy static 模式生效）。
         streaming: False → 无状态滤波，每帧独立；
                    True  → 有状态滤波，跨帧连续（仅 scipy 策略生效）。
-        seconds: 有状态模式下保留的最近样本数（仅 scipy 策略生效）。
 
     Returns:
         滤波后信号数组，形状与输入相同。
@@ -91,7 +89,6 @@ def compute_filter(
             notch_order=notch_order,
             zero_phase=zero_phase,
             streaming=streaming,
-            seconds=seconds,
         )
     elif _current == FilterMethodEnum.filter_brainflow:
         return _filter_brainflow(

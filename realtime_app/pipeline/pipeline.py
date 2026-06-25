@@ -1,7 +1,7 @@
 from PySide6.QtCore import QObject, Signal, QThread
 
-from pipeline.board_fetcher import BoardFetcher
-from pipeline.data_chain import DataChain
+from .board_fetcher import BoardFetcher
+from .data_chain import DataChain
 
 
 class Pipeline(QObject):

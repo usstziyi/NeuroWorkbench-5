@@ -1,3 +1,4 @@
+import numpy as np
 import pyqtgraph as pg
 from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtWidgets import (
@@ -35,6 +36,50 @@ CET_R3 = [
 
 
 FIXED_PLOT_HEIGHT = 120
+SAMPLING_RATE = 250
+BUFFER_SECONDS = 30
+BUFFER_SIZE = SAMPLING_RATE * BUFFER_SECONDS  # 7500
+
+
+class RingBuffer:
+    """固定容量的环形 numpy buffer，二维 (n_channels, capacity)。"""
+    def __init__(self, n_channels, capacity):
+        self._buf = np.zeros((n_channels, capacity), dtype=np.float64)
+        self._capacity = capacity
+        self._count = 0
+
+    @property
+    def count(self):
+        return self._count
+
+    def push(self, data):
+        """data shape (n_channels, n_samples)。"""
+        n = data.shape[1]
+        if n >= self._capacity:
+            self._buf[:] = data[:, -self._capacity:]
+            self._count += n
+            return
+        pos = self._count % self._capacity
+        end = pos + n
+        if end <= self._capacity:
+            self._buf[:, pos:end] = data
+        else:
+            first = self._capacity - pos
+            self._buf[:, pos:] = data[:, :first]
+            self._buf[:, :end - self._capacity] = data[:, first:]
+        self._count += n
+
+    def get_recent(self, n):
+        """返回 (n_channels, n)，不足则取多少返回多少。"""
+        effective = min(self._count, self._capacity)
+        n = min(n, effective)
+        if n == 0:
+            return np.empty((self._buf.shape[0], 0), dtype=np.float64)
+        pos = self._count % self._capacity
+        if n <= pos:
+            return self._buf[:, pos - n:pos].copy()
+        tail = self._capacity - (n - pos)
+        return np.concatenate([self._buf[:, tail:], self._buf[:, :pos]], axis=1)
 
 
 class _WheelForwarder(QObject):
@@ -79,6 +124,7 @@ class TimeDomainWidget(QWidget):
 
         self._plots = {}
         self._curves = {}
+        self._ring = None
 
         self.init_ui()
         self.observer_configs()
@@ -155,6 +201,9 @@ class TimeDomainWidget(QWidget):
         # ✅ 确保 ScrollArea 允许内容撑开
         self._scroll_area.setWidgetResizable(True)
 
+        n_channels = len(self._curves)
+        self._ring = RingBuffer(n_channels, BUFFER_SIZE)
+
         if self._config_view_time is not None:
             self.set_range(self._config_view_time.seconds, self._config_view_time.amplitude)
 
@@ -170,27 +219,32 @@ class TimeDomainWidget(QWidget):
             plot.setXRange(-seconds, 0)
             plot.setYRange(-amplitude, amplitude)
 
-    def set_data(self, channel, t, y):
-        """Update data for a specific channel.
-
-        Args:
-            channel: Channel name.
-            t: Time array (1D).
-            y: Signal array (1D).
-        """
-        curve = self._curves.get(channel)
-        if curve is None:
-            return
-        curve.setData(t, y)
-
     def set_all_data(self, data):
         """Update all channels at once.
 
         Args:
-            data: dict mapping channel name -> (t, y) tuple.
+            data: dict mapping channel name → signal array (1D).
         """
-        for channel, (t, y) in data.items():
-            self.set_data(channel, t, y)
+        if self._ring is None or not self._curves:
+            return
+
+        # 按 curves 顺序堆叠为 (n_channels, n_samples)
+        stacks = []
+        for ch in self._curves:
+            y = data.get(ch)
+            if y is None or len(y) == 0:
+                return
+            stacks.append(y)
+        self._ring.push(np.array(stacks))
+
+        window_samples = int(self._config_view_time.seconds * SAMPLING_RATE) if self._config_view_time else BUFFER_SIZE
+        y_display = self._ring.get_recent(window_samples)
+        if y_display.shape[1] == 0:
+            return
+
+        t_display = np.arange(-y_display.shape[1], 0) / SAMPLING_RATE
+        for i, curve in enumerate(self._curves.values()):
+            curve.setData(t_display, y_display[i])
 
 
     def observer_configs(self):

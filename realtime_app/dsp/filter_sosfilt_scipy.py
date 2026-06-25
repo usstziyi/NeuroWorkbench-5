@@ -43,10 +43,8 @@ _coeff_cache: dict = {
 # 有状态模式运行时状态（仅 streaming=True 时使用）
 # ---------------------------------------------------------------------------
 _stream_state: dict = {
-    "saved_output": None,    # (n_channels, n_samples) 上帧完整滤波结果
     "zi_bp": None,           # (n_sections_bp, n_channels, 2) 带通 zi
     "zi_notch": None,        # (n_sections_notch, n_channels, 2) 陷波 zi
-    "seconds": 5,            # 窗口保留秒数
 }
 
 
@@ -117,8 +115,7 @@ def _ensure_coeffs(
         _coeff_cache["params_tuple"] = pt
         _coeff_cache["sos_bp"] = _design_bandpass_sos(sampling_rate, highpass, lowpass, order)
         _coeff_cache["sos_notch"] = _design_notch_sos(sampling_rate, noise_freqs, notch_order)
-        # 清空旧zi 和 上帧输出
-        _stream_state["saved_output"] = None
+        # 清空旧 zi 状态
         _stream_state["zi_bp"] = None
         _stream_state["zi_notch"] = None
 
@@ -147,7 +144,7 @@ def _filter_static(data: np.ndarray, zero_phase: bool = False) -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 def _filter_stream_init(data: np.ndarray) -> np.ndarray:
-    """冷启动：2D 全量滤波并捕获最终 zi 状态。"""
+    """冷启动：全量滤波并捕获最终 zi 状态。"""
     sos_bp = _coeff_cache["sos_bp"]
     sos_notch = _coeff_cache["sos_notch"]
     n_channels = data.shape[0]
@@ -169,16 +166,13 @@ def _filter_stream_init(data: np.ndarray) -> np.ndarray:
 
     _stream_state["zi_bp"] = zi_bp
     _stream_state["zi_notch"] = zi_notch
-    _stream_state["saved_output"] = x
     return x
 
 
 def _filter_stream_inc(new_data: np.ndarray) -> np.ndarray:
-    """增量滤波：仅处理新增样本，沿用上帧 zi。"""
+    """增量滤波：仅处理新增样本，沿用上帧 zi，输出形状与输入一致。"""
     sos_bp = _coeff_cache["sos_bp"]
     sos_notch = _coeff_cache["sos_notch"]
-    sampling_rate = _coeff_cache["params_tuple"][0]
-    seconds = _stream_state["seconds"]
     x = new_data
 
     if sos_bp is not None:
@@ -189,13 +183,7 @@ def _filter_stream_inc(new_data: np.ndarray) -> np.ndarray:
         x, zi_notch = sosfilt(sos_notch, x, axis=-1, zi=_stream_state["zi_notch"])
         _stream_state["zi_notch"] = zi_notch
 
-    prev = _stream_state["saved_output"]
-    result = np.concatenate((prev, x), axis=1)
-    max_samples = int(seconds * sampling_rate)
-    if result.shape[1] > max_samples:
-        result = result[:, -max_samples:]
-    _stream_state["saved_output"] = result
-    return result
+    return x
 
 
 # ---------------------------------------------------------------------------
@@ -212,7 +200,6 @@ def compute_filter(
     notch_order: int = 2,
     zero_phase: bool = False,
     streaming: bool = False,
-    seconds: int = 5,
 ) -> np.ndarray:
     """对多通道信号执行 IIR 滤波管线。
 
@@ -227,8 +214,7 @@ def compute_filter(
         zero_phase: True → sosfiltfilt（零相位）；False → sosfilt。
                     仅 streaming=False 时生效。
         streaming: False → 无状态滤波，每帧独立；
-                   True  → 有状态滤波，跨帧连续。
-        seconds: 有状态模式下，保留的最近样本数（秒）。
+                   True  → 有状态滤波，跨帧连续，输出形状与输入一致。
 
     Returns:
         滤波后信号数组，形状与输入相同。
@@ -237,15 +223,12 @@ def compute_filter(
     # 检查滤波器指纹
     _ensure_coeffs(sampling_rate, highpass, lowpass, order, noise_freqs, notch_order)
 
-    # seconds 只影响流式缓冲区截断，不影响滤波器指纹
-    _stream_state["seconds"] = seconds
-
     # 无状态模式
     if not streaming:
         return _filter_static(data, zero_phase=zero_phase)
 
-    # 有状态模式
-    if _stream_state["saved_output"] is None:
+    # 有状态模式: 用 zi 状态判断冷/热启动
+    if _stream_state["zi_bp"] is None:
         return _filter_stream_init(data)
     else:
         return _filter_stream_inc(data)

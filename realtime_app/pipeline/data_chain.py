@@ -3,6 +3,7 @@ from dsp import compute_detrend, set_strategy_detrend
 from dsp import compute_filter, set_strategy_filter
 from dsp import compute_fft,set_strategy_fft
 from dsp import compute_psd,set_strategy_psd
+from .numpy_ring_buffer_read import NumpyRingBufferRead
 
 
 
@@ -35,6 +36,9 @@ class DataChain(QObject):
         self._config_fft = config_fft
         self._config_psd = config_psd
         self._config_view_freqs = config_view_freqs
+
+        # 数据缓冲区
+        self._ring_buffer = NumpyRingBufferRead()
         
         # 去趋势参数
         self._detrend_enabled = True
@@ -74,7 +78,8 @@ class DataChain(QObject):
         
         names = list(raw_dict.keys())
         # dict -> np.ndarray (n_channels, n_samples)
-        raw_data = np.stack([y for _, y in raw_dict.values()])  # (新内存)
+        raw_data = np.stack([line for line in raw_dict.values()])  # (新内存)
+        
 
         # 1. 去趋势
         if self._detrend_enabled:
@@ -95,11 +100,19 @@ class DataChain(QObject):
                 order=self._filter_order,
                 notch_order=self._notch_order,
                 filter_type=self._filter_type,
+                streaming=True,
             )
-
-        result = {name: (raw_dict[name][0], raw_data[i])
-                  for i, name in enumerate(names)}
+    
+        result = {name: raw_data[i] for i, name in enumerate(names)}
         self.data_ready.emit(result)
+
+
+        
+        self._ring_buffer.add_data(raw_data)
+        raw_data = self._ring_buffer.read(256)
+        if raw_data.size == 0:
+            return
+   
 
         # 3. 计算频幅谱
         if self._fft_enable:

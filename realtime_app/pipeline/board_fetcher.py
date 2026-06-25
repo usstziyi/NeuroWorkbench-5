@@ -39,8 +39,8 @@ class BoardFetcher(QObject):
             self._timer.stop()
 
     def _fetch_and_emit(self):
-        board_data = self._dm.peek_seconds(self._seconds)
-        # board_data = self._dm.get_board_data()
+        # board_data = self._dm.peek_seconds(self._seconds)
+        board_data = self._dm.get_board_data()
         if board_data.size == 0:
             return
 
@@ -51,15 +51,15 @@ class BoardFetcher(QObject):
 
         eeg_data = board_data[self._eeg_channels] # fancy indexing (copy)
         n_actual = eeg_data.shape[1]
-        t = np.arange(-n_actual, 0) / self._sr
+ 
 
         result = {} # {channel_name: (t_array, y_array)}
         for i, name in enumerate(self._eeg_names):
             if not self._channels.get(name, False):
                 continue
-            result[name] = (t, eeg_data[i]) # 切片 (view)
+            result[name] = (eeg_data[i]) # 切片 (view)
 
-        self.raw_data_ready.emit(result)
+        self.raw_data_ready.emit(result) # 内存拷贝
 
     def observe_configs(self):
         """同步初始值并注册 config observe。"""

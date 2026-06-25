@@ -24,8 +24,8 @@ c.ConfigTheme.theme = 'Fusion'
 #------------------------------------------------------------------------------
 # ConfigDevice configuration
 #------------------------------------------------------------------------------
-c.ConfigDevice.name = 'synthetic'
-c.ConfigDevice.port = ''
+c.ConfigDevice.name = 'cyton'
+c.ConfigDevice.port = '/dev/cu.usbmodem112101'
 
 #------------------------------------------------------------------------------
 # ConfigFetcher configuration
@@ -48,8 +48,8 @@ c.ConfigFilter.notch_order = 2
 # ConfigDetrend configuration
 #------------------------------------------------------------------------------
 c.ConfigDetrend.detrend_type = 'constant'
-c.ConfigDetrend.enable = True
-c.ConfigDetrend.method = 'detrend_numpy'
+c.ConfigDetrend.enable = False
+c.ConfigDetrend.method = 'detrend_scipy'
 
 #------------------------------------------------------------------------------
 # ConfigFFT configuration
@@ -58,7 +58,7 @@ c.ConfigFFT.channels = {'Fp1': True, 'Fp2': True, 'C3': True, 'C4': True, 'P7': 
 c.ConfigFFT.db = True
 c.ConfigFFT.enable = True
 c.ConfigFFT.method = 'fft_brainflow'
-c.ConfigFFT.nfft = 512
+c.ConfigFFT.nfft = 256
 c.ConfigFFT.smooth_factor = 0.92
 c.ConfigFFT.window_type = 'Hamming'
 
@@ -67,13 +67,13 @@ c.ConfigFFT.window_type = 'Hamming'
 #------------------------------------------------------------------------------
 c.ConfigViewFreqs.freqs_range = [0.0, 60.0]
 c.ConfigViewFreqs.type = 'FFT_DB'
-c.ConfigViewFreqs.y_max = 40.0
-c.ConfigViewFreqs.y_min = -66.0
+c.ConfigViewFreqs.y_max = 20.0
+c.ConfigViewFreqs.y_min = -16.0
 
 #------------------------------------------------------------------------------
 # ConfigViewTime configuration
 #------------------------------------------------------------------------------
-c.ConfigViewTime.amplitude = 1000.0
+c.ConfigViewTime.amplitude = 50.0
 c.ConfigViewTime.interval = 50.0
 c.ConfigViewTime.seconds = 5
 
@@ -86,11 +86,11 @@ c.ConfigRecorder.record_raw = False
 #------------------------------------------------------------------------------
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
-c.ConfigPSD.cut_seconds = 3
+c.ConfigPSD.cut_seconds = 2
 c.ConfigPSD.db = False
 c.ConfigPSD.enable = False
 c.ConfigPSD.method = 'psd_welch_scipy'
-c.ConfigPSD.nperseg = 512
+c.ConfigPSD.nperseg = 256
 c.ConfigPSD.overlap_ratio = 0.5
 c.ConfigPSD.window_type = 'Hann'
 
