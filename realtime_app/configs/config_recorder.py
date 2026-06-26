@@ -3,8 +3,6 @@ from traitlets import Bool, Unicode
 
 class ConfigRecorder(Configurable):
     """Recorder configuration."""
-    record_raw = Bool(False, help="Record raw signal.").tag(config=True)
-    record_processed = Bool(False, help="Record processed signal.").tag(config=True)
 
     enable = Bool(False, help="Enable recorder.").tag(config=True)
     recordings_dir = Unicode("./recordings", help="Directory to save recordings.").tag(config=True)

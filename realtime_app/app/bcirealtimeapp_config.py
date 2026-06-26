@@ -84,8 +84,6 @@ c.ConfigRecorder.date_format = '%Y_%m_%d_%H_%M_%S'
 c.ConfigRecorder.enable = True
 c.ConfigRecorder.master_device = 'synthetic'
 c.ConfigRecorder.prefix = 'recording'
-c.ConfigRecorder.record_processed = False
-c.ConfigRecorder.record_raw = False
 c.ConfigRecorder.recordings_dir = './recordings'
 c.ConfigRecorder.suffix = 'csv'
 
