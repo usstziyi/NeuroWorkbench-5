@@ -3,10 +3,10 @@ from traitlets import Bool, Unicode
 
 class ConfigRecorder(Configurable):
     """Recorder configuration."""
-
+    # 是否启用记录器
     enable = Bool(False, help="Enable recorder.").tag(config=True)
+    # 记录文件保存目录
     recordings_dir = Unicode("./recordings", help="Directory to save recordings.").tag(config=True)
-
     # 文件名前缀
     prefix = Unicode("recording", help="Prefix for recording files.").tag(config=True)
     # 主设备
