@@ -6,9 +6,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QDoubleSpinBox, QFormLayout,
+    QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, QFormLayout,
     QGroupBox, QHBoxLayout, QLineEdit, QMessageBox,
-    QPushButton, QSizePolicy, QSpinBox, QVBoxLayout,
+    QPushButton, QSizePolicy, QSpinBox, QToolButton, QVBoxLayout,
     QWidget
 )
 
@@ -17,7 +17,7 @@ from view.dialog_ui_settings import DialogUiSettings
 from superqt import (
     QLabeledSlider, QRangeSlider, QEnumComboBox,
     QCollapsible, QToggleSwitch, QElidingLabel,
-    QSearchableComboBox,
+    QElidingLabel
 )
 
 from serial.tools.list_ports import comports
@@ -108,7 +108,7 @@ class ControlPanelWidget(QWidget):
         time_domain_group = self.build_time_domain_group()
         filter_group = self.build_filter_group()
         freqs_domain_group = self.build_freqs_domain_group()
-        recorder_group = self.build_recorder_group()
+        playback_group = self.build_playback_group()
 
         main_layout.addWidget(device_group)
         main_layout.addWidget(capture_group)
@@ -116,7 +116,7 @@ class ControlPanelWidget(QWidget):
         main_layout.addWidget(filter_group)
         main_layout.addWidget(freqs_domain_group)
         main_layout.addStretch(1)
-        main_layout.addWidget(recorder_group)
+        main_layout.addWidget(playback_group)
 
         
     
@@ -248,20 +248,46 @@ class ControlPanelWidget(QWidget):
         self.y_min.setSuffix(suffix)
         self.y_max.setSuffix(suffix)
 
-    def build_recorder_group(self):
-        recorder_group = QGroupBox("信号录制")
-        recorder_layout = QFormLayout(recorder_group)
-        self.record_original_signal = QToggleSwitch()
-        self.record_processed_signal = QToggleSwitch()
-        self.recorder_button = QPushButton("▶ 开始录制")
-        self.recorder_button.setCheckable(True)
-        self.recorder_button.setStyleSheet(self.toggle_btn_style("#e53935", "#4a90d9"))
-        recorder_layout.addRow("原始信号:", self.record_original_signal)
-        recorder_layout.addRow("实时信号:", self.record_processed_signal)
-        recorder_layout.addRow(self.recorder_button)
-        return recorder_group
 
-    
+    def build_playback_group(self):
+        playback_group = QGroupBox("录制回放")
+        playback_layout = QFormLayout(playback_group)
+        self.master_device_combo = QEnumComboBox(enum_class=DeviceName)
+        playback_layout.addRow("主设备:", self.master_device_combo)
+        self.recordings_path_label = QElidingLabel()
+        self.recordings_path_label.setText("未选择文件")
+        self.recordings_path_label.setStyleSheet("color: #888;")
+        self.recordings_path_label.setElideMode(Qt.TextElideMode.ElideLeft)
+        self.recordings_path_label.setWordWrap(False)
+        choose_btn = QToolButton()
+        choose_btn.setText("...")
+        choose_btn.clicked.connect(self._on_choose_file)
+        file_row = QHBoxLayout()
+        file_row.addWidget(self.recordings_path_label)
+        file_row.addWidget(choose_btn)
+        playback_layout.addRow(file_row)
+
+
+        self.start_playback_btn = QPushButton("Start")
+        self.stop_playback_btn = QPushButton("Stop")
+        self.stop_playback_btn.setStyleSheet(self.able_btn_style("#e53935"))
+        self.start_playback_btn.setEnabled(False)
+        self.stop_playback_btn.setEnabled(False)
+        capture_btn_row = QHBoxLayout()
+        capture_btn_row.addWidget(self.start_playback_btn)
+        capture_btn_row.addWidget(self.stop_playback_btn)
+        playback_layout.addRow(capture_btn_row)
+        return playback_group
+
+    def _on_choose_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "选择 CSV 文件", "", "CSV 文件 (*.csv)"
+        )
+        if file_path:
+            self.recordings_path_label.setText(file_path)
+            self.recordings_path_label.setStyleSheet("")
+            self.recordings_path_label.setToolTip(file_path)
+
     def able_btn_style(self, color):
         return f"""
             QPushButton:!disabled {{
@@ -407,27 +433,16 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: int(v),
             )
 
-        # --- Recorder ---
-        if self._binder_recorder:
-            self._binder_recorder.bind(
-                "record_raw",
-                self.record_original_signal,
-                widget_property="checked",
-                widget_signal="toggled",
-            )
-            self._binder_recorder.bind(
-                "record_processed",
-                self.record_processed_signal,
-                widget_property="checked",
-                widget_signal="toggled",
-            )
+        # --- Playback ---
+
     
     def connect_signals(self):
         self.connect_btn.clicked.connect(self.on_connect)
         self.disconnect_btn.clicked.connect(self.on_disconnect)
         self.start_btn.clicked.connect(self.on_start)
         self.stop_btn.clicked.connect(self.on_stop)
-        self.recorder_button.clicked.connect(self.record)
+        self.start_playback_btn.clicked.connect(self.on_start_playback)
+        self.stop_playback_btn.clicked.connect(self.on_stop_playback)
 
     def observe_configs(self):
         if self._binder_device is None:
@@ -512,7 +527,10 @@ class ControlPanelWidget(QWidget):
             return
         self._device_manager.stop_stream()
 
-    def record(self):
+    def on_start_playback(self):
+        pass
+
+    def on_stop_playback(self):
         pass
 
     

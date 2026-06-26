@@ -15,7 +15,7 @@ datasets/
 
 # outputs
 output/
-recording/
+recordings/
 
 # macos
 .DS_Store
