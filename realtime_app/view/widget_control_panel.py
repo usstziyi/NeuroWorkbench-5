@@ -434,6 +434,15 @@ class ControlPanelWidget(QWidget):
             )
 
         # --- Playback ---
+        if self._binder_recorder:
+            self._binder_recorder.bind(
+                "master_device",
+                self.master_device_combo,
+                widget_property="currentEnum",
+                widget_signal="currentEnumChanged",
+                to_widget_func=lambda v: DeviceName(v),
+                from_widget_func=lambda v: v.value,
+            )
 
     
     def connect_signals(self):

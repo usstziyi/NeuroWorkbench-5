@@ -1,2 +1,2 @@
 from .window_state import WindowStateManager, save_window_state, restore_window_state
-from .make_container import make_combo_switch, make_double_spinbox_switch
+from .make_container import make_combo_switch, make_double_spinbox_switch, make_dir_choice, make_filepath_choice

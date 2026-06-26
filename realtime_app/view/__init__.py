@@ -8,3 +8,4 @@ from .widget_band_power import BandPowerWidget
 from .widget_head_plot import HeadPlotWidget
 from .dialog_settings_data_chain import DialogSettingsDataChain
 from .widget_settings_fetcher import WidgetSettingsFetcher
+from .widget_settings_recorder import WidgetSettingsRecorder

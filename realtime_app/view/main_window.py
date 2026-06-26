@@ -192,6 +192,7 @@ class MainWindow(QMainWindow):
                                           binder_fft=self._binder_fft,
                                           binder_psd=self._binder_psd,
                                           binder_spectrogram=self._binder_spectrogram,
+                                          binder_recorder=self._binder_recorder,
                                           parent=self)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()

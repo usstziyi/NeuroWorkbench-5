@@ -74,10 +74,12 @@ class ConfigBinder:
 
         # 第二步：连接信号 (widget -> model)
         # 当用户操作控件 → 控件发出信号 → _on_widget_change 被调用
-        # 动态获取信号对象
-        signal = getattr(widget, widget_signal)
-        signal_handler = lambda v: self._on_widget_change(trait_name, v, from_widget_func)
-        signal.connect(signal_handler)
+        signal = None
+        signal_handler = None
+        if widget_signal is not None:
+            signal = getattr(widget, widget_signal)
+            signal_handler = lambda v: self._on_widget_change(trait_name, v, from_widget_func)
+            signal.connect(signal_handler)
 
         # 第三步：注册 observe (model -> widget)
         # 当 traitlets 模型的属性值发生变化时，自动更新 UI 控件
