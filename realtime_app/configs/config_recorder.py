@@ -13,7 +13,8 @@ class ConfigRecorder(Configurable):
     date_format = Unicode("%Y_%m_%d_%H_%M_%S", help="Date format for recording files.").tag(config=True)
     # 后缀名csv
     suffix = Unicode(".csv", help="Suffix for recording files.").tag(config=True)
-
-
     # 实验名称
     exp_name = Unicode("expname", help="Experiment name for recording.").tag(config=False)
+
+    # 回放开关
+    playback = Bool(False, help="Enable playback.").tag(config=True)

@@ -81,7 +81,8 @@ c.ConfigViewTime.seconds = 5
 # ConfigRecorder configuration
 #------------------------------------------------------------------------------
 c.ConfigRecorder.date_format = '%Y_%m_%d_%H_%M_%S'
-c.ConfigRecorder.enable = True
+c.ConfigRecorder.enable = False
+c.ConfigRecorder.playback = False
 c.ConfigRecorder.prefix = 'recording'
 c.ConfigRecorder.recordings_dir = './recordings'
 c.ConfigRecorder.suffix = '.csv'

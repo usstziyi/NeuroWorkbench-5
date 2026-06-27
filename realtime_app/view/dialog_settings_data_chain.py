@@ -53,7 +53,7 @@ class DialogSettingsDataChain(QDialog):
             ("傅里叶变换",   partial(WidgetSettingsFFT, binder_fft=self._binder_fft)),
             ("功率谱密度",   partial(WidgetSettingsPSD, binder_psd=self._binder_psd)),
             ("频谱图参数",   partial(WidgetSettingsSpectrogram, binder_spectrogram=self._binder_spectrogram)),
-            ("录制器参数",   partial(WidgetSettingsRecorder, binder_recorder=self._binder_recorder)),
+            ("录制与回放",   partial(WidgetSettingsRecorder, binder_recorder=self._binder_recorder)),
         ]
 
         self._nav_list = QListWidget()

@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QVBoxLayout, QFormLayout, QWidget,
-    QFileDialog, QLabel
+    QFileDialog, QLabel, QGroupBox
 )
 
 from enum import StrEnum
@@ -21,9 +21,6 @@ class WidgetSettingsRecorder(QWidget):
         super().__init__(parent)
         self._binder_recorder = binder_recorder
         
-
-
-
         self._init_ui()
         self._binder_configs()
         self.destroyed.connect(self.unbinder_configs)
@@ -32,7 +29,10 @@ class WidgetSettingsRecorder(QWidget):
         main_layout = QVBoxLayout()
         self.setLayout(main_layout)
 
-        form_layout = QFormLayout()
+        groupbox_recorder = QGroupBox("录制")
+        main_layout.addWidget(groupbox_recorder)
+
+        form_layout = QFormLayout(groupbox_recorder)
         self._recorder_switch = QToggleSwitch("下次采集生效")
         form_layout.addRow("录制开关:", self._recorder_switch)
 
@@ -41,7 +41,7 @@ class WidgetSettingsRecorder(QWidget):
         self._btn_recording_dir.clicked.connect(self._on_btn_recording_dir_clicked)
 
         self._recording_prefix = QLabel()
-        form_layout.addRow("文件名前缀:", self._recording_prefix)
+        form_layout.addRow("文件前缀:", self._recording_prefix)
         self._recording_date_format = QLabel()
         form_layout.addRow("日期格式:", self._recording_date_format)
         self._exp_name = QLabel()
@@ -49,7 +49,12 @@ class WidgetSettingsRecorder(QWidget):
         self._recording_suffix = QLabel()
         form_layout.addRow("后缀名:", self._recording_suffix)
 
+        groupbox_playback = QGroupBox("回放")
+        main_layout.addWidget(groupbox_playback)
 
+        form_layout = QFormLayout(groupbox_playback)
+        self._playback_switch = QToggleSwitch()
+        form_layout.addRow("回放开关:", self._playback_switch)
 
         
         main_layout.addLayout(form_layout)
@@ -99,6 +104,14 @@ class WidgetSettingsRecorder(QWidget):
             self._recording_suffix,
             widget_signal=None,
         )
+        b.bind(
+            "playback",
+            self._playback_switch,
+            widget_property="checked",
+            widget_signal="toggled",
+        )
+
+
 
             
 
@@ -112,3 +125,4 @@ class WidgetSettingsRecorder(QWidget):
         b.unbind("date_format")
         b.unbind("exp_name")
         b.unbind("suffix")
+        b.unbind("playback")

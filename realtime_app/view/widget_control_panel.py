@@ -125,6 +125,7 @@ class ControlPanelWidget(QWidget):
         device_layout = QFormLayout(device_group)
         self.device_combo = QEnumComboBox(enum_class=DeviceName)
         self.port_combo = PortComboBox()
+        self.playback_switch = QToggleSwitch()
         self.connect_btn = QPushButton("Connect")
         self.disconnect_btn = QPushButton("Disconnect")
         self.disconnect_btn.setEnabled(False)
@@ -133,6 +134,7 @@ class ControlPanelWidget(QWidget):
         btn_row.addWidget(self.disconnect_btn)
         device_layout.addRow("名称:", self.device_combo)
         device_layout.addRow("串口:", self.port_combo)
+        device_layout.addRow("回放:", self.playback_switch)
         device_layout.addRow(btn_row)
         return device_group
         
@@ -268,8 +270,6 @@ class ControlPanelWidget(QWidget):
         self.start_playback_btn = QPushButton("Start")
         self.stop_playback_btn = QPushButton("Stop")
         self.stop_playback_btn.setStyleSheet(self.able_btn_style("#e53935"))
-        self.start_playback_btn.setEnabled(False)
-        self.stop_playback_btn.setEnabled(False)
         capture_btn_row = QHBoxLayout()
         capture_btn_row.addWidget(self.start_playback_btn)
         capture_btn_row.addWidget(self.stop_playback_btn)
@@ -330,6 +330,7 @@ class ControlPanelWidget(QWidget):
                 widget_property="currentText",
                 widget_signal="currentTextChanged",
             )
+
 
         # --- Detrend ---
         if self._binder_detrend:
@@ -430,7 +431,7 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: int(v),
             )
 
-        # --- Recorder ---
+        # --- Recorder and playback ---
         if self._binder_recorder:
             self._binder_recorder.bind(
                 "enable",
@@ -438,7 +439,13 @@ class ControlPanelWidget(QWidget):
                 widget_property="checked",
                 widget_signal="toggled",
             )
-        # --- Playback ---
+            self._binder_recorder.bind(
+                "playback",
+                self.playback_switch,
+                widget_property="checked",
+                widget_signal="toggled",
+            )
+
 
 
     
@@ -447,8 +454,6 @@ class ControlPanelWidget(QWidget):
         self.disconnect_btn.clicked.connect(self.on_disconnect)
         self.start_btn.clicked.connect(self.on_start)
         self.stop_btn.clicked.connect(self.on_stop)
-        self.start_playback_btn.clicked.connect(self.on_start_playback)
-        self.stop_playback_btn.clicked.connect(self.on_stop_playback)
 
     def observe_configs(self):
         if self._binder_device is None:
@@ -456,7 +461,7 @@ class ControlPanelWidget(QWidget):
         self._device_model = self._binder_device.model
         self._device_model.observe(
             self.on_device_state_changed,
-            names=["is_connected", "is_streaming", "error_message"],
+            names=["is_connected", "is_streaming", "playback", "error_message"],
         )
 
 
@@ -513,12 +518,25 @@ class ControlPanelWidget(QWidget):
         self.start_btn.setEnabled(connected and not streaming)
         self.stop_btn.setEnabled(connected and streaming)
 
+    def update_playback_buttons(self, is_playingback: bool):
+        self.start_playback_btn.setEnabled(not is_playingback)
+        self.stop_playback_btn.setEnabled(is_playingback)
+
     def on_connect(self):
         if not self._device_manager:
             return
         name = self._binder_device.get("name")
         port = self._binder_device.get("port")
-        self._device_manager.connect(name, port)
+        playback_file = None
+        if self.playback_switch.isChecked():
+            # 弹出文件选择对话框，要求用户选择要回放的文件
+            playback_file, _ = QFileDialog.getOpenFileName(
+                self, "选择回放 CSV 文件", "", "CSV 文件 (*.csv)"
+            )
+            if playback_file:
+                self._device_manager.connect(name, port, playback_file)
+        else:
+            self._device_manager.connect(name, port)
 
     def on_disconnect(self):
         if not self._device_manager:
@@ -528,28 +546,23 @@ class ControlPanelWidget(QWidget):
     def on_start(self):
         if not self._device_manager:
             return
-        # 弹出输入对话框，要求用户输入本轮实验名称
-        dialog = QInputDialog(self)
-        dialog.setWindowTitle("实验名称")
-        dialog.setLabelText("请输入本轮实验名称：")
-        dialog.setTextValue(self._binder_recorder.model.exp_name)
-        dialog.resize(300, 300)
-        ok = dialog.exec() == QInputDialog.Accepted
-        exp_name = dialog.textValue()
-        dialog.deleteLater()
-        if ok and exp_name:
-            self._binder_recorder.model.exp_name = exp_name
+        if self.record_switch.isChecked():
+            # 弹出输入对话框，要求用户输入本轮实验名称
+            dialog = QInputDialog(self)
+            dialog.setWindowTitle("实验名称")
+            dialog.setLabelText("请输入本轮实验名称：")
+            dialog.setTextValue(self._binder_recorder.model.exp_name)
+            dialog.resize(300, 300)
+            ok = dialog.exec() == QInputDialog.Accepted
+            exp_name = dialog.textValue()
+            dialog.deleteLater()
+            if ok and exp_name:
+                self._binder_recorder.model.exp_name = exp_name
         self._device_manager.start_stream()
 
     def on_stop(self):
         if not self._device_manager:
             return
         self._device_manager.stop_stream()
-
-    def on_start_playback(self):
-        pass
-
-    def on_stop_playback(self):
-        pass
 
     

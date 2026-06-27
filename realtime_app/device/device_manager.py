@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 
@@ -18,6 +19,7 @@ class DeviceManager:
     """Encapsulates BoardShim hardware I/O.
 
     View layer calls connect / disconnect / start_stream / stop_stream.
+    playback: start_playback / stop_playback.
     This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
@@ -34,12 +36,13 @@ class DeviceManager:
     # Public API
     # ------------------------------------------------------------------
 
-    def connect(self, name: str, port: str = ""):
+    def connect(self, name: str, port: str = "", playback_file: str | None = None):
         """Connect to the device specified by *name* (e.g. 'synthetic', 'cyton').
 
         Args:
             name: Device name matching a key in _NAME_TO_BOARD.
             port: Serial port string (empty for synthetic board).
+            playback_file: File path to playback (None for normal mode).
         """
         if self._config_device is None:
             return
@@ -53,14 +56,28 @@ class DeviceManager:
 
         params = BrainFlowInputParams()
         params.timeout = 1000  # ms, 0 = no timeout
+
         if port:
             params.serial_port = port
         # params.other_info = str(sampling_rate)
 
         board = None
         try:
-            board = BoardShim(board_id, params)
+            if playback_file is not None:
+                params.file = playback_file
+                # 从文件名提取设备名: recording_{device}_{timestamp}[_{exp_name}].csv
+                file_stem = Path(playback_file).stem
+                parts = file_stem.split("_", 1)  # ["recording", "device_..."]
+                if len(parts) >= 2:
+                    device_name = parts[1].split("_")[0]
+                    params.master_board = _NAME_TO_BOARD.get(device_name, board_id)
+                    board_id = params.master_board
+                board = BoardShim(BoardIds.PLAYBACK_FILE_BOARD, params)
+            else:
+                board = BoardShim(board_id, params)
             board.prepare_session()
+            if playback_file is not None:
+                board.config_board("loopback_true")
         except Exception as e:
             print(f"[dm]Failed to connect to {name}: {e}")
             if board is not None:
@@ -117,7 +134,6 @@ class DeviceManager:
         try:
             if self.enable_recording:
                 self._streamer_params = self.recordings_dir
-                print(f"[dm]recordings_dir: {self.recordings_dir}")
                 self._board.add_streamer(self._streamer_params)
             if buffer_size is None:
                 self._board.start_stream()
