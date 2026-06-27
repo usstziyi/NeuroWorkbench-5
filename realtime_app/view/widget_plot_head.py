@@ -7,7 +7,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-class HeadPlotWidget(QWidget):
+class PlotHeadPlotWidget(QWidget):
+    """绘制头图 Widget。"""
     def __init__(self, parent=None):
         super().__init__(parent)
 

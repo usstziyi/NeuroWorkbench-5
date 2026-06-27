@@ -35,9 +35,9 @@ from view.widget_properties import PropertiesWidget
 from view.dialog_ui_settings import DialogUiSettings
 from view.dialog_channel_choose import DialogChannelChoose
 from view.dialog_device_info import DialogDeviceInfo
-from view.dialog_fft_settings import DialogFftSettings
-from view.widget_band_power import BandPowerWidget
-from view.widget_head_plot import HeadPlotWidget
+from view.widget_plot_bandpower import PlotBandPowerWidget
+from view.widget_plot_spectrogram import PlotSpectrogramWidget
+from view.widget_plot_head import PlotHeadPlotWidget
 from view.dialog_settings_data_chain import DialogSettingsDataChain
 
 

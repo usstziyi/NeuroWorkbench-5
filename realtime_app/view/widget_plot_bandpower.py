@@ -7,7 +7,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-class BandPowerWidget(QWidget):
+class PlotBandPowerWidget(QWidget):
+    """绘制频谱功率 Widget。"""
     def __init__(self, parent=None):
         super().__init__(parent)
 

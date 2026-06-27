@@ -3,9 +3,9 @@ from .dialog_ui_settings import DialogUiSettings
 from .widget_control_panel import ControlPanelWidget
 from .dialog_channel_choose import DialogChannelChoose
 from .dialog_device_info import DialogDeviceInfo
-from .widget_spectrogram import SpectrogramWidget
-from .widget_band_power import BandPowerWidget
-from .widget_head_plot import HeadPlotWidget
+from .widget_plot_spectrogram import PlotSpectrogramWidget
+from .widget_plot_bandpower import PlotBandPowerWidget
+from .widget_plot_head import PlotHeadPlotWidget
 from .dialog_settings_data_chain import DialogSettingsDataChain
 from .widget_settings_fetcher import WidgetSettingsFetcher
 from .widget_settings_recorder import WidgetSettingsRecorder

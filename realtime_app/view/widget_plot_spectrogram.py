@@ -17,8 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-class SpectrogramWidget(QWidget):
-    """时频图 Widget。
+class PlotSpectrogramWidget(QWidget):
+    """绘制时频图 Widget。
 
     通过 set_data(image, freqs, time_span) 更新显示。
     image 形状为 (n_time, n_freqs)，值为线性幅度。

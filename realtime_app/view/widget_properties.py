@@ -6,9 +6,9 @@ from PySide6.QtWidgets import (
     QLabel,
 )
 
-from view.widget_spectrogram import SpectrogramWidget
-from view.widget_band_power import BandPowerWidget
-from view.widget_head_plot import HeadPlotWidget
+from view.widget_plot_spectrogram import PlotSpectrogramWidget
+from view.widget_plot_bandpower import PlotBandPowerWidget
+from view.widget_plot_head import PlotHeadPlotWidget
 
 
 class PropertiesWidget(QWidget):
@@ -30,17 +30,17 @@ class PropertiesWidget(QWidget):
         splitter.setStyleSheet("QSplitter::handle { width: 2px; height: 2px; image: none; }")
 
         # 上部：头图
-        self._head_plot = HeadPlotWidget(parent=self)
+        self._head_plot = PlotHeadPlotWidget(parent=self)
         splitter.addWidget(self._head_plot)
  
 
         # 中间：频谱功率
-        self._band_power = BandPowerWidget(parent=self)
+        self._band_power = PlotBandPowerWidget(parent=self)
         splitter.addWidget(self._band_power)
 
 
         # 下部：时频图
-        self._spectrogram = SpectrogramWidget(
+        self._spectrogram = PlotSpectrogramWidget(
             config_theme=self._config_theme,
             config_view_freqs=self._config_view_freqs,
             parent=self,
@@ -51,6 +51,6 @@ class PropertiesWidget(QWidget):
         layout.addWidget(splitter)
 
     @property
-    def spectrogram(self) -> SpectrogramWidget:
+    def spectrogram(self) -> PlotSpectrogramWidget:
         """供外部访问时频图 widget。"""
         return self._spectrogram
