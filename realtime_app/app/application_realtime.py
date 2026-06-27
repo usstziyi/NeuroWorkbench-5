@@ -16,6 +16,10 @@ from configs.config_spectrogram import ConfigSpectrogram
 from configs.config_theme import ConfigTheme
 from configs.config_recorder import ConfigRecorder
 from configs.config_psd import ConfigPSD
+from configs.config_picture import ConfigPicture
+
+
+
 from device import DeviceManager
 from view.main_window import MainWindow
 
@@ -40,6 +44,7 @@ class BCIRealtimeApp(Application):
         ConfigRecorder,
         ConfigPSD,
         ConfigSpectrogram,
+        ConfigPicture,
     ]
 
     def initialize(self, argv=None):
@@ -60,6 +65,7 @@ class BCIRealtimeApp(Application):
         self.config_fetcher = ConfigFetcher(config=self.config)
         self.config_fft = ConfigFFT(config=self.config)
         self.config_spectrogram = ConfigSpectrogram(config=self.config)
+        self.config_picture = ConfigPicture(config=self.config)
 
 
         binder_theme = ConfigBinder(self.config_theme)
@@ -73,6 +79,7 @@ class BCIRealtimeApp(Application):
         binder_fetcher = ConfigBinder(self.config_fetcher)
         binder_fft = ConfigBinder(self.config_fft)
         binder_spectrogram = ConfigBinder(self.config_spectrogram)
+        binder_picture = ConfigBinder(self.config_picture)
 
         self.apply_theme(self.config_theme.theme, self.config_theme.color_mode)
         self.config_theme.observe(
@@ -106,6 +113,7 @@ class BCIRealtimeApp(Application):
             binder_fft=binder_fft,
             binder_spectrogram=binder_spectrogram,
             binder_fetcher=binder_fetcher,
+            binder_picture=binder_picture,
         )
         self.main_window.show()
 
@@ -124,6 +132,7 @@ class BCIRealtimeApp(Application):
             self.config_recorder,
             self.config_psd,
             self.config_spectrogram,
+            self.config_picture,
         ]
         for obj in config_objects:
             cls_name = obj.__class__.__name__

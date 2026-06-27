@@ -9,3 +9,4 @@ from .widget_plot_head import PlotHeadPlotWidget
 from .dialog_settings_data_chain import DialogSettingsDataChain
 from .widget_settings_fetcher import WidgetSettingsFetcher
 from .widget_settings_recorder import WidgetSettingsRecorder
+from .widget_settings_picture import WidgetSettingsPicture

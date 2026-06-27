@@ -108,7 +108,7 @@ class ControlPanelWidget(QWidget):
         time_domain_group = self.build_time_domain_group()
         filter_group = self.build_filter_group()
         freqs_domain_group = self.build_freqs_domain_group()
-        # playback_group = self.build_playback_group()
+        export_svg_group = self.build_export_svg_group()
 
         main_layout.addWidget(device_group)
         main_layout.addWidget(capture_group)
@@ -116,7 +116,7 @@ class ControlPanelWidget(QWidget):
         main_layout.addWidget(filter_group)
         main_layout.addWidget(freqs_domain_group)
         main_layout.addStretch(1)
-        # main_layout.addWidget(playback_group)
+        main_layout.addWidget(export_svg_group)
 
         
     
@@ -229,6 +229,14 @@ class ControlPanelWidget(QWidget):
         self._switch_freqs_type(self.type_combo.currentEnum())
 
         return freqs_domain_group
+
+    def build_export_svg_group(self):
+        export_svg_group = QGroupBox("导出图片")
+        export_svg_layout = QFormLayout(export_svg_group)
+        self.export_btn = QPushButton("导出 SVG")
+        self.export_btn.setStyleSheet(self.able_exprot_btn_style("#4CAF50"))
+        export_svg_layout.addRow(self.export_btn)
+        return export_svg_group
  
 
     def _switch_freqs_type(self, dtype):
@@ -246,40 +254,28 @@ class ControlPanelWidget(QWidget):
         self.y_max.setSuffix(suffix)
 
 
-    def build_playback_group(self):
-        playback_group = QGroupBox("录制回放")
-        playback_layout = QFormLayout(playback_group)
-        self.recordings_path_label = QElidingLabel()
-        self.recordings_path_label.setText("未选择文件")
-        self.recordings_path_label.setStyleSheet("color: #888;")
-        self.recordings_path_label.setElideMode(Qt.TextElideMode.ElideLeft)
-        self.recordings_path_label.setWordWrap(False)
-        choose_btn = QToolButton()
-        choose_btn.setText("...")
-        choose_btn.clicked.connect(self._on_choose_file)
-        file_row = QHBoxLayout()
-        file_row.addWidget(self.recordings_path_label)
-        file_row.addWidget(choose_btn)
-        playback_layout.addRow(file_row)
+    def able_exprot_btn_style(self, color):
+        """生成按钮样式表，含 normal / hover / pressed 三态。"""
+        return f"""
+            QPushButton {{
+                background: {color};
+                color: #fff;
+                border: none;
+                padding: 6px 12px;
+                border-radius: 3px;
+            }}
+            QPushButton:hover {{
+                background: #5EAF4F;
+            }}
+            QPushButton:pressed {{
+                background: #4E9041;
+            }}
+            QPushButton:disabled {{
+                background: #666;
+            }}
+        """
 
 
-        self.start_playback_btn = QPushButton("Start")
-        self.stop_playback_btn = QPushButton("Stop")
-        self.stop_playback_btn.setStyleSheet(self.able_btn_style("#e53935"))
-        capture_btn_row = QHBoxLayout()
-        capture_btn_row.addWidget(self.start_playback_btn)
-        capture_btn_row.addWidget(self.stop_playback_btn)
-        playback_layout.addRow(capture_btn_row)
-        return playback_group
-
-    def _on_choose_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "选择 CSV 文件", "", "CSV 文件 (*.csv)"
-        )
-        if file_path:
-            self.recordings_path_label.setText(file_path)
-            self.recordings_path_label.setStyleSheet("")
-            self.recordings_path_label.setToolTip(file_path)
 
     def able_btn_style(self, color):
         return f"""
@@ -290,6 +286,12 @@ class ControlPanelWidget(QWidget):
                 padding: 6px 12px;
                 border-radius: 3px;
            
+            }}
+            QPushButton:!disabled:hover {{
+                background: #F83F17;
+            }}
+            QPushButton:!disabled:pressed {{
+                background: #e53935;
             }}
         """
     def toggle_btn_style(self, on_color, off_color):
@@ -440,6 +442,7 @@ class ControlPanelWidget(QWidget):
         self.disconnect_btn.clicked.connect(self.on_disconnect)
         self.start_btn.clicked.connect(self.on_start)
         self.stop_btn.clicked.connect(self.on_stop)
+        self.export_btn.clicked.connect(self.on_export)
 
     def observe_configs(self):
         if self._binder_device is None:
@@ -447,7 +450,7 @@ class ControlPanelWidget(QWidget):
         self._device_model = self._binder_device.model
         self._device_model.observe(
             self.on_device_state_changed,
-            names=["is_connected", "is_streaming", "playback", "error_message"],
+            names=["is_connected", "is_streaming", "error_message"],
         )
 
 
@@ -550,5 +553,8 @@ class ControlPanelWidget(QWidget):
         if not self._device_manager:
             return
         self._device_manager.stop_stream()
+
+    def on_export(self):
+        pass
 
     

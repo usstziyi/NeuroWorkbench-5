@@ -9,3 +9,4 @@ from .config_theme import ConfigTheme
 from .config_recorder import ConfigRecorder
 from .config_psd import ConfigPSD
 from .config_spectrogram import ConfigSpectrogram
+from .config_picture import ConfigPicture

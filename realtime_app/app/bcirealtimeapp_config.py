@@ -48,7 +48,7 @@ c.ConfigFilter.notch_order = 2
 # ConfigDetrend configuration
 #------------------------------------------------------------------------------
 c.ConfigDetrend.detrend_type = 'constant'
-c.ConfigDetrend.enable = False
+c.ConfigDetrend.enable = True
 c.ConfigDetrend.method = 'detrend_numpy'
 
 #------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ c.ConfigRecorder.suffix = '.csv'
 #------------------------------------------------------------------------------
 c.ConfigPSD.cut_seconds = 3
 c.ConfigPSD.db = False
-c.ConfigPSD.enable = True
+c.ConfigPSD.enable = False
 c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5
@@ -103,4 +103,12 @@ c.ConfigPSD.window_type = 'Hann'
 #------------------------------------------------------------------------------
 c.ConfigSpectrogram.enable = False
 c.ConfigSpectrogram.method = 'spectrogram_brainflow'
+
+#------------------------------------------------------------------------------
+# ConfigPicture configuration
+#------------------------------------------------------------------------------
+c.ConfigPicture.date_format = '%Y_%m_%d_%H_%M_%S'
+c.ConfigPicture.export_pic_dir = './outputs'
+c.ConfigPicture.suffix = '.png'
+c.ConfigPicture.trigger = False
 

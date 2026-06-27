@@ -14,3 +14,4 @@ class ConfigViewTime(Configurable):
         },
         help="Channel name → enabled state.",
     ).tag(config=False)
+    
