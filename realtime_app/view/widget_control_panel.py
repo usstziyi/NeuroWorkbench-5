@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from pathlib import Path
+from datetime import datetime
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
@@ -77,7 +77,8 @@ class ControlPanelWidget(QWidget):
                  binder_detrend=None, binder_view_freqs=None,
                  binder_view_time=None, binder_recorder=None,
                  binder_fft=None, binder_psd=None,
-                 device_manager=None, parent=None):
+                 device_manager=None, binder_picture=None, 
+                 parent=None):
         super().__init__(parent)
         # Python 的鸭子类型特性
         self._binder_device = binder_device
@@ -88,6 +89,7 @@ class ControlPanelWidget(QWidget):
         self._binder_recorder = binder_recorder
         self._binder_fft = binder_fft
         self._binder_psd = binder_psd
+        self._binder_picture = binder_picture
         self._device_manager = device_manager
 
 
@@ -555,6 +557,12 @@ class ControlPanelWidget(QWidget):
         self._device_manager.stop_stream()
 
     def on_export(self):
-        pass
+        if not self._binder_picture:
+            return
+        export_pic_dir = self._binder_picture.model.export_pic_dir
+        date_format = self._binder_picture.model.date_format
+        timestamp = datetime.now().strftime(date_format)
+        self._binder_picture.model.export_file_prefix = f"{export_pic_dir}/{timestamp}"
+        self._binder_picture.model.trigger = True
 
     

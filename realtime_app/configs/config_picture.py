@@ -6,3 +6,5 @@ class ConfigPicture(Configurable):
     export_pic_dir = Unicode("./outputs", help="Export picture directory").tag(config=True)
     date_format = Unicode("%Y_%m_%d_%H_%M_%S", help="Date format").tag(config=True)
     suffix = Unicode(".svg", help="Export suffix").tag(config=True)
+
+    export_file_prefix = Unicode("./outputs", help="Export file prefix").tag(config=False)

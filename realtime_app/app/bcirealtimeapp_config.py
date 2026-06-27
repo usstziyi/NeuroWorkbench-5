@@ -92,7 +92,7 @@ c.ConfigRecorder.suffix = '.csv'
 #------------------------------------------------------------------------------
 c.ConfigPSD.cut_seconds = 3
 c.ConfigPSD.db = False
-c.ConfigPSD.enable = False
+c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5

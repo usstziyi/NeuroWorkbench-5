@@ -91,6 +91,7 @@ class MainWindow(QMainWindow):
         self.config_recorder = self._binder_recorder.model if self._binder_recorder else None
         self.config_psd = self._binder_psd.model if self._binder_psd else None
         self.config_fft = self._binder_fft.model if self._binder_fft else None
+        self.config_picture = self._binder_picture.model if self._binder_picture else None
 
         self.setWindowTitle(self._app_name)
 
@@ -109,6 +110,7 @@ class MainWindow(QMainWindow):
         self.center_widget = TimeDomainWidget(
             config_theme=self.config_theme,
             config_view_time=self.config_view_time,
+            config_picture=self.config_picture,
         )
         self.setCentralWidget(self.center_widget)
 
@@ -124,6 +126,7 @@ class MainWindow(QMainWindow):
             binder_recorder=self._binder_recorder,
             binder_psd=self._binder_psd,
             binder_fft=self._binder_fft,
+            binder_picture=self._binder_picture,
             device_manager=self._device_manager
         )
         self.left_dock.setWidget(left_widget)

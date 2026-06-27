@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+from pyqtgraph.exporters import ImageExporter, SVGExporter
 from PySide6.QtCore import QEvent, QObject, Qt
 from PySide6.QtWidgets import (
     QFrame,
@@ -71,10 +72,12 @@ class _ScrollBarHover(QObject):
 
 class TimeDomainWidget(QWidget):
     """Time domain widget with scrollable fixed-height plots."""
-    def __init__(self, config_theme=None, config_view_time=None, parent=None):
+    def __init__(self, config_theme=None, config_view_time=None, 
+                 config_picture=None, parent=None):
         super().__init__(parent)
         self._config_theme = config_theme
         self._config_view_time = config_view_time
+        self._config_picture = config_picture
         self.setObjectName("time_domain_widget")
 
         self._plots = {}
@@ -192,6 +195,29 @@ class TimeDomainWidget(QWidget):
         for channel, (t, y) in data.items():
             self.set_data(channel, t, y)
 
+        
+    def export_picture(self, trigger):
+        if trigger:
+            try:
+                export_file_prefix = self._config_picture.export_file_prefix
+                if self._config_picture.suffix == '.svg':
+                    try:
+                        svg_exporter = SVGExporter(self._plot_widget.scene())
+                        svg_exporter.export(export_file_prefix + "_time_view.svg")
+                    except ValueError:
+                        # 回退到 PNG 导出保底。
+                        exporter = ImageExporter(self._plot_widget.scene())
+                        exporter.parameters()["width"] = 1920
+                        exporter.export(export_file_prefix + "_time_view.png")
+                else:
+                    exporter = ImageExporter(self._plot_widget.scene())
+                    exporter.parameters()["width"] = 1920
+                    exporter.export(export_file_prefix + "_time_view.png")
+            except Exception as e:
+                print(f"Error exporting picture: {e}")
+            finally:
+                self._config_picture.trigger = False
+
 
     def observer_configs(self):
         """设置 config observe，初始值同步 + 变化监听。幂等。"""
@@ -223,6 +249,14 @@ class TimeDomainWidget(QWidget):
                 self._on_range_changed, names=["seconds", "amplitude"]
             )
 
+        if self._config_picture is not None:
+            self._on_picture_changed = lambda change: self.export_picture(
+                self._config_picture.trigger
+            )
+            self._config_picture.observe(
+                self._on_picture_changed, names=["trigger"]
+            )
+
     def unobserve_configs(self):
         """取消 config observe 注册。幂等。"""
         if self._config_theme is not None and hasattr(self, "_on_theme_changed"):
@@ -250,3 +284,12 @@ class TimeDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_range_changed
+        if self._config_picture is not None:
+            if hasattr(self, "_on_picture_changed"):
+                try:
+                    self._config_picture.unobserve(
+                        self._on_picture_changed, names=["trigger"]
+                    )
+                except RuntimeError:
+                    pass
+                del self._on_picture_changed
