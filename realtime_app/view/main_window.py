@@ -148,6 +148,7 @@ class MainWindow(QMainWindow):
         self.bottom_widget = FreqsDomainWidget(
             config_theme=self.config_theme,
             config_view_freqs=self.config_view_freqs,
+            config_picture=self.config_picture,
         )
         self.bottom_dock.setWidget(self.bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)

@@ -196,27 +196,28 @@ class TimeDomainWidget(QWidget):
             self.set_data(channel, t, y)
 
         
-    def export_picture(self, trigger):
-        if trigger:
-            try:
-                export_file_prefix = self._config_picture.export_file_prefix
-                if self._config_picture.suffix == '.svg':
-                    try:
-                        svg_exporter = SVGExporter(self._plot_widget.scene())
-                        svg_exporter.export(export_file_prefix + "_time_view.svg")
-                    except ValueError:
-                        # 回退到 PNG 导出保底。
-                        exporter = ImageExporter(self._plot_widget.scene())
-                        exporter.parameters()["width"] = 1920
-                        exporter.export(export_file_prefix + "_time_view.png")
-                else:
+    def export_picture(self, change):
+        if change.name != "trigger" or not change.new:
+            return
+        try:
+            export_file_prefix = self._config_picture.export_file_prefix
+            if self._config_picture.suffix == '.svg':
+                try:
+                    svg_exporter = SVGExporter(self._plot_widget.scene())
+                    svg_exporter.export(export_file_prefix + "_time_view.svg")
+                except ValueError:
+                    # 回退到 PNG 导出保底。
                     exporter = ImageExporter(self._plot_widget.scene())
                     exporter.parameters()["width"] = 1920
                     exporter.export(export_file_prefix + "_time_view.png")
-            except Exception as e:
-                print(f"Error exporting picture: {e}")
-            finally:
-                self._config_picture.trigger = False
+            else:
+                exporter = ImageExporter(self._plot_widget.scene())
+                exporter.parameters()["width"] = 1920
+                exporter.export(export_file_prefix + "_time_view.png")
+        except Exception as e:
+            print(f"Error exporting picture: {e}")
+        finally:
+            self._config_picture.trigger = False
 
 
     def observer_configs(self):
@@ -250,11 +251,8 @@ class TimeDomainWidget(QWidget):
             )
 
         if self._config_picture is not None:
-            self._on_picture_changed = lambda change: self.export_picture(
-                self._config_picture.trigger
-            )
             self._config_picture.observe(
-                self._on_picture_changed, names=["trigger"]
+                self.export_picture, names=["trigger"]
             )
 
     def unobserve_configs(self):
@@ -285,11 +283,9 @@ class TimeDomainWidget(QWidget):
                     pass
                 del self._on_range_changed
         if self._config_picture is not None:
-            if hasattr(self, "_on_picture_changed"):
-                try:
-                    self._config_picture.unobserve(
-                        self._on_picture_changed, names=["trigger"]
-                    )
-                except RuntimeError:
-                    pass
-                del self._on_picture_changed
+            try:
+                self._config_picture.unobserve(
+                    self.export_picture, names=["trigger"]
+                )
+            except RuntimeError:
+                pass

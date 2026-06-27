@@ -66,9 +66,9 @@ c.ConfigFFT.window_type = 'Hamming'
 # ConfigViewFreqs configuration
 #------------------------------------------------------------------------------
 c.ConfigViewFreqs.freqs_range = [0.0, 60.0]
-c.ConfigViewFreqs.type = 'PSD'
-c.ConfigViewFreqs.y_max = 100.0
-c.ConfigViewFreqs.y_min = -100.0
+c.ConfigViewFreqs.type = 'PSD_DB'
+c.ConfigViewFreqs.y_max = 40.0
+c.ConfigViewFreqs.y_min = -82.0
 
 #------------------------------------------------------------------------------
 # ConfigViewTime configuration
@@ -91,7 +91,7 @@ c.ConfigRecorder.suffix = '.csv'
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.cut_seconds = 3
-c.ConfigPSD.db = False
+c.ConfigPSD.db = True
 c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
@@ -109,6 +109,6 @@ c.ConfigSpectrogram.method = 'spectrogram_brainflow'
 #------------------------------------------------------------------------------
 c.ConfigPicture.date_format = '%Y_%m_%d_%H_%M_%S'
 c.ConfigPicture.export_pic_dir = './outputs'
-c.ConfigPicture.suffix = '.png'
+c.ConfigPicture.suffix = '.svg'
 c.ConfigPicture.trigger = False
 

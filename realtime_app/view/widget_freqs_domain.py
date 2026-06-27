@@ -1,5 +1,6 @@
 import numpy as np
 import pyqtgraph as pg
+from pyqtgraph.exporters import ImageExporter, SVGExporter
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QVBoxLayout,
@@ -34,10 +35,12 @@ CET_R3 = [
 
 class FreqsDomainWidget(QWidget):
     """Frequency domain widget."""
-    def __init__(self, config_theme=None, config_view_freqs=None, parent=None):
+    def __init__(self, config_theme=None, config_view_freqs=None, 
+                 config_picture=None, parent=None):
         super().__init__(parent)
         self._config_theme = config_theme
         self._config_view_freqs = config_view_freqs
+        self._config_picture = config_picture
         self.setObjectName("freqs_domain_widget")
 
         self._curves = {}
@@ -122,6 +125,11 @@ class FreqsDomainWidget(QWidget):
                 self._on_freqs_type_changed, names=["type"]
             )
 
+        if self._config_picture is not None:
+            self._config_picture.observe(
+                self.export_picture, names=["trigger"]
+            )
+
     def _switch_freqs_type(self, dtype):
         """Switch between PSD and FFT."""
         if dtype == "PSD":
@@ -187,6 +195,28 @@ class FreqsDomainWidget(QWidget):
             freq, amp = value
             self.set_data(channel, freq, amp)
 
+    def export_picture(self, change):
+        if change.name != "trigger" or not change.new:
+            return
+        try:
+            export_file_prefix = self._config_picture.export_file_prefix
+            if self._config_picture.suffix == '.svg':
+                try:
+                    svg_exporter = SVGExporter(self._plot_widget.scene())
+                    svg_exporter.export(export_file_prefix + "_freqs_view.svg")
+                except ValueError:
+                    exporter = ImageExporter(self._plot_widget.scene())
+                    exporter.parameters()["width"] = 1920
+                    exporter.export(export_file_prefix + "_freqs_view.png")
+            else:
+                exporter = ImageExporter(self._plot_widget.scene())
+                exporter.parameters()["width"] = 1920
+                exporter.export(export_file_prefix + "_freqs_view.png")
+        except Exception as e:
+            print(f"Error exporting picture: {e}")
+        finally:
+            self._config_picture.trigger = False
+
     def unobserve_configs(self):
         """取消 config observe 注册。幂等。"""
         if self._config_theme is not None and hasattr(self, "_on_channels_changed"):
@@ -239,4 +269,11 @@ class FreqsDomainWidget(QWidget):
                 except RuntimeError:
                     pass
                 del self._on_freqs_type_changed
+        if self._config_picture is not None:
+            try:
+                self._config_picture.unobserve(
+                    self.export_picture, names=["trigger"]
+                )
+            except RuntimeError:
+                pass
         
