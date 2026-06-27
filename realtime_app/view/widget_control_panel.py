@@ -7,7 +7,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog, QFormLayout,
-    QGroupBox, QHBoxLayout, QLineEdit, QMessageBox,
+    QGroupBox, QHBoxLayout, QInputDialog, QLineEdit, QMessageBox,
     QPushButton, QSizePolicy, QSpinBox, QToolButton, QVBoxLayout,
     QWidget
 )
@@ -139,6 +139,8 @@ class ControlPanelWidget(QWidget):
     def build_capture_group(self):
         capture_group = QGroupBox("采集流")
         capture_layout = QFormLayout(capture_group)
+        self.record_switch = QToggleSwitch()
+        capture_layout.addRow("录制:", self.record_switch)
         self.start_btn = QPushButton("Start")
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setStyleSheet(self.able_btn_style("#e53935"))
@@ -209,9 +211,6 @@ class ControlPanelWidget(QWidget):
         self.type_combo = QEnumComboBox(enum_class=FreqsDomainType)
         freqs_domain_layout.addRow("频域类型:",self.type_combo)
 
-
-
-
         self.y_max = QDoubleSpinBox()
         self.y_max.setRange(0.0, 10000.0)
         self.y_max.setSingleStep(10)
@@ -252,8 +251,6 @@ class ControlPanelWidget(QWidget):
     def build_playback_group(self):
         playback_group = QGroupBox("录制回放")
         playback_layout = QFormLayout(playback_group)
-        self.master_device_combo = QEnumComboBox(enum_class=DeviceName)
-        playback_layout.addRow("主设备:", self.master_device_combo)
         self.recordings_path_label = QElidingLabel()
         self.recordings_path_label.setText("未选择文件")
         self.recordings_path_label.setStyleSheet("color: #888;")
@@ -433,16 +430,16 @@ class ControlPanelWidget(QWidget):
                 to_widget_func=lambda v: int(v),
             )
 
-        # --- Playback ---
+        # --- Recorder ---
         if self._binder_recorder:
             self._binder_recorder.bind(
-                "master_device",
-                self.master_device_combo,
-                widget_property="currentEnum",
-                widget_signal="currentEnumChanged",
-                to_widget_func=lambda v: DeviceName(v),
-                from_widget_func=lambda v: v.value,
+                "enable",
+                self.record_switch,
+                widget_property="checked",
+                widget_signal="toggled",
             )
+        # --- Playback ---
+
 
     
     def connect_signals(self):
@@ -469,7 +466,9 @@ class ControlPanelWidget(QWidget):
         # 解绑所有 ConfigBinder（断开信号 + 取消 model.observe）
         for binder in (self._binder_device, self._binder_detrend,
                         self._binder_filter, self._binder_view_freqs,
-                        self._binder_view_time, self._binder_recorder):
+                        self._binder_view_time, self._binder_recorder,
+                        self._binder_recordings):
+            
             if binder is not None:
                 binder.unbind_all()
 
@@ -529,6 +528,17 @@ class ControlPanelWidget(QWidget):
     def on_start(self):
         if not self._device_manager:
             return
+        # 弹出输入对话框，要求用户输入本轮实验名称
+        dialog = QInputDialog(self)
+        dialog.setWindowTitle("实验名称")
+        dialog.setLabelText("请输入本轮实验名称：")
+        dialog.setTextValue(self._binder_recorder.model.exp_name)
+        dialog.resize(300, 300)
+        ok = dialog.exec() == QInputDialog.Accepted
+        exp_name = dialog.textValue()
+        dialog.deleteLater()
+        if ok and exp_name:
+            self._binder_recorder.model.exp_name = exp_name
         self._device_manager.start_stream()
 
     def on_stop(self):

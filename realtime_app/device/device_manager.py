@@ -28,7 +28,7 @@ class DeviceManager:
         self._config_recorder = config_recorder
         self._board_id = -1
         self._board: BoardShim | None = None
-        self._streamer_path: str | None = None
+        self._streamer_params: str | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -116,9 +116,9 @@ class DeviceManager:
             return
         try:
             if self.enable_recording:
-                self._streamer_path = self.recordings_dir
+                self._streamer_params = self.recordings_dir
                 print(f"[dm]recordings_dir: {self.recordings_dir}")
-                self._board.add_streamer(self._streamer_path)
+                self._board.add_streamer(self._streamer_params)
             if buffer_size is None:
                 self._board.start_stream()
             else:
@@ -128,12 +128,12 @@ class DeviceManager:
         except Exception as e:
             print(f"[dm]Failed to start stream: {e}")
             self._config_device.error_message = str(e)
-            if self._streamer_path:
+            if self._streamer_params:
                 try:
-                    self._board.delete_streamer(self._streamer_path)
+                    self._board.delete_streamer(self._streamer_params)
                 except Exception:
                     pass
-                self._streamer_path = None
+                self._streamer_params = None
 
     def stop_stream(self):
         """Stop data streaming."""
@@ -144,9 +144,9 @@ class DeviceManager:
         try:
             self._config_device.is_streaming = False
             self._board.stop_stream()
-            if self._streamer_path:
-                self._board.delete_streamer(self._streamer_path)
-                self._streamer_path = None
+            if self._streamer_params:
+                self._board.delete_streamer(self._streamer_params)
+                self._streamer_params = None
             print("[dm]Stream stopped")
         except Exception as e:
             print(f"[dm]Failed to stop stream: {e}")
@@ -174,20 +174,20 @@ class DeviceManager:
 
     @property
     def enable_recording(self) -> bool:
-        return self._config_recorder.enable and \
-               self._config_recorder.master_device == self._config_device.name
+        return self._config_recorder.enable
     @property
     def recordings_dir(self) -> str:
         """记录文件保存目录."""
         recordings_dir = self._config_recorder.recordings_dir
         prefix = self._config_recorder.prefix
-        master_device = self._config_recorder.master_device
+        device = self._config_device.name
         date_format = self._config_recorder.date_format
+        exp_name = self._config_recorder.exp_name
         suffix = self._config_recorder.suffix
         # 生成当前时间戳
         timestamp = datetime.now().strftime(date_format)
         # 拼接目录名
-        return f"file://{recordings_dir}/{prefix}_{master_device}_{timestamp}{suffix}:w"
+        return f"file://{recordings_dir}/{prefix}_{device}_{timestamp}_{exp_name}{suffix}:w"
 
     # ------------------------------------------------------------------
     # device info

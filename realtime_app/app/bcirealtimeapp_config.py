@@ -82,9 +82,8 @@ c.ConfigViewTime.seconds = 5
 #------------------------------------------------------------------------------
 c.ConfigRecorder.date_format = '%Y_%m_%d_%H_%M_%S'
 c.ConfigRecorder.enable = True
-c.ConfigRecorder.master_device = 'synthetic'
 c.ConfigRecorder.prefix = 'recording'
-c.ConfigRecorder.recordings_dir = '/Users/usst_ziyi/Programs/trae/Brain/NeuroWorkbench-5/recordings/'
+c.ConfigRecorder.recordings_dir = './recordings'
 c.ConfigRecorder.suffix = '.csv'
 
 #------------------------------------------------------------------------------

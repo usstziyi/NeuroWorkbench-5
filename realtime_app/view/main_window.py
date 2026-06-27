@@ -155,9 +155,6 @@ class MainWindow(QMainWindow):
 
         # 设备
         device_menu = menubar.addMenu("设备(&D)")
-        action = QAction("通道选择(&C)", self)
-        action.triggered.connect(self._show_channel_choose_dialog)
-        device_menu.addAction(action)
         action = QAction("设备信息(&D)", self)
         action.triggered.connect(self._show_device_info_dialog)
         device_menu.addAction(action)
@@ -167,8 +164,8 @@ class MainWindow(QMainWindow):
         action = QAction("数据链设置(&D)", self)
         action.triggered.connect(self._show_data_chain_settings_dialog)
         settings_menu.addAction(action)
-        action = QAction("FFT设置(&F)", self)
-        action.triggered.connect(self._show_fft_settings_dialog)
+        action = QAction("通道选择(&C)", self)
+        action.triggered.connect(self._show_channel_choose_dialog)
         settings_menu.addAction(action)
         settings_menu.addSeparator()
         action = QAction("外观设置(&S)", self)
@@ -197,11 +194,6 @@ class MainWindow(QMainWindow):
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
 
-
-    def _show_fft_settings_dialog(self):
-        dialog = DialogFftSettings(binder=self._binder_view_freqs, parent=self)
-        dialog.setAttribute(Qt.WA_DeleteOnClose)
-        dialog.exec()
     
     def _show_about_dialog(self):
         about_text = f"{self._app_name}\nDescription: {self._app_description}\nVersion: {self._app_version}"

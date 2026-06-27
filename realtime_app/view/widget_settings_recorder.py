@@ -33,7 +33,7 @@ class WidgetSettingsRecorder(QWidget):
         self.setLayout(main_layout)
 
         form_layout = QFormLayout()
-        self._recorder_switch = QToggleSwitch()
+        self._recorder_switch = QToggleSwitch("下次采集生效")
         form_layout.addRow("录制开关:", self._recorder_switch)
 
         w, self._line_edit_recording_dir, self._btn_recording_dir = make_dir_choice()
@@ -42,10 +42,10 @@ class WidgetSettingsRecorder(QWidget):
 
         self._recording_prefix = QLabel()
         form_layout.addRow("文件名前缀:", self._recording_prefix)
-        self._recording_master_device = QLabel()
-        form_layout.addRow("主设备名:", self._recording_master_device)
         self._recording_date_format = QLabel()
         form_layout.addRow("日期格式:", self._recording_date_format)
+        self._exp_name = QLabel()
+        form_layout.addRow("实验名称:", self._exp_name)
         self._recording_suffix = QLabel()
         form_layout.addRow("后缀名:", self._recording_suffix)
 
@@ -85,13 +85,13 @@ class WidgetSettingsRecorder(QWidget):
             widget_signal=None,
         )
         b.bind(
-            "master_device",
-            self._recording_master_device,
+            "date_format",
+            self._recording_date_format,
             widget_signal=None,
         )
         b.bind(
-            "date_format",
-            self._recording_date_format,
+            "exp_name",
+            self._exp_name,
             widget_signal=None,
         )
         b.bind(
@@ -110,4 +110,5 @@ class WidgetSettingsRecorder(QWidget):
         b.unbind("recordings_dir")
         b.unbind("prefix")
         b.unbind("date_format")
+        b.unbind("exp_name")
         b.unbind("suffix")
