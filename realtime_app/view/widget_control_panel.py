@@ -108,7 +108,7 @@ class ControlPanelWidget(QWidget):
         time_domain_group = self.build_time_domain_group()
         filter_group = self.build_filter_group()
         freqs_domain_group = self.build_freqs_domain_group()
-        playback_group = self.build_playback_group()
+        # playback_group = self.build_playback_group()
 
         main_layout.addWidget(device_group)
         main_layout.addWidget(capture_group)
@@ -116,7 +116,7 @@ class ControlPanelWidget(QWidget):
         main_layout.addWidget(filter_group)
         main_layout.addWidget(freqs_domain_group)
         main_layout.addStretch(1)
-        main_layout.addWidget(playback_group)
+        # main_layout.addWidget(playback_group)
 
         
     
@@ -155,7 +155,7 @@ class ControlPanelWidget(QWidget):
         return capture_group
 
     def build_time_domain_group(self):
-        time_domain_group = QGroupBox("时间信号")
+        time_domain_group = QGroupBox("时域信号")
         time_domain_layout = QFormLayout(time_domain_group)
         self.window_time_spin = QDoubleSpinBox()
         self.window_time_spin.setRange(5.0, 30.0)
@@ -179,10 +179,6 @@ class ControlPanelWidget(QWidget):
     def build_filter_group(self):
         filter_group = QGroupBox("预处理")
         filter_layout = QFormLayout(filter_group)
-        # detrend switch
-        self.detrend_switch = QToggleSwitch()
-        self.detrend_switch.setChecked(True)
-        filter_layout.addRow("去除漂移:",self.detrend_switch)
         # BandPass high
         self.bp_high_spin = QDoubleSpinBox()
         self.bp_high_spin.setRange(0.1, 20.0) # 真实区间
@@ -329,16 +325,6 @@ class ControlPanelWidget(QWidget):
                 self.port_combo,
                 widget_property="currentText",
                 widget_signal="currentTextChanged",
-            )
-
-
-        # --- Detrend ---
-        if self._binder_detrend:
-            self._binder_detrend.bind(
-                "enable",
-                self.detrend_switch,
-                widget_property="checked",
-                widget_signal="toggled",
             )
 
         # --- Filter ---

@@ -48,7 +48,7 @@ c.ConfigFilter.notch_order = 2
 # ConfigDetrend configuration
 #------------------------------------------------------------------------------
 c.ConfigDetrend.detrend_type = 'constant'
-c.ConfigDetrend.enable = True
+c.ConfigDetrend.enable = False
 c.ConfigDetrend.method = 'detrend_numpy'
 
 #------------------------------------------------------------------------------
