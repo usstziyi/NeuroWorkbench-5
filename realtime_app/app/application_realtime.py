@@ -92,7 +92,8 @@ class BCIRealtimeApp(Application):
             device_manager=DeviceManager(
                 config_device=self.config_device, 
                 config_view_time=self.config_view_time,
-                config_view_freqs=self.config_view_freqs
+                config_view_freqs=self.config_view_freqs,
+                config_recorder=self.config_recorder,
             ),
             binder_theme=binder_theme,
             binder_device=binder_device,

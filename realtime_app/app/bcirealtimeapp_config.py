@@ -84,15 +84,15 @@ c.ConfigRecorder.date_format = '%Y_%m_%d_%H_%M_%S'
 c.ConfigRecorder.enable = True
 c.ConfigRecorder.master_device = 'synthetic'
 c.ConfigRecorder.prefix = 'recording'
-c.ConfigRecorder.recordings_dir = './recordings'
-c.ConfigRecorder.suffix = 'csv'
+c.ConfigRecorder.recordings_dir = '/Users/usst_ziyi/Programs/trae/Brain/NeuroWorkbench-5/recordings/'
+c.ConfigRecorder.suffix = '.csv'
 
 #------------------------------------------------------------------------------
 # ConfigPSD configuration
 #------------------------------------------------------------------------------
 c.ConfigPSD.cut_seconds = 3
 c.ConfigPSD.db = False
-c.ConfigPSD.enable = False
+c.ConfigPSD.enable = True
 c.ConfigPSD.method = 'psd_brainflow'
 c.ConfigPSD.nperseg = 512
 c.ConfigPSD.overlap_ratio = 0.5

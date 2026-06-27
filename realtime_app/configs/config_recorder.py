@@ -14,4 +14,4 @@ class ConfigRecorder(Configurable):
     # 日期格式年_月_日_时_分_秒
     date_format = Unicode("%Y_%m_%d_%H_%M_%S", help="Date format for recording files.").tag(config=True)
     # 后缀名csv
-    suffix = Unicode("csv", help="Suffix for recording files.").tag(config=True)
+    suffix = Unicode(".csv", help="Suffix for recording files.").tag(config=True)

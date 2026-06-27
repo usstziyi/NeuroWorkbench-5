@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import numpy as np
 
@@ -20,13 +21,14 @@ class DeviceManager:
     This class handles all BrainFlow calls and writes state to ConfigDevice.
     """
 
-    def __init__(self, config_device=None, config_view_time=None, config_view_freqs=None):
+    def __init__(self, config_device=None, config_view_time=None, config_view_freqs=None, config_recorder=None):
         self._config_device = config_device
         self._config_view_time = config_view_time
         self._config_view_freqs = config_view_freqs
+        self._config_recorder = config_recorder
         self._board_id = -1
         self._board: BoardShim | None = None
-        self._streaming = False
+        self._streamer_path: str | None = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -71,7 +73,7 @@ class DeviceManager:
 
         self._board = board
         self._board_id = board_id
-        self._streaming = False
+        self._config_device.is_streaming = False
         self._config_device.sampling_rate = self.sampling_rate
         self._config_device.device_info = self.board_descr
         self._config_device.is_connected = True
@@ -113,16 +115,25 @@ class DeviceManager:
         if self.is_streaming:
             return
         try:
+            if self.enable_recording:
+                self._streamer_path = self.recordings_dir
+                print(f"[dm]recordings_dir: {self.recordings_dir}")
+                self._board.add_streamer(self._streamer_path)
             if buffer_size is None:
                 self._board.start_stream()
             else:
                 self._board.start_stream(buffer_size)
-            self._streaming = True
             self._config_device.is_streaming = True
             print("[dm]Stream started")
         except Exception as e:
             print(f"[dm]Failed to start stream: {e}")
             self._config_device.error_message = str(e)
+            if self._streamer_path:
+                try:
+                    self._board.delete_streamer(self._streamer_path)
+                except Exception:
+                    pass
+                self._streamer_path = None
 
     def stop_stream(self):
         """Stop data streaming."""
@@ -131,9 +142,11 @@ class DeviceManager:
         if not self.is_streaming:
             return
         try:
-            self._streaming = False
             self._config_device.is_streaming = False
             self._board.stop_stream()
+            if self._streamer_path:
+                self._board.delete_streamer(self._streamer_path)
+                self._streamer_path = None
             print("[dm]Stream stopped")
         except Exception as e:
             print(f"[dm]Failed to stop stream: {e}")
@@ -157,7 +170,24 @@ class DeviceManager:
 
     @property
     def is_streaming(self) -> bool:
-        return self._streaming
+        return self._config_device.is_streaming
+
+    @property
+    def enable_recording(self) -> bool:
+        return self._config_recorder.enable and \
+               self._config_recorder.master_device == self._config_device.name
+    @property
+    def recordings_dir(self) -> str:
+        """记录文件保存目录."""
+        recordings_dir = self._config_recorder.recordings_dir
+        prefix = self._config_recorder.prefix
+        master_device = self._config_recorder.master_device
+        date_format = self._config_recorder.date_format
+        suffix = self._config_recorder.suffix
+        # 生成当前时间戳
+        timestamp = datetime.now().strftime(date_format)
+        # 拼接目录名
+        return f"file://{recordings_dir}/{prefix}_{master_device}_{timestamp}{suffix}:w"
 
     # ------------------------------------------------------------------
     # device info
