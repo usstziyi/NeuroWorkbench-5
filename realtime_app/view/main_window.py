@@ -105,22 +105,26 @@ class MainWindow(QMainWindow):
         # 用 QProxyStyle 只改分隔条，不使用 setStyleSheet 避免触发子控件 CSS 渲染
         self.setStyle(SeparatorStyle(QCommonStyle()))
 
-        self.center_widget = TimeDomainWidget(config_theme=self.config_theme,
-                                          config_view_time=self.config_view_time)
+        self.center_widget = TimeDomainWidget(
+            config_theme=self.config_theme,
+            config_view_time=self.config_view_time,
+        )
         self.setCentralWidget(self.center_widget)
 
         self.left_dock = QDockWidget("控制面板")
         self.left_dock.setObjectName("left_dock")
         self.left_dock.setTitleBarWidget(QWidget())
-        left_widget = ControlPanelWidget(binder_device=self._binder_device,
-                                          binder_filter=self._binder_filter,
-                                          binder_detrend=self._binder_detrend,
-                                          binder_view_freqs=self._binder_view_freqs,
-                                          binder_view_time=self._binder_view_time,
-                                          binder_recorder=self._binder_recorder,
-                                          binder_psd=self._binder_psd,
-                                          binder_fft=self._binder_fft,
-                                          device_manager=self._device_manager)
+        left_widget = ControlPanelWidget(
+            binder_device=self._binder_device,
+            binder_filter=self._binder_filter,
+            binder_detrend=self._binder_detrend,
+            binder_view_freqs=self._binder_view_freqs,
+            binder_view_time=self._binder_view_time,
+            binder_recorder=self._binder_recorder,
+            binder_psd=self._binder_psd,
+            binder_fft=self._binder_fft,
+            device_manager=self._device_manager
+        )
         self.left_dock.setWidget(left_widget)
         self.addDockWidget(Qt.LeftDockWidgetArea, self.left_dock)
 
@@ -137,8 +141,10 @@ class MainWindow(QMainWindow):
         self.bottom_dock = QDockWidget("底部面板")
         self.bottom_dock.setObjectName("bottom_dock")
         self.bottom_dock.setTitleBarWidget(QWidget())
-        self.bottom_widget = FreqsDomainWidget(config_theme=self.config_theme,
-                                            config_view_freqs=self.config_view_freqs)
+        self.bottom_widget = FreqsDomainWidget(
+            config_theme=self.config_theme,
+            config_view_freqs=self.config_view_freqs,
+        )
         self.bottom_dock.setWidget(self.bottom_widget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.bottom_dock)
 
@@ -183,34 +189,48 @@ class MainWindow(QMainWindow):
         about_menu.addAction(action)
 
     def _show_data_chain_settings_dialog(self):
-        dialog = DialogSettingsDataChain(binder_fetcher=self._binder_fetcher,
-                                          binder_detrend=self._binder_detrend,
-                                          binder_filter=self._binder_filter,
-                                          binder_fft=self._binder_fft,
-                                          binder_psd=self._binder_psd,
-                                          binder_spectrogram=self._binder_spectrogram,
-                                          binder_recorder=self._binder_recorder,
-                                          parent=self)
+        dialog = DialogSettingsDataChain(
+            binder_fetcher=self._binder_fetcher,
+            binder_detrend=self._binder_detrend,
+            binder_filter=self._binder_filter,
+            binder_fft=self._binder_fft,
+            binder_psd=self._binder_psd,
+            binder_spectrogram=self._binder_spectrogram,
+            binder_recorder=self._binder_recorder,
+            parent=self
+        )
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
 
     
     def _show_about_dialog(self):
-        about_text = f"{self._app_name}\nDescription: {self._app_description}\nVersion: {self._app_version}"
+        about_text = f"{self._app_name}\n"
+        about_text += f"Description: {self._app_description}\n"
+        about_text += f"Version: {self._app_version}"
         QMessageBox.about(self, "关于", about_text)
     
     def _show_ui_settings_dialog(self):
-        dialog = DialogUiSettings(binder=self._binder_theme, parent=self)
+        dialog = DialogUiSettings(
+            binder=self._binder_theme, 
+            parent=self
+        )
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     def _show_channel_choose_dialog(self):
-        dialog = DialogChannelChoose(config_view_time=self.config_view_time, config_view_freqs=self.config_view_freqs, parent=self)
+        dialog = DialogChannelChoose(
+            config_view_time=self.config_view_time, 
+            config_view_freqs=self.config_view_freqs, 
+            parent=self
+        )
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
     def _show_device_info_dialog(self):
-        dialog = DialogDeviceInfo(config_device=self.config_device, parent=self)
+        dialog = DialogDeviceInfo(
+            binder_device=self.config_device,
+            parent=self
+        )
         dialog.setAttribute(Qt.WA_DeleteOnClose)
         dialog.exec()
     
