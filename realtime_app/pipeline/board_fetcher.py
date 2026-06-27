@@ -39,8 +39,11 @@ class BoardFetcher(QObject):
             self._timer.stop()
 
     def _fetch_and_emit(self):
-        board_data = self._dm.peek_seconds(self._seconds)
-        # board_data = self._dm.get_board_data()
+        try:
+            board_data = self._dm.peek_seconds(self._seconds)
+        except RuntimeError:
+            # stream 已停止，timer 还未停，静默跳过
+            return
         if board_data.size == 0:
             return
 
